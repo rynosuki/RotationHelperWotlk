@@ -42,6 +42,7 @@ ns.RegisterClass("DEATHKNIGHT", {
     -- A spell with no cooldown and no rune cost; its cooldown is the GCD.
     gcdSpell = 49895, -- Death Coil
     usesRunes = true,
+    interrupt = "mind_freeze", -- shown by the interrupt icon
 
     specs = { blood = false, frost = true, unholy = true },
 

@@ -53,7 +53,7 @@ offline tests and has been checked in game.
   - *Check in game:* the icon changes and flashes slightly before the GCD swipe ends, and a press
     at the flash goes through. `/rh snapshot` shows the lookahead and where it came from.
 
-- [ ] **A2 Waste warnings** (S)
+- [ ] **A2 Waste warnings** (S) — *implemented in 1.4.0, waiting on the in-game check*
   - *Play:* a capped rune pair or capped runic power is lost damage. A warning while it's
     happening is more useful than a report afterwards.
   - *How:* new `Engine/Waste.lua` checks the real state:
@@ -65,7 +65,7 @@ offline tests and has been checked in game.
   - *Check in game:* let runes sit on a dummy; the pulse starts about when the pair caps and
     stops when a rune is spent.
 
-- [ ] **A3 Interrupt icon** (S–M)
+- [ ] **A3 Interrupt icon** (S–M) — *implemented in 1.4.0, waiting on the in-game check*
   - *Play:* a separate small icon appears only when the target is casting something interruptible.
     It never displaces the rotation.
   - *How:* `UI/Interrupt.lua`.

@@ -17,6 +17,7 @@ local abs = math.abs
 local MAX_ICONS = 5
 local FLASH_DURATION = 0.3
 local FLASH_ALPHA = 0.55
+local WARN_PULSE_SPEED = 5 -- radians per second
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
 local TINT_NORMAL = { 1, 1, 1 }
@@ -55,8 +56,10 @@ end
 ---------------------------------------------------------------------------
 -- Frame construction
 ---------------------------------------------------------------------------
-local function CreateButton(parent, index)
-    local b = CreateFrame("Frame", "RotationHelperButton" .. index, parent)
+-- Creates an icon button (also used by the interrupt icon). `large` picks
+-- the bigger keybind font used on the main icon.
+function Display.CreateButton(parent, name, large)
+    local b = CreateFrame("Frame", name, parent)
     b:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
     b:SetBackdropColor(0, 0, 0, 0.6)
     b:SetBackdropBorderColor(0, 0, 0, 1)
@@ -74,7 +77,7 @@ local function CreateButton(parent, index)
     b.overlay = CreateFrame("Frame", nil, b)
     b.overlay:SetAllPoints(b)
     b.overlay:SetFrameLevel(b.cooldown:GetFrameLevel() + 1)
-    b.key = b.overlay:CreateFontString(nil, "OVERLAY", index == 1 and "NumberFontNormal" or "NumberFontNormalSmall")
+    b.key = b.overlay:CreateFontString(nil, "OVERLAY", large and "NumberFontNormal" or "NumberFontNormalSmall")
     b.key:SetPoint("TOPRIGHT", -2, -3)
     b.key:SetJustifyH("RIGHT")
 
@@ -107,8 +110,18 @@ function Display:CreateFrames()
     self.frame = f
     self.buttons = {}
     for i = 1, MAX_ICONS do
-        self.buttons[i] = CreateButton(f, i)
+        self.buttons[i] = Display.CreateButton(f, "RotationHelperButton" .. i, i == 1)
     end
+
+    -- Waste warning: an orange border around the main icon that pulses.
+    local main = self.buttons[1]
+    local warn = CreateFrame("Frame", nil, main)
+    warn:SetPoint("TOPLEFT", -3, 3)
+    warn:SetPoint("BOTTOMRIGHT", 3, -3)
+    warn:SetBackdrop({ edgeFile = WHITE, edgeSize = 2 })
+    warn:SetBackdropBorderColor(1, 0.5, 0, 1)
+    warn:Hide()
+    main.warn = warn
 
     -- Toggle states under the main icon, e.g. "CD  AUTO 3".
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -127,12 +140,17 @@ function Display:CreateFrames()
 end
 
 function Display:StartFlash(b, now)
-    if self.db.pressFlash and b:IsShown() then b.flashStart = now end
+    -- Only the main icon animates its flash.
+    if b == self.buttons[1] and self.db.pressFlash and b:IsShown() then b.flashStart = now end
 end
 
--- Flashes the main icon when its predicted ready time is reached.
+-- Flashes the main icon when its predicted ready time is reached, and
+-- pulses the waste warning.
 function Display:Animate(now)
     local b = self.buttons[1]
+    if b.warn:IsShown() then
+        b.warn:SetAlpha(0.35 + 0.65 * abs(math.sin(now * WARN_PULSE_SPEED)))
+    end
     if b.readyAt and now >= b.readyAt then
         b.readyAt = nil
         self:StartFlash(b, now)
@@ -294,6 +312,8 @@ function Display:Refresh()
     local showLabel = not self.db.locked
     if showLabel then self.frame.label:Show() else self.frame.label:Hide() end
     if showError then self.frame.errorMark:Show() else self.frame.errorMark:Hide() end
+    local waste = RH.waste
+    if waste and waste.any and entries then self.buttons[1].warn:Show() else self.buttons[1].warn:Hide() end
     self:UpdateStatus()
     self.frame:Show()
 end
@@ -317,6 +337,9 @@ function Display:UpdateStatus()
     elseif enemies > 1 then
         text = text .. "  " .. enemies
     end
+    local waste = RH.waste
+    if waste and waste.runes then text = text .. "  |cffff8000RUNES|r" end
+    if waste and waste.runicPower then text = text .. "  |cffff8000RP|r" end
     if status.lastText ~= text then
         status.lastText = text
         status:SetText(text)

@@ -379,8 +379,20 @@ function Mock.NewSession(opts)
     env.UnitHealthMax = function(unit) return unit == "target" and session.target.healthMax or 0 end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
     env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
-    env.UnitCastingInfo = function() return nil end
-    env.UnitChannelInfo = function() return nil end
+    -- The target's cast/channel: session.targetCast / targetChannel =
+    -- { name, endsIn = seconds, notInterruptible }. The player never casts here.
+    env.UnitCastingInfo = function(unit)
+        local c = unit == "target" and session.targetCast
+        if not c then return nil end
+        return c.name, "", c.name, "icon", session.time * 1000, (session.time + c.endsIn) * 1000, false, 1,
+            c.notInterruptible
+    end
+    env.UnitChannelInfo = function(unit)
+        local c = unit == "target" and session.targetChannel
+        if not c then return nil end
+        return c.name, "", c.name, "icon", session.time * 1000, (session.time + c.endsIn) * 1000, false,
+            c.notInterruptible
+    end
     env.GetUnitSpeed = function() return session.speed or 0 end
 
     -- Power: runic power by default.

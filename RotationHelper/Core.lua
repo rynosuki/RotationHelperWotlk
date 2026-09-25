@@ -65,6 +65,13 @@ local defaults = {
             mode = "auto", -- auto (lag tolerance or latency) | fixed | off
             fixedMs = 100,
         },
+        waste = {
+            enabled = true,
+            runes = true,      -- a rune pair with both runes ready
+            runicPower = true, -- runic power near the maximum
+            rpDeficit = 10,    -- "near" = within this much of the maximum
+            grace = 1.5,       -- seconds a cap may last before warning
+        },
         display = {
             locked = false,
             scale = 1.0,
@@ -76,6 +83,7 @@ local defaults = {
             hideOutOfCombat = false,
             showStatus = true, -- toggle states under the main icon
             pressFlash = true, -- flash the main icon when it can be pressed
+            interrupt = true,  -- interrupt icon while the target casts something interruptible
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
     },
@@ -133,7 +141,7 @@ end
 -- Each updater runs protected: an error is recorded (see Errors below),
 -- `onError` gets a chance to clean up, and the other updaters still run.
 ---------------------------------------------------------------------------
-RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, DEFAULT = 50, DISPLAY = 100 }
+RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, DEFAULT = 50, DISPLAY = 100, INTERRUPT = 110 }
 
 local updaters = {}
 local updateFrame = CreateFrame("Frame")

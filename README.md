@@ -30,6 +30,8 @@ what's planned.
 | Cooldown swipe on the big icon | The ability isn't usable yet: GCD, cooldown or runes. Auto attack until the swipe finishes. |
 | Big icon flashes | Press it now. With latency compensation (General options) the flash comes slightly before the GCD ends, as soon as the client would queue your press. |
 | Red `!` left of the icons | The addon hit an error; see `/rh errors`. |
+| Pulsing orange border, `RUNES` / `RP` on the status line | Resources are going to waste right now: a rune pair is full, or runic power is near the cap. |
+| Small icon above the big one | Your target is casting something you can interrupt: press it (Mind Freeze). |
 | Blue icon | Waiting on runes. |
 | Red icon | Your target is out of range for it. |
 | Text in the corner | The key the ability is bound to. |

@@ -198,8 +198,35 @@ function Options:BuildOptionsTable()
                 desc = "CD / AoE mode / enemy count under the main icon." },
             pressFlash = { type = "toggle", name = "Flash when it's time to press", order = 23,
                 desc = "Briefly brighten the main icon the moment its ability can be pressed." },
+            interrupt = { type = "toggle", name = "Interrupt icon", order = 24,
+                desc = "A separate icon above the main one while your target casts something interruptible." },
         },
     }, ProfileOption("display"))
+
+    -- Waste warnings live in their own profile table.
+    local function WasteOption(option)
+        option.get = function(info) return RH.db.profile.waste[info[#info]] end
+        option.set = function(info, value) RH.db.profile.waste[info[#info]] = value end
+        if option.disabled == nil then
+            option.disabled = function() return not RH.db.profile.waste.enabled end
+        end
+        return option
+    end
+    local wasteArgs = {
+        wasteHeader = { type = "header", name = "Waste warnings", order = 30 },
+        wasteInfo = { type = "description", order = 31, fontSize = "medium",
+            name = "In combat, the main icon gets a pulsing orange border (and RUNES / RP on the status line) "
+                .. "while resources go to waste." },
+        enabled = WasteOption({ type = "toggle", name = "Enabled", order = 32, disabled = false }),
+        runes = WasteOption({ type = "toggle", name = "Capped rune pairs", order = 33,
+            desc = "Both runes of a pair ready: that pair isn't regenerating." }),
+        runicPower = WasteOption({ type = "toggle", name = "Runic power near the cap", order = 34 }),
+        rpDeficit = WasteOption({ type = "range", name = "Runic power: warn within", order = 35,
+            min = 0, max = 40, step = 5, desc = "Warn when runic power is this close to the maximum." }),
+        grace = WasteOption({ type = "range", name = "Warn after (seconds)", order = 36,
+            min = 0, max = 5, step = 0.5, desc = "How long a cap may last before warning (about one GCD by default)." }),
+    }
+    for key, option in pairs(wasteArgs) do display.args[key] = option end
 
     local rotation = {
         type = "group", name = "Rotation", order = 3,
