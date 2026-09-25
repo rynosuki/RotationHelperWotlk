@@ -18,6 +18,8 @@ local unpack, tinsert = unpack, table.insert
 local DEFAULT_WIDTH, DEFAULT_HEIGHT = 820, 660
 local MIN_WIDTH, MIN_HEIGHT = 640, 480
 local TITLE_HEIGHT = 34
+-- Space around the options area inside the window.
+local CONTENT_LEFT, CONTENT_RIGHT, CONTENT_TOP, CONTENT_BOTTOM = 10, 10, TITLE_HEIGHT + 10, 14
 local CLOSE_GLYPH = "\195\151" -- U+00D7 multiplication sign
 
 local function Flat(frame, bg, border)
@@ -107,8 +109,8 @@ function Window:Create()
     CreateResizeGrip(f)
 
     local content = CreateFrame("Frame", nil, f)
-    content:SetPoint("TOPLEFT", 10, -(TITLE_HEIGHT + 10))
-    content:SetPoint("BOTTOMRIGHT", -10, 14)
+    content:SetPoint("TOPLEFT", CONTENT_LEFT, -CONTENT_TOP)
+    content:SetPoint("BOTTOMRIGHT", -CONTENT_RIGHT, CONTENT_BOTTOM)
 
     -- Held for the window's lifetime, never released back to AceGUI.
     local container = AceGUI:Create("SimpleGroup")
@@ -121,14 +123,8 @@ function Window:Create()
     container.frame:Show()
     self.container = container
 
-    local function Resize()
-        container:SetWidth(content:GetWidth())
-        container:SetHeight(content:GetHeight())
-        container:DoLayout()
-    end
-    content:SetScript("OnSizeChanged", Resize)
-
-    f:SetScript("OnShow", Resize)
+    f:SetScript("OnSizeChanged", function() self:Resize() end)
+    f:SetScript("OnShow", function() self:Resize() end)
     f:SetScript("OnHide", function()
         -- Give the widgets back to AceGUI; releasing them undoes our styling.
         container:ReleaseChildren()
@@ -146,7 +142,18 @@ function Window:Create()
     return f
 end
 
+-- Sizes the container from the window's own size. The content frame's
+-- anchored size can't be used: right after the window is shown, 3.3.5
+-- still reports it as 0, which squashed the options into a 50px strip.
+function Window:Resize()
+    local f = self.frame
+    self.container:SetWidth(f:GetWidth() - CONTENT_LEFT - CONTENT_RIGHT)
+    self.container:SetHeight(f:GetHeight() - CONTENT_TOP - CONTENT_BOTTOM)
+    self.container:DoLayout()
+end
+
 function Window:Render()
+    self:Resize()
     LibStub("AceConfigDialog-3.0"):Open(ADDON_NAME, self.container)
     self:Style()
 end

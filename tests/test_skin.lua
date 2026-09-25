@@ -115,16 +115,19 @@ test("frames without a backdrop get none back", function()
     local scrollBG = CreateFrame("Frame", nil, frame) -- no backdrop at all
     scrollFrame:SetPoint("TOPLEFT", scrollBG, "TOPLEFT", 5, -6)
     local button = CreateFrame("Button", nil, frame)
-    local bar = CreateFrame("Slider", nil, frame)
+    local bar = CreateFrame("Slider", "MultiLineEditBox1ScrollFrameScrollBar", frame)
     bar:SetThumbTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
+    local up = CreateFrame("Button", "MultiLineEditBox1ScrollFrameScrollBarScrollUpButton", bar)
     local w = Widget("MultiLineEditBox", { frame = frame, label = label, scrollFrame = scrollFrame,
         editBox = CreateFrame("EditBox", nil, scrollFrame), button = button, scrollBar = bar })
     Skin.Apply(w)
     eq(scrollBG:GetBackdrop(), Skin.BACKDROP, "styled")
     eq(bar:GetThumbTexture():GetTexture(), nil, "flat thumb")
+    eq(up:GetAlpha(), 0, "arrow button hidden")
     w:OnRelease()
     eq(scrollBG:GetBackdrop(), nil, "no backdrop again")
     eq(bar:GetThumbTexture():GetTexture(), "Interface\\Buttons\\UI-ScrollBar-Knob", "thumb back")
+    eq(up:GetAlpha(), 1, "arrow button back")
 end)
 
 ---------------------------------------------------------------------------

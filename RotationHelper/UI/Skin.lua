@@ -164,8 +164,22 @@ end
 ---------------------------------------------------------------------------
 -- Scroll bars (UIPanelScrollBarTemplate and plain sliders)
 ---------------------------------------------------------------------------
+-- Hides a whole frame (e.g. a scroll arrow button) by alpha.
+local function FadeFrame(w, frame)
+    if not frame then return end
+    local alpha = frame:GetAlpha()
+    frame:SetAlpha(0)
+    Record(w, function() frame:SetAlpha(alpha) end)
+end
+
 local function ScrollBar(w, bar)
     if not bar then return end
+    -- The gold arrow buttons; the wheel and the thumb still scroll.
+    local name = bar:GetName()
+    if name then
+        FadeFrame(w, _G[name .. "ScrollUpButton"])
+        FadeFrame(w, _G[name .. "ScrollDownButton"])
+    end
     local thumb = bar:GetThumbTexture()
     if thumb then
         local path, width, height = thumb:GetTexture(), thumb:GetWidth(), thumb:GetHeight()

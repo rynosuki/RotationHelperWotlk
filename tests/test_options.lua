@@ -73,6 +73,21 @@ test("/rh opens our window with the options drawn into it", function()
     eq(dialog.selected, "rotation", "rotation tab")
 end)
 
+test("the options fill the window, also after resizing", function()
+    local s = newAddon()
+    StubDialog(s)
+    s:Slash("ACECONSOLE_RH", "")
+    local Window = s.ns.OptionsWindow
+    -- 820x660 window, minus 10+10 at the sides and 44 above, 14 below.
+    eq(Window.container.width, 800, "width")
+    eq(Window.container.height, 602, "height")
+    Window.frame:SetWidth(700)
+    Window.frame:SetHeight(500)
+    Window.frame.scripts.OnSizeChanged(Window.frame)
+    eq(Window.container.width, 680, "width after resize")
+    eq(Window.container.height, 442, "height after resize")
+end)
+
 test("closing the window gives the widgets back to AceGUI", function()
     local s = newAddon()
     StubDialog(s)
