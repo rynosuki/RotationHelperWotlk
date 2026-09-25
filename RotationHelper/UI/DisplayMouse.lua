@@ -65,7 +65,9 @@ function Display:ShowTooltip(b, index)
     -- '|' is an escape character in tooltips too.
     GameTooltip:AddLine((action.text:gsub("|", "||")), 1, 1, 1, true)
     GameTooltip:AddLine(Readiness(entry), 1, 1, 1)
-    if entry.usesProc then
+    if entry.procReason then
+        GameTooltip:AddLine("Recommended because of " .. AuraName(entry.procReason), 1, 0.82, 0)
+    elseif entry.usesProc then
         GameTooltip:AddLine("Spends " .. AuraName(entry.usesProc), 1, 0.82, 0)
     end
     if index > 1 then

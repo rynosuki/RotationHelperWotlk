@@ -119,12 +119,31 @@ function Recommender:Evaluate(s, trace)
     return action, readyAt, limitedBy
 end
 
+-- Whether `proc` is *why* this line was picked, not just spent by it: the
+-- line's condition would be false without it (e.g. frost_strike,if=
+-- buff.killing_machine.up), or the ability is only affordable thanks to it
+-- (Rime's free Howling Blast). Checked by hiding the proc for a moment.
+-- Returns the proc key or nil.
+local function ProcIsReason(v, action, proc, readyAt)
+    local rec = v.buffs[proc]
+    local expires, now = rec.expires, v.now
+    rec.expires = 0
+    v.now = readyAt
+    local reason = action.condition ~= nil and action.condition(v) == 0
+    if not reason and RH.classData.abilities[action.name].freeWith == proc then
+        local t = Abilities.ReadyAt(v, action.name)
+        reason = not t or t > readyAt + 0.01
+    end
+    rec.expires, v.now = expires, now
+    return reason and proc or nil
+end
+
 -- Predicts the next `count` actions from the current real state: pick an
 -- action, simulate using it on a virtual copy of the state, and repeat.
 -- Fills and returns the shared recommendations list (entries:
 -- { name, spellId, wait, lacksResources, action, limitedBy, usesProc,
--- procExpires }, wait counted from now; action is the APL line that chose
--- it), and the number of entries. `trace` collects the decision trace of the first pick.
+-- procExpires, procReason }, wait counted from now; action is the APL line
+-- that chose it), and the number of entries. `trace` collects the decision trace of the first pick.
 function Recommender:Predict(count, trace)
     local now = State.real.now
     local v = State:Virtual()
@@ -142,6 +161,7 @@ function Recommender:Predict(count, trace)
         entry.action = action
         entry.limitedBy = limitedBy
         entry.usesProc, entry.procExpires = Abilities.ProcUsed(v, action.name, readyAt)
+        entry.procReason = entry.usesProc and ProcIsReason(v, action, entry.usesProc, readyAt) or nil
         recommendations[i] = entry
         Abilities.Apply(v, action.name, readyAt)
     end

@@ -89,6 +89,7 @@ local defaults = {
             interrupt = true,  -- interrupt icon while the target casts something interruptible
             shiftInteract = true, -- Shift: tooltips on the icons, clickable CD / AoE
             procGlow = true,   -- glow on icons that spend a proc (Killing Machine, Rime)
+            procBadge = true,  -- the proc's icon in the corner when it's why an ability is recommended
             procSound = "none", -- PlaySound name for a new proc, or "none"
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },

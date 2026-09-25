@@ -33,6 +33,7 @@ what's planned.
 | Pulsing orange border, `RUNES` / `RP` on the status line | Resources are going to waste right now: a rune pair is full, or runic power is near the cap. |
 | Small icon above the big one | Your target is casting something you can interrupt: press it (Mind Freeze). |
 | Golden glow on an icon | That ability spends a proc (Killing Machine, Rime). An optional sound can play for new procs (Display options). |
+| Small proc icon in the bottom-right corner | That proc is *why* the ability is recommended now, e.g. Frost Strike because of Killing Machine, or the free Howling Blast from Rime. |
 
 Hold **Shift** over the (locked) display to hover an icon for a tooltip explaining why it's
 recommended (which rotation line, what it's waiting on), and to click `CD` or the AoE mode to

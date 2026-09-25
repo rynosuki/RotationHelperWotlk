@@ -205,6 +205,9 @@ function Options:BuildOptionsTable()
                     .. "and click CD or the AoE mode to toggle them." },
             procGlow = { type = "toggle", name = "Glow on proc abilities", order = 26,
                 desc = "Glow on icons whose ability spends Killing Machine or Rime." },
+            procBadge = { type = "toggle", name = "Proc icon in the corner", order = 26.5,
+                desc = "Show the proc's icon in the bottom-right corner when the proc is why "
+                    .. "the ability is recommended (e.g. Frost Strike because of Killing Machine)." },
             procSound = { type = "select", name = "Sound on a new proc", order = 27,
                 values = function() return ns.Display.PROC_SOUNDS end },
         },

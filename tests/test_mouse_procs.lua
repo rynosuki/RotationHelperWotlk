@@ -125,7 +125,81 @@ test("the icon spending Killing Machine glows", function()
     eq(s.env.RotationHelper.recommendations[1].name, "frost_strike", "Frost Strike")
     truthy(D.buttons[1].glow:IsShown(), "glows")
     falsy(D.buttons[2].glow:IsShown(), "the next one doesn't (KM is used up)")
-    truthy(Hover(s, 1):Text():find("Spends Killing Machine"), "tooltip says so")
+    truthy(Hover(s, 1):Text():find("Recommended because of Killing Machine"), "tooltip says why")
+end)
+
+---------------------------------------------------------------------------
+-- Proc badge: only when the proc is *why* the ability is recommended
+---------------------------------------------------------------------------
+local KM_ICON = "Interface\\Icons\\Ability_Rogue_Ambush"
+local RIME_ICON = "Interface\\Icons\\Spell_Frost_FrostShock"
+
+local function FightWithIcons()
+    local s, RH = Fight()
+    s.spells[51124] = { "Killing Machine", KM_ICON }
+    s.spells[59052] = { "Freezing Fog", RIME_ICON }
+    return s, RH
+end
+
+test("badge: Frost Strike because of Killing Machine", function()
+    local s, RH = FightWithIcons()
+    for i = 3, 6 do s.runes[i].readyAt = s.time + 5 end
+    s.power.current = 60 -- without KM, Frost Strike wouldn't come before Blood Strike
+    Buff(s, "Killing Machine", 51124, 10)
+    s:Tick(0.1)
+    local main = RH.recommendations[1]
+    eq(main.name .. "/" .. tostring(main.procReason), "frost_strike/killing_machine", "KM is the reason")
+    local badge = s.ns.Display.buttons[1].badge
+    truthy(badge:IsShown(), "badge shown")
+    eq(badge.icon:GetTexture(), KM_ICON, "Killing Machine's icon")
+end)
+
+test("badge: Rime's free Howling Blast", function()
+    local s, RH = FightWithIcons()
+    for i = 1, 6 do s.runes[i].readyAt = s.time + 5 end
+    Buff(s, "Freezing Fog", 59052, 10)
+    s:Tick(0.1)
+    eq(RH.recommendations[1].procReason, "freezing_fog", "Rime is the reason")
+    eq(s.ns.Display.buttons[1].badge.icon:GetTexture(), RIME_ICON, "Rime's icon")
+end)
+
+test("no badge when the proc is only spent along the way", function()
+    local s, RH = FightWithIcons()
+    s.auras.target = {} -- Frost Fever missing: Icy Touch is due regardless of KM
+    s:AddAura("target", { name = "Blood Plague", spellId = 55078, duration = 15, expires = s.time + 900, harmful = true })
+    Buff(s, "Killing Machine", 51124, 10)
+    s:Tick(0.1)
+    local main = RH.recommendations[1]
+    eq(main.name, "icy_touch", "Icy Touch for the disease")
+    eq(main.usesProc, "killing_machine", "it does spend KM")
+    eq(main.procReason, nil, "but KM isn't why")
+    local b = s.ns.Display.buttons[1]
+    truthy(b.glow:IsShown(), "glow: spends a proc")
+    falsy(b.badge:IsShown(), "no badge")
+    truthy(Hover(s, 1):Text():find("Spends Killing Machine"), "tooltip: spends")
+end)
+
+test("no badge when the line would pick it anyway (runic power near cap)", function()
+    local s, RH = FightWithIcons()
+    for i = 3, 6 do s.runes[i].readyAt = s.time + 5 end
+    s.power.current = 115 -- deficit 15 < 25: Frost Strike is due without KM too
+    Buff(s, "Killing Machine", 51124, 10)
+    s:Tick(0.1)
+    local main = RH.recommendations[1]
+    eq(main.name, "frost_strike", "Frost Strike")
+    eq(main.procReason, nil, "KM isn't the reason")
+    falsy(s.ns.Display.buttons[1].badge:IsShown(), "no badge")
+end)
+
+test("badge can be turned off; hiding the proc doesn't leak into the state", function()
+    local s, RH = FightWithIcons()
+    for i = 1, 6 do s.runes[i].readyAt = s.time + 5 end
+    Buff(s, "Freezing Fog", 59052, 10)
+    local expires = s.time + 10
+    RH.db.profile.display.procBadge = false
+    s:Tick(0.1)
+    falsy(s.ns.Display.buttons[1].badge:IsShown(), "off")
+    eq(s.ns.State.real.buffs.freezing_fog.expires, expires, "real proc untouched")
 end)
 
 test("free Howling Blast (Rime) glows; nothing glows without procs", function()

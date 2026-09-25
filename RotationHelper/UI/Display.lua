@@ -22,6 +22,7 @@ local WARN_PULSE_SPEED = 5 -- radians per second
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local GLOW_TEXTURE = "Interface\\Buttons\\UI-ActionButton-Border"
 local GLOW_SCALE = 1.75 -- the glow ring sits in the middle of that texture
+local BADGE_SCALE = 0.42 -- proc badge size relative to the icon
 local STATUS_HEIGHT = 14
 local CHIP_GAP = 6
 
@@ -104,6 +105,19 @@ function Display.CreateButton(parent, name, large)
     b.glow:SetPoint("CENTER", b, "CENTER")
     b.glow:Hide()
 
+    -- Proc badge: the proc's icon in the bottom-right corner when the proc
+    -- is why this ability is recommended.
+    local badge = CreateFrame("Frame", nil, b.overlay)
+    badge:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -1, 1)
+    badge:SetBackdrop({ bgFile = WHITE })
+    badge:SetBackdropColor(0, 0, 0, 1)
+    badge.icon = badge:CreateTexture(nil, "ARTWORK")
+    badge.icon:SetPoint("TOPLEFT", 1, -1)
+    badge.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    badge.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    badge:Hide()
+    b.badge = badge
+
     b:Hide()
     return b
 end
@@ -113,6 +127,8 @@ function Display.SetButtonSize(b, size)
     b:SetHeight(size)
     b.glow:SetWidth(size * GLOW_SCALE)
     b.glow:SetHeight(size * GLOW_SCALE)
+    b.badge:SetWidth(size * BADGE_SCALE)
+    b.badge:SetHeight(size * BADGE_SCALE)
 end
 
 function Display:CreateFrames()
@@ -434,11 +450,30 @@ end
 
 -- Proc glow on buttons whose ability spends a proc, and a sound once per
 -- new proc (a proc is new when its expiry time changes).
+-- The icon of a proc aura, e.g. Killing Machine's.
+local function ProcIcon(key)
+    local def = RH.classData.auras[key]
+    local id = def and (def.id or (def.ids and def.ids[1]))
+    return id and SpellInfo(id).icon
+end
+
 function Display:UpdateProcs(entries, count)
-    local glowOn = self.db.procGlow
+    local glowOn, badgeOn = self.db.procGlow, self.db.procBadge
     for i, b in ipairs(self.buttons) do
         local entry = entries and i <= count and entries[i]
-        if glowOn and entry and entry.usesProc and b:IsShown() then b.glow:Show() else b.glow:Hide() end
+        local shown = entry and b:IsShown()
+        if glowOn and shown and entry.usesProc then b.glow:Show() else b.glow:Hide() end
+        local reason = badgeOn and shown and entry.procReason
+        if reason then
+            local icon = ProcIcon(reason)
+            if b.badge.iconPath ~= icon then
+                b.badge.iconPath = icon
+                b.badge.icon:SetTexture(icon)
+            end
+            b.badge:Show()
+        else
+            b.badge:Hide()
+        end
     end
     local main = entries and entries[1]
     local sound = self.db.procSound
