@@ -275,6 +275,29 @@ test("custom rotations are per profile", function()
     eq(First(s), "obliterate", "back to the custom one")
 end)
 
+test("profiles tab: new, switch, copy and delete work", function()
+    local s, RH = newAddon()
+    local profiles = Options(s):GetOptionsTable().args.profiles
+    -- Calls an option the way AceConfigDialog does: method names on the group's handler.
+    local function Set(key, value)
+        local option = profiles.args[key]
+        local info = { "profiles", key, handler = profiles.handler, option = option, options = profiles, arg = option.arg }
+        local fn = option.set or profiles.set
+        if type(fn) == "string" then return profiles.handler[fn](profiles.handler, info, value) end
+        return fn(info, value)
+    end
+    eq(profiles.args.new.type, "input", "'New' is a text box: type a name, press Enter")
+    Set("new", "Raid")
+    eq(RH.db:GetCurrentProfile(), "Raid", "created and switched")
+    RH.db.profile.display.scale = 1.7
+    Set("choose", "Default")
+    eq(RH.db.profile.display.scale, 1, "back on Default's settings")
+    Set("copyfrom", "Raid")
+    eq(RH.db.profile.display.scale, 1.7, "copied from Raid")
+    Set("delete", "Raid")
+    eq(table.concat(RH.db:GetProfiles(), ","), "Default", "deleted")
+end)
+
 test("/rh snapshot names the active rotation", function()
     local s = Fight()
     Args(s, "rotation").text.set(nil, "actions=obliterate")
