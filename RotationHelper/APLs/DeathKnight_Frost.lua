@@ -27,7 +27,9 @@ actions+=/obliterate
 actions+=/blood_strike,if=runes.blood>=1
 actions+=/frost_strike
 actions+=/howling_blast,if=buff.freezing_fog.up
-actions+=/horn_of_winter
+# Horn only to restore the buff. When nothing is ready, the display shows the
+# next ability counting down instead of a filler.
+actions+=/horn_of_winter,if=!buff.horn_of_winter.up
 
 ## Off-GCD cooldowns
 actions.cooldowns=blood_tap,if=talent.unbreakable_armor.enabled&cooldown.unbreakable_armor.ready
@@ -45,5 +47,5 @@ actions.aoe+=/death_and_decay
 actions.aoe+=/frost_strike,if=buff.killing_machine.up|runic_power.deficit<25
 actions.aoe+=/blood_boil,if=runes.blood>=1
 actions.aoe+=/frost_strike
-actions.aoe+=/horn_of_winter
+actions.aoe+=/horn_of_winter,if=!buff.horn_of_winter.up
 ]])
