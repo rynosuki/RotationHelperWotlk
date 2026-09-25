@@ -122,8 +122,9 @@ end
 -- Predicts the next `count` actions from the current real state: pick an
 -- action, simulate using it on a virtual copy of the state, and repeat.
 -- Fills and returns the shared recommendations list (entries:
--- { name, spellId, wait, lacksResources }, wait counted from now), and the
--- number of entries. `trace` collects the decision trace of the first pick.
+-- { name, spellId, wait, lacksResources, action, limitedBy, usesProc,
+-- procExpires }, wait counted from now; action is the APL line that chose
+-- it), and the number of entries. `trace` collects the decision trace of the first pick.
 function Recommender:Predict(count, trace)
     local now = State.real.now
     local v = State:Virtual()
@@ -137,6 +138,10 @@ function Recommender:Predict(count, trace)
         entry.spellId = RH.classData.abilities[action.name].id
         entry.wait = readyAt - now
         entry.lacksResources = limitedBy == "runes"
+        -- For the tooltip (A6) and the proc glow (A7).
+        entry.action = action
+        entry.limitedBy = limitedBy
+        entry.usesProc, entry.procExpires = Abilities.ProcUsed(v, action.name, readyAt)
         recommendations[i] = entry
         Abilities.Apply(v, action.name, readyAt)
     end

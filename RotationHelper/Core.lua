@@ -87,6 +87,9 @@ local defaults = {
             showStatus = true, -- toggle states under the main icon
             pressFlash = true, -- flash the main icon when it can be pressed
             interrupt = true,  -- interrupt icon while the target casts something interruptible
+            shiftInteract = true, -- Shift: tooltips on the icons, clickable CD / AoE
+            procGlow = true,   -- glow on icons that spend a proc (Killing Machine, Rime)
+            procSound = "none", -- PlaySound name for a new proc, or "none"
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
     },

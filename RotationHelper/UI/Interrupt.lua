@@ -68,8 +68,7 @@ function Interrupt:Layout()
     b:ClearAllPoints()
     -- Above the main icon, clear of the "drag to move" label.
     b:SetPoint("BOTTOMLEFT", ns.Display.buttons[1], "TOPLEFT", 0, 20)
-    b:SetWidth(size)
-    b:SetHeight(size)
+    ns.Display.SetButtonSize(b, size)
 end
 
 function Interrupt:Update(now)

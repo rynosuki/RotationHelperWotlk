@@ -24,6 +24,7 @@ local SUITES = {
     "test_waste",
     "test_interrupt",
     "test_specprofiles",
+    "test_mouse_procs",
 }
 
 for _, suite in ipairs(SUITES) do

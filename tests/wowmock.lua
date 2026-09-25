@@ -113,6 +113,10 @@ function FontStringMethods:GetTextColor()
     return 1, 1, 1, 1
 end
 function FontStringMethods:SetJustifyH(j) self.justifyH = j end
+function FontStringMethods:GetStringWidth()
+    local plain = (self.text or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return #plain * 6
+end
 function FontStringMethods:SetJustifyV(j) self.justifyV = j end
 function FontStringMethods:SetShadowOffset() end
 
@@ -489,6 +493,21 @@ function Mock.NewSession(opts)
     env.CreateFrame = NewFrameFactory(session)
     env.UIParent = env.CreateFrame("Frame", "UIParent")
     env.UISpecialFrames = {}
+
+    -- Keyboard, tooltip and sound.
+    session.shift = false
+    env.IsShiftKeyDown = function() return session.shift end
+    session.sounds = {}
+    env.PlaySound = function(name) session.sounds[#session.sounds + 1] = name end
+    local tooltip = { lines = {}, shown = false }
+    function tooltip:SetOwner(owner) self.owner, self.lines, self.link = owner, {}, nil end
+    function tooltip:SetHyperlink(link) self.link = link end
+    function tooltip:AddLine(text) self.lines[#self.lines + 1] = text end
+    function tooltip:Show() self.shown = true end
+    function tooltip:Hide() self.shown, self.owner = false, nil end
+    function tooltip:IsOwned(frame) return self.owner == frame end
+    function tooltip:Text() return table.concat(self.lines, "\n") end
+    env.GameTooltip = tooltip
     env.HideUIPanel = function(frame) if frame then frame:Hide() end end
 
     session.toc = tocMeta

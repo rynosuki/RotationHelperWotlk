@@ -95,7 +95,7 @@ offline tests and has been checked in game.
   - *Check in game:* a deliberately broken custom rotation expression, or a forced error, shows
     the "!" while the other updaters keep running.
 
-- [ ] **A6 Tooltip and clickable status chips** (S)
+- [ ] **A6 Tooltip and clickable status chips** (S) — *implemented in 1.6.0, waiting on the in-game check*
   - *Play:* see *why* an ability is recommended without typing commands, and toggle cooldowns or
     AoE mode with the mouse.
   - *How:*
@@ -106,7 +106,7 @@ offline tests and has been checked in game.
   - *Check in game:* Shift+hover shows the line; Shift+click toggles; without Shift, clicks pass
     through as before.
 
-- [ ] **A7 Proc glow and sound** (S)
+- [ ] **A7 Proc glow and sound** (S) — *implemented in 1.6.0, waiting on the in-game check*
   - *Play:* Killing Machine and Rime are the moments that matter in Frost; make them impossible
     to miss.
   - *How:* class data `procs = { "killing_machine", "freezing_fog" }`. When the main

@@ -81,7 +81,7 @@ test("the display pulses and names the waste", function()
     local a = main.warn.alpha
     s:Tick(0.07)
     truthy(main.warn.alpha ~= a, "pulsing")
-    truthy(s.ns.Display.frame.status:GetText():find("RP"), "status names it")
+    truthy(s.ns.Display:GetStatusText():find("RP"), "status names it")
     s.power.current = 0
     s:Tick(0.1)
     falsy(main.warn:IsShown(), "gone")

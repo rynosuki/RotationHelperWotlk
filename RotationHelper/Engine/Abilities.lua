@@ -102,6 +102,27 @@ function Abilities.ReadyAt(state, key)
     return t, limitedBy
 end
 
+-- If using `key` at time `t` spends one of the class's notable procs
+-- (classData.procs, e.g. Killing Machine), returns that aura key and when
+-- it expires.
+function Abilities.ProcUsed(state, key, t)
+    local procs = RH.classData.procs
+    if not procs then return nil end
+    local ability = RH.classData.abilities[key]
+    for _, proc in ipairs(procs) do
+        local rec = state.buffs[proc]
+        if rec and rec.expires > t then
+            if ability.freeWith == proc then return proc, rec.expires end
+            if ability.consumes then
+                for _, consumed in ipairs(ability.consumes) do
+                    if consumed == proc then return proc, rec.expires end
+                end
+            end
+        end
+    end
+    return nil
+end
+
 ---------------------------------------------------------------------------
 -- Simulation: what using an ability does to a (virtual) state.
 ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.5.0
+## Version: 1.6.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -37,6 +37,7 @@ Debug.lua
 
 UI\Keybinds.lua
 UI\Display.lua
+UI\DisplayMouse.lua
 UI\Interrupt.lua
 UI\Skin.lua
 UI\OptionsWindow.lua

@@ -189,17 +189,20 @@ end)
 test("status text shows toggles and enemy count", function()
     local s, RH = newAddon()
     s.hasTarget = true
-    local status = s.ns.Display.frame.status
+    local D = s.ns.Display
+    local status = D.frame.status
     s:Tick(0.2)
-    eq(status:GetText(), "|cff40ff40CD|r", "cooldowns on, single enemy")
+    eq(D:GetStatusText(), "CD", "cooldowns on, single enemy")
+    eq(D.frame.cdChip.text:GetText(), "|cff40ff40CD|r", "green")
     Hit(s, s.target.guid)
     Hit(s, "mob2")
     Hit(s, "mob3")
     s:Tick(0.2)
-    eq(status:GetText(), "|cff40ff40CD|r  3", "auto shows the count")
+    eq(D:GetStatusText(), "CD  3", "auto shows the count")
     s:Slash("ACECONSOLE_RH", "cd")
     s:Slash("ACECONSOLE_RH", "aoe")
-    eq(status:GetText(), "|cffff4040CD|r  |cffffd100ST|r", "cooldowns off, forced single target")
+    eq(D:GetStatusText(), "CD  ST", "forced single target")
+    eq(D.frame.cdChip.text:GetText(), "|cffff4040CD|r", "red: cooldowns off")
     RH.db.profile.display.showStatus = false
     RH:OnConfigChanged()
     falsy(status:IsShown(), "hidden when disabled")

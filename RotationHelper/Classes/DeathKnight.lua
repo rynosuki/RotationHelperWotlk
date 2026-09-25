@@ -43,6 +43,8 @@ ns.RegisterClass("DEATHKNIGHT", {
     gcdSpell = 49895, -- Death Coil
     usesRunes = true,
     interrupt = "mind_freeze", -- shown by the interrupt icon
+    -- Procs worth highlighting when the recommended ability spends them.
+    procs = { "killing_machine", "freezing_fog" },
 
     specs = { blood = false, frost = true, unholy = true },
 

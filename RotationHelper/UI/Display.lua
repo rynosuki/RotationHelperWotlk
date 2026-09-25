@@ -12,6 +12,7 @@ local Display = RH:NewModule("Display", "AceEvent-3.0")
 ns.Display = Display
 
 local GetSpellInfo, GetTime, UnitExists, IsSpellInRange = GetSpellInfo, GetTime, UnitExists, IsSpellInRange
+local PlaySound = PlaySound
 local abs = math.abs
 
 local MAX_ICONS = 5
@@ -19,6 +20,13 @@ local FLASH_DURATION = 0.3
 local FLASH_ALPHA = 0.55
 local WARN_PULSE_SPEED = 5 -- radians per second
 local WHITE = "Interface\\Buttons\\WHITE8X8"
+local GLOW_TEXTURE = "Interface\\Buttons\\UI-ActionButton-Border"
+local GLOW_SCALE = 1.75 -- the glow ring sits in the middle of that texture
+local STATUS_HEIGHT = 14
+local CHIP_GAP = 6
+
+-- Sounds for a new proc (PlaySound names in the 3.3.5 client).
+Display.PROC_SOUNDS = { none = "None", MapPing = "Ping", RaidWarning = "Raid warning", ReadyCheck = "Ready check" }
 
 local TINT_NORMAL = { 1, 1, 1 }
 local TINT_OUT_OF_RANGE = { 1, 0.25, 0.25 }
@@ -88,8 +96,23 @@ function Display.CreateButton(parent, name, large)
     b.flash:SetBlendMode("ADD")
     b.flash:Hide()
 
+    -- Proc glow: the action button border glow, around the icon (sized in
+    -- Display:SetButtonSize).
+    b.glow = b.overlay:CreateTexture(nil, "OVERLAY")
+    b.glow:SetTexture(GLOW_TEXTURE)
+    b.glow:SetBlendMode("ADD")
+    b.glow:SetPoint("CENTER", b, "CENTER")
+    b.glow:Hide()
+
     b:Hide()
     return b
+end
+
+function Display.SetButtonSize(b, size)
+    b:SetWidth(size)
+    b:SetHeight(size)
+    b.glow:SetWidth(size * GLOW_SCALE)
+    b.glow:SetHeight(size * GLOW_SCALE)
 end
 
 function Display:CreateFrames()
@@ -123,9 +146,19 @@ function Display:CreateFrames()
     warn:Hide()
     main.warn = warn
 
-    -- Toggle states under the main icon, e.g. "CD  AUTO 3".
-    f.status = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    f.status:SetPoint("TOPLEFT", self.buttons[1], "BOTTOMLEFT", 0, -2)
+    -- Status line under the main icon: "CD", the AoE mode or enemy count,
+    -- and waste labels. The first two are chips that Shift-click toggles.
+    local status = CreateFrame("Frame", nil, f)
+    status:SetPoint("TOPLEFT", self.buttons[1], "BOTTOMLEFT", 0, -2)
+    status:SetWidth(1)
+    status:SetHeight(STATUS_HEIGHT)
+    f.status = status
+    f.cdChip = self:CreateChip(status, function() RH:ToggleCooldowns() end)
+    f.cdChip:SetPoint("TOPLEFT", status, "TOPLEFT")
+    f.aoeChip = self:CreateChip(status, function() RH:CycleAoEMode() end)
+    f.aoeChip:SetPoint("LEFT", f.cdChip, "RIGHT", CHIP_GAP, 0)
+    f.wasteText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    f.wasteText:SetPoint("LEFT", f.aoeChip, "RIGHT", CHIP_GAP, 0)
 
     -- Shown after an error until /rh errors has been used.
     f.errorMark = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -147,6 +180,7 @@ end
 -- Flashes the main icon when its predicted ready time is reached, and
 -- pulses the waste warning.
 function Display:Animate(now)
+    self:UpdateMouseMode()
     local b = self.buttons[1]
     if b.warn:IsShown() then
         b.warn:SetAlpha(0.35 + 0.65 * abs(math.sin(now * WARN_PULSE_SPEED)))
@@ -194,12 +228,10 @@ function Display:ApplySettings()
         b:ClearAllPoints()
         if i == 1 then
             b:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
-            b:SetWidth(d.iconSize)
-            b:SetHeight(d.iconSize)
+            Display.SetButtonSize(b, d.iconSize)
         else
             b:SetPoint(grow[1], self.buttons[i - 1], grow[2], grow[3] * d.spacing, grow[4] * d.spacing)
-            b:SetWidth(queueSize)
-            b:SetHeight(queueSize)
+            Display.SetButtonSize(b, queueSize)
         end
     end
 
@@ -314,37 +346,110 @@ function Display:Refresh()
     if showError then self.frame.errorMark:Show() else self.frame.errorMark:Hide() end
     local waste = RH.waste
     if waste and waste.any and entries then self.buttons[1].warn:Show() else self.buttons[1].warn:Hide() end
+    self:UpdateProcs(entries, count)
     self:UpdateStatus()
     self.frame:Show()
 end
 
 local AOE_LABELS = { single = "ST", aoe = "AOE" }
 
--- "CD" is green when cooldowns are on, red when off. The AoE part shows
--- the forced mode, or in auto mode the enemy count once there's more than one.
+-- A small clickable text on the status line. Only takes the mouse while
+-- Shift is held (see UI/DisplayMouse.lua).
+function Display:CreateChip(parent, onClick)
+    local chip = CreateFrame("Button", nil, parent)
+    chip:SetHeight(STATUS_HEIGHT)
+    chip.text = chip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    chip.text:SetPoint("LEFT", chip, "LEFT")
+    chip:SetScript("OnClick", onClick)
+    chip:EnableMouse(false)
+    return chip
+end
+
+-- Sets a chip's text and width; an empty text hides it.
+local function SetChipText(chip, text)
+    if chip.lastText ~= text then
+        chip.lastText = text
+        chip.text:SetText(text)
+        chip:SetWidth(math.max(1, chip.text:GetStringWidth()))
+    end
+    if text == "" then chip:Hide() else chip:Show() end
+end
+
+-- "CD" is green when cooldowns are on, red when off. The AoE chip shows
+-- the forced mode, or in auto mode the enemy count once there's more than
+-- one ("AUTO" while Shift is held, so there's always something to click).
+-- Waste labels follow.
 function Display:UpdateStatus()
-    local status = self.frame.status
+    local f = self.frame
     if not self.db.showStatus then
-        status:Hide()
+        f.status:Hide()
         return
     end
     local toggles = RH.db.profile.toggles
-    local text = toggles.cooldowns and "|cff40ff40CD|r" or "|cffff4040CD|r"
+    SetChipText(f.cdChip, toggles.cooldowns and "|cff40ff40CD|r" or "|cffff4040CD|r")
+
     local mode = AOE_LABELS[toggles.aoeMode]
     local enemies = ns.State.real.activeEnemies or 1
+    local aoeText = ""
     if mode then
-        text = text .. "  |cffffd100" .. mode .. "|r"
+        aoeText = "|cffffd100" .. mode .. "|r"
     elseif enemies > 1 then
-        text = text .. "  " .. enemies
+        aoeText = tostring(enemies)
+    elseif self.mouseMode then
+        aoeText = "|cff999999AUTO|r"
     end
+    SetChipText(f.aoeChip, aoeText)
+
     local waste = RH.waste
-    if waste and waste.runes then text = text .. "  |cffff8000RUNES|r" end
-    if waste and waste.runicPower then text = text .. "  |cffff8000RP|r" end
-    if status.lastText ~= text then
-        status.lastText = text
-        status:SetText(text)
+    local wasteText = ""
+    if waste and waste.runes then wasteText = "|cffff8000RUNES|r" end
+    if waste and waste.runicPower then
+        wasteText = wasteText == "" and "|cffff8000RP|r" or (wasteText .. "  |cffff8000RP|r")
     end
-    status:Show()
+    if f.wasteText.lastText ~= wasteText then
+        f.wasteText.lastText = wasteText
+        f.wasteText:SetText(wasteText)
+    end
+    -- Waste labels move left when the AoE chip is empty (re-anchored only
+    -- when that changes; this runs 20 times a second).
+    local anchor = f.aoeChip:IsShown() and f.aoeChip or f.cdChip
+    if f.wasteText.anchor ~= anchor then
+        f.wasteText.anchor = anchor
+        f.wasteText:ClearAllPoints()
+        f.wasteText:SetPoint("LEFT", anchor, "RIGHT", CHIP_GAP, 0)
+    end
+    f.status:Show()
+end
+
+-- The status line as plain text, e.g. "CD  3  RP" (for tests and debugging).
+function Display:GetStatusText()
+    local f, parts = self.frame, {}
+    if not f.status:IsShown() then return "" end
+    for _, fs in ipairs({ f.cdChip:IsShown() and f.cdChip.text, f.aoeChip:IsShown() and f.aoeChip.text, f.wasteText }) do
+        local text = fs and fs:GetText()
+        if text and text ~= "" then parts[#parts + 1] = (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end
+    end
+    return table.concat(parts, "  ")
+end
+
+-- Proc glow on buttons whose ability spends a proc, and a sound once per
+-- new proc (a proc is new when its expiry time changes).
+function Display:UpdateProcs(entries, count)
+    local glowOn = self.db.procGlow
+    for i, b in ipairs(self.buttons) do
+        local entry = entries and i <= count and entries[i]
+        if glowOn and entry and entry.usesProc and b:IsShown() then b.glow:Show() else b.glow:Hide() end
+    end
+    local main = entries and entries[1]
+    local sound = self.db.procSound
+    if main and main.usesProc and sound and sound ~= "none" then
+        local key = main.usesProc
+        self.procHeard = self.procHeard or {}
+        if self.procHeard[key] ~= main.procExpires then
+            self.procHeard[key] = main.procExpires
+            PlaySound(sound)
+        end
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -352,6 +457,7 @@ end
 ---------------------------------------------------------------------------
 function Display:OnEnable()
     self:CreateFrames()
+    self:SetupMouse()
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "ApplySettings")
     self:RegisterMessage("ROTATIONHELPER_COMBAT_CHANGED", "Refresh")
     RH:RegisterUpdater(function() Display:Refresh() end, RH.UPDATE_ORDER.DISPLAY, "display")

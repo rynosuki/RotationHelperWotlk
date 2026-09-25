@@ -200,6 +200,13 @@ function Options:BuildOptionsTable()
                 desc = "Briefly brighten the main icon the moment its ability can be pressed." },
             interrupt = { type = "toggle", name = "Interrupt icon", order = 24,
                 desc = "A separate icon above the main one while your target casts something interruptible." },
+            shiftInteract = { type = "toggle", name = "Shift: tooltips and clickable toggles", order = 25,
+                desc = "While Shift is held, hover an icon to see why it's recommended, "
+                    .. "and click CD or the AoE mode to toggle them." },
+            procGlow = { type = "toggle", name = "Glow on proc abilities", order = 26,
+                desc = "Glow on icons whose ability spends Killing Machine or Rime." },
+            procSound = { type = "select", name = "Sound on a new proc", order = 27,
+                values = function() return ns.Display.PROC_SOUNDS end },
         },
     }, ProfileOption("display"))
 
