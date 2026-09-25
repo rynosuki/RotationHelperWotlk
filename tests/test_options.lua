@@ -1,0 +1,204 @@
+local T = require("testlib")
+local test, eq, truthy, falsy, newAddon = T.test, T.eq, T.truthy, T.falsy, T.newAddon
+
+local ALL_SPELLS = {
+    "Icy Touch", "Plague Strike", "Obliterate", "Frost Strike", "Howling Blast", "Blood Strike",
+    "Pestilence", "Horn of Winter", "Death Coil",
+}
+
+local function Fight()
+    local s, RH = newAddon()
+    s:Learn(unpack(ALL_SPELLS))
+    s.hasTarget = true
+    s:FireEvent("PLAYER_REGEN_DISABLED")
+    RH.db.profile.toggles.cooldowns = false
+    return s, RH
+end
+
+local function Options(s) return s.ns.Options end
+local function Args(s, tab) return Options(s):GetOptionsTable().args[tab].args end
+
+local function First(s)
+    local st = s.ns.State:Reset()
+    local action = s.ns.Recommender:Evaluate(st)
+    return action and action.name
+end
+
+-- Registers a fake AceConfigDialog that records what was opened.
+local function StubDialog(s)
+    local dialog = s.env.LibStub:NewLibrary("AceConfigDialog-3.0", 99999)
+    dialog.opened = {}
+    function dialog:Open(app) self.opened[#self.opened + 1] = app end
+    function dialog:SelectGroup(app, group) self.selected = group end
+    function dialog:SetDefaultSize() end
+    function dialog:AddToBlizOptions() end
+    return dialog
+end
+
+---------------------------------------------------------------------------
+-- Panel
+---------------------------------------------------------------------------
+test("the options table passes AceConfig validation", function()
+    local s = newAddon()
+    local registry = s.env.LibStub("AceConfigRegistry-3.0")
+    local ok, err = pcall(registry.ValidateOptionsTable, registry, Options(s):GetOptionsTable(), "RotationHelper")
+    truthy(ok, tostring(err))
+    truthy(registry:GetOptionsTable("RotationHelper"), "registered")
+end)
+
+test("/rh opens the panel, /rh apl the rotation tab", function()
+    local s = newAddon()
+    local dialog = StubDialog(s)
+    s:Slash("ACECONSOLE_RH", "")
+    eq(dialog.opened[1], "RotationHelper", "opened")
+    s:Slash("ACECONSOLE_RH", "apl")
+    eq(dialog.selected, "rotation", "rotation tab")
+end)
+
+test("/rh without the dialog prints help instead", function()
+    local s = newAddon()
+    s:ClearChat()
+    s:Slash("ACECONSOLE_RH", "")
+    truthy(s:ChatContains("/rh apl"), "help")
+end)
+
+test("the rotation tab is hidden for classes without data", function()
+    local s = newAddon({ class = "MAGE" })
+    truthy(Options(s):GetOptionsTable().args.rotation.hidden(), "hidden")
+    s:ClearChat()
+    s:Slash("ACECONSOLE_RH", "apl")
+    truthy(s:ChatContains("No rotation support for MAGE"), "message")
+end)
+
+test("general and display settings write to the profile", function()
+    local s, RH = newAddon()
+    local general = Options(s):GetOptionsTable().args.general
+    general.set({ "general", "cooldowns" }, false)
+    eq(RH.db.profile.toggles.cooldowns, false, "cooldowns")
+    general.set({ "general", "aoeMode" }, "aoe")
+    eq(general.get({ "general", "aoeMode" }), "aoe", "aoe mode")
+
+    local display = Options(s):GetOptionsTable().args.display
+    display.set({ "display", "numIcons" }, 2)
+    eq(RH.db.profile.display.numIcons, 2, "icons")
+    display.set({ "display", "direction" }, "UP")
+    local point, _, relPoint = s.ns.Display.buttons[2]:GetPoint(1)
+    eq(point .. "/" .. relPoint, "BOTTOM/TOP", "layout updated")
+
+    RH.db.profile.display.point = { "TOPLEFT", "UIParent", "TOPLEFT", 5, 5 }
+    Args(s, "display").resetPosition.func()
+    eq(RH.db.profile.display.point[1] .. RH.db.profile.display.point[5], "CENTER-150", "position reset")
+end)
+
+---------------------------------------------------------------------------
+-- Rotation editor
+---------------------------------------------------------------------------
+test("the editor shows the default rotation", function()
+    local s = Fight()
+    local text = Args(s, "rotation").text.get()
+    truthy(text:find("actions%+=/obliterate"), "default text")
+    truthy(Options(s):RotationStatus("frost"):find("Frost %(default%)"), "status")
+end)
+
+test("a rotation with errors isn't saved; the draft and errors stay", function()
+    local s, RH = Fight()
+    local rotation = Args(s, "rotation")
+    rotation.text.set(nil, "actions=obliterate\nactions+=/frost_strik,if=runic_power>")
+    eq((RH.db.profile.customAPLs.DEATHKNIGHT or {}).frost, nil, "not saved")
+    truthy(rotation.text.get():find("frost_strik"), "draft kept in the editor")
+    local result = rotation.result.name()
+    truthy(result:find("Not saved: 2 problem"), "summary")
+    truthy(result:find("line 2, col 11: unknown action 'frost_strik'"), "unknown action")
+    truthy(result:find("line 2, col 38: if: expected a value"), "syntax error")
+    eq(First(s), "icy_touch", "default rotation still active")
+end)
+
+test("a valid rotation is saved and used right away", function()
+    local s, RH = Fight()
+    local rotation = Args(s, "rotation")
+    rotation.text.set(nil, "# just obliterate\nactions=obliterate")
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.frost, "# just obliterate\nactions=obliterate", "saved")
+    truthy(rotation.result.name():find("Saved and active: 1 actions in 1 lists"), "result")
+    eq(First(s), "obliterate", "custom rotation active")
+    truthy(Options(s):RotationStatus("frost"):find("Frost %(custom%)"), "status")
+    falsy(rotation.revert.disabled(), "revert enabled")
+end)
+
+test("revert, empty text and unchanged default all use the default", function()
+    local s, RH = Fight()
+    local rotation = Args(s, "rotation")
+    rotation.text.set(nil, "actions=obliterate")
+    rotation.revert.func()
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.frost, nil, "reverted")
+    eq(First(s), "icy_touch", "default active")
+    truthy(rotation.revert.disabled(), "nothing to revert")
+
+    rotation.text.set(nil, "actions=obliterate")
+    rotation.text.set(nil, "   \n")
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.frost, nil, "empty text reverts")
+
+    local default = rotation.text.get()
+    rotation.text.set(nil, default)
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.frost, nil, "the default's own text isn't stored")
+end)
+
+test("'|' is shown as '||' in the editor and saved as '|'", function()
+    local s, RH = Fight()
+    local rotation = Args(s, "rotation")
+    truthy(rotation.text.get():find("buff%.killing_machine%.up||runic_power"), "escaped for display")
+    falsy(rotation.text.get():find("[^|]|[^|]"), "no single '|' left")
+    rotation.text.set(nil, "actions=obliterate,if=runes.frost=2||runes.unholy=2")
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.frost, "actions=obliterate,if=runes.frost=2|runes.unholy=2", "stored unescaped")
+end)
+
+test("a spec without a default can get a custom rotation", function()
+    local s, RH = Fight()
+    s.talentTabs[3].talents[1][2] = 51
+    s:FireEvent("PLAYER_TALENT_UPDATE")
+    eq(First(s), nil, "unholy: nothing")
+    local rotation = Args(s, "rotation")
+    eq(Options(s):EditSpec(), "unholy", "editor follows the current spec")
+    truthy(Options(s):RotationStatus("unholy"):find("no rotation yet"), "status")
+    rotation.text.set(nil, "actions=plague_strike\nactions+=/obliterate")
+    eq(First(s), "plague_strike", "unholy custom rotation")
+end)
+
+test("the spec picker edits other specs", function()
+    local s, RH = Fight()
+    local rotation = Args(s, "rotation")
+    local specs = rotation.spec.values()
+    eq(specs.blood .. "," .. specs.frost .. "," .. specs.unholy, "Blood,Frost,Unholy", "choices")
+    rotation.spec.set(nil, "blood")
+    rotation.text.set(nil, "actions=blood_strike")
+    eq(RH.db.profile.customAPLs.DEATHKNIGHT.blood, "actions=blood_strike", "saved for blood")
+    eq(First(s), "icy_touch", "frost rotation unchanged")
+end)
+
+test("a saved rotation that no longer compiles falls back to the default", function()
+    local s, RH = Fight()
+    RH.db.profile.customAPLs.DEATHKNIGHT = { frost = "actions=removed_ability" }
+    s.ns.Recommender:Reset()
+    s:ClearChat()
+    eq(First(s), "icy_touch", "default used")
+    truthy(s:ChatContains("using the default until it's fixed"), "warning")
+    truthy(s:ChatContains("unknown action 'removed_ability'"), "error listed")
+end)
+
+test("custom rotations are per profile", function()
+    local s, RH = Fight()
+    Args(s, "rotation").text.set(nil, "actions=obliterate")
+    eq(First(s), "obliterate", "custom")
+    local original = RH.db:GetCurrentProfile()
+    RH.db:SetProfile("Other")
+    eq(First(s), "icy_touch", "new profile uses the default")
+    RH.db:SetProfile(original)
+    eq(First(s), "obliterate", "back to the custom one")
+end)
+
+test("/rh snapshot names the active rotation", function()
+    local s = Fight()
+    Args(s, "rotation").text.set(nil, "actions=obliterate")
+    s:ClearChat()
+    s:Slash("ACECONSOLE_RH", "snapshot")
+    truthy(s:ChatContains("rotation: Frost %(custom%)"), "spec line")
+end)

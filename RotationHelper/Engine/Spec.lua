@@ -25,6 +25,7 @@ Spec.group = 1        -- active talent group (dual spec)
 Spec.talents = {}
 Spec.glyphs = {}
 Spec.known = {}       -- ability key -> true if in the spellbook
+Spec.trees = {}       -- spec key -> tree name, e.g. frost = "Frost"
 
 function Spec:Update()
     local group = GetActiveTalentGroup and GetActiveTalentGroup() or 1
@@ -38,6 +39,7 @@ function Spec:Update()
     for tab = 1, self.numTabs do
         local tabName, _, pointsSpent = GetTalentTabInfo(tab, false, false, group)
         self.points[tab] = pointsSpent or 0
+        if tabName then self.trees[Utils.Key(tabName)] = tabName end
         totalPoints = totalPoints + (pointsSpent or 0)
         if (pointsSpent or 0) > bestPoints then
             bestPoints, bestKey = pointsSpent, Utils.Key(tabName)

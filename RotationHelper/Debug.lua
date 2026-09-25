@@ -72,8 +72,10 @@ function RH:PrintSnapshot()
     self:Print(format("Snapshot at %.1f (%s)", now, s.inCombat and "in combat" or "out of combat"))
 
     if Spec.loaded then
-        print(format("%s %s (%s), talent group %d%s", Label("Spec:"), tostring(Spec.key),
-            concat(Spec.points, "/"), Spec.group, Spec.supported and "" or Dim(" (no rotation for this spec yet)")))
+        local source = ns.Recommender:GetSource(Spec.key)
+        print(format("%s %s (%s), talent group %d, %s", Label("Spec:"), tostring(Spec.key),
+            concat(Spec.points, "/"), Spec.group,
+            source and ("rotation: " .. source.name) or Dim("no rotation for this spec yet (/rh apl)")))
     else
         print(format("%s %s", Label("Spec:"), Utils.Colorize(format(
             "talent API returned no points (%d trees, talent group %d)", Spec.numTabs or 0, Spec.group), "ff4040")))

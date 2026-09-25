@@ -15,6 +15,7 @@ local SUITES = {
     "test_frost",
     "test_predict",
     "test_targets",
+    "test_options",
 }
 
 for _, suite in ipairs(SUITES) do

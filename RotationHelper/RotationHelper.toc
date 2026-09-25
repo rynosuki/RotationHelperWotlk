@@ -34,3 +34,4 @@ Debug.lua
 
 UI\Keybinds.lua
 UI\Display.lua
+UI\Options.lua

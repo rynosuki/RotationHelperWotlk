@@ -6,8 +6,8 @@ local Mock = {}
 
 local ADDON_DIR = "RotationHelper"
 
--- Load order for the offline harness. AceGUI/AceConfig are UI-only and are
--- only syntax-checked (see run.lua), so they are not loaded here.
+-- Load order for the offline harness. AceGUI and AceConfigDialog draw
+-- frames, so they're only syntax-checked; tests stub the dialog if needed.
 local LIB_FILES = {
     "Libs/LibStub/LibStub.lua",
     "Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua",
@@ -16,6 +16,8 @@ local LIB_FILES = {
     "Libs/AceConsole-3.0/AceConsole-3.0.lua",
     "Libs/AceTimer-3.0/AceTimer-3.0.lua",
     "Libs/AceDB-3.0/AceDB-3.0.lua",
+    "Libs/AceDBOptions-3.0/AceDBOptions-3.0.lua",
+    "Libs/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua",
 }
 
 -- Addon files come from the TOC, so the harness can't drift from the game.

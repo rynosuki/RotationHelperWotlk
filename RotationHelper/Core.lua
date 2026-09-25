@@ -60,6 +60,7 @@ local defaults = {
             cooldowns = true,
             aoeMode = "auto", -- auto | single | aoe
         },
+        customAPLs = {}, -- [class][spec] = APL text edited in the options
         display = {
             locked = false,
             scale = 1.0,
@@ -274,7 +275,21 @@ function RH:SetIconCount(arg)
     SetDisplayNumber(self, "numIcons", "icons", arg, 1, 5, true)
 end
 
+function RH:OpenOptions()
+    if not ns.Options:Open() then self:PrintHelp() end
+end
+
+function RH:OpenRotationEditor()
+    if not self.classSupported then
+        self:Print("No rotation support for " .. tostring(self.playerClass) .. " yet.")
+    elseif not ns.Options:Open("rotation") then
+        self:Print("The options panel isn't available.")
+    end
+end
+
 local HELP = {
+    { "", "open the options panel" },
+    { "apl", "open the rotation editor" },
     { "status", "show current settings" },
     { "lock", "lock/unlock the display" },
     { "test", "show/hide sample icons" },
@@ -291,7 +306,8 @@ local HELP = {
 function RH:PrintHelp()
     self:Print(("v%s commands:"):format(self.version))
     for _, entry in ipairs(HELP) do
-        print(("  |cffffd100/rh %s|r - %s"):format(entry[1], entry[2]))
+        local command = entry[1] == "" and "/rh" or ("/rh " .. entry[1])
+        print(("  |cffffd100%s|r - %s"):format(command, entry[2]))
     end
 end
 
@@ -320,13 +336,17 @@ local commands = {
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",
+    config = "OpenOptions",
+    options = "OpenOptions",
+    apl = "OpenRotationEditor",
+    rotation = "OpenRotationEditor",
 }
 
 function RH:SlashCommand(input)
     local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
     cmd = lower(cmd)
     if cmd == "" then
-        self:PrintHelp()
+        self:OpenOptions()
     elseif cmd == "reset" then
         self.db:ResetProfile()
         self:Print("Profile reset.")

@@ -3,11 +3,13 @@ local RH = ns.RH
 
 -- Produces RH.recommendations on every update: takes a state snapshot,
 -- runs the APL for the current spec and hands the result to the display.
-local Recommender = RH:NewModule("Recommender")
+local Recommender = RH:NewModule("Recommender", "AceEvent-3.0")
 ns.Recommender = Recommender
 
 local Compiler, Runner = ns.APL.Compiler, ns.APL.Runner
 local State, Abilities = ns.State, ns.Abilities
+
+local wipe, ipairs = wipe, ipairs
 
 local context = {
     ReadyAt = function(s, key) return Abilities.ReadyAt(s, key) end,
@@ -22,39 +24,78 @@ local entries = {}
 for i = 1, MAX_PREDICTIONS do entries[i] = {} end
 
 function Recommender:OnEnable()
+    self.compiled = {} -- spec key -> compiled APL, or false if there is none
     if not RH.classSupported then return end
     self.resolver = ns.Expressions.CreateResolver(RH.classData)
-    self.compiled = {} -- spec key -> compiled APL, or false if there is none
     RH:RegisterUpdater(function(_, now) Recommender:Update(now) end, RH.UPDATE_ORDER.RECOMMEND)
+    -- A profile switch can change the custom rotations.
+    self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "Reset")
+end
+
+-- Forgets compiled APLs, e.g. after a custom rotation was saved.
+function Recommender:Reset()
+    wipe(self.compiled)
+    RH:Invalidate()
+end
+
+-- The rotation for a spec: the profile's custom text if there is one, else
+-- the default. Returns source ({ name, text, custom }) and the default (or nil).
+function Recommender:GetSource(specKey)
+    local defaults = ns.APLs[RH.playerClass]
+    local default = defaults and defaults[specKey]
+    local customs = RH.db.profile.customAPLs[RH.playerClass]
+    local text = customs and customs[specKey]
+    if text then
+        local treeName = ns.Spec.trees[specKey] or specKey
+        return { name = treeName .. " (custom)", text = text, custom = true }, default
+    end
+    return default, default
+end
+
+function Recommender:Compile(text)
+    local abilities = RH.classData.abilities
+    return Compiler.CompileAPL(text, {
+        resolve = self.resolver,
+        isAction = function(name) return abilities[name] ~= nil end,
+    })
+end
+
+local function PrintErrors(apl)
+    for _, err in ipairs(apl.errors) do
+        print("  " .. Compiler.FormatError(err))
+    end
 end
 
 -- Compiles (once per spec) and returns the APL for the current spec.
 function Recommender:GetAPL()
-    local Spec = ns.Spec
-    if not (Spec.key and Spec.supported) then return nil end
-    local cached = self.compiled[Spec.key]
+    local specKey = ns.Spec.key
+    if not specKey then return nil end
+    local cached = self.compiled[specKey]
     if cached ~= nil then return cached or nil end
 
-    local sources = ns.APLs[RH.playerClass]
-    local source = sources and sources[Spec.key]
+    local source, default = self:GetSource(specKey)
     if not source then
-        self.compiled[Spec.key] = false
+        self.compiled[specKey] = false
         return nil
     end
 
-    local abilities = RH.classData.abilities
-    local apl = Compiler.CompileAPL(source.text, {
-        resolve = self.resolver,
-        isAction = function(name) return abilities[name] ~= nil end,
-    })
-    apl.name = source.name
+    local apl = self:Compile(source.text)
+    apl.name, apl.custom = source.name, source.custom
     if #apl.errors > 0 then
-        RH:Print(("%d problem(s) in action list '%s' (those lines are skipped):"):format(#apl.errors, apl.name))
-        for _, err in ipairs(apl.errors) do
-            print("  " .. Compiler.FormatError(err))
+        if source.custom and default then
+            -- Saved rotations are checked when saved, so this means something
+            -- changed since (e.g. an addon update). Don't run half a rotation.
+            RH:Print(("Your custom rotation '%s' has %d problem(s); using the default until it's fixed (/rh apl):")
+                :format(apl.name, #apl.errors))
+            PrintErrors(apl)
+            apl = self:Compile(default.text)
+            apl.name = default.name
+        else
+            RH:Print(("%d problem(s) in action list '%s' (those lines are skipped):"):format(#apl.errors, apl.name))
+            PrintErrors(apl)
         end
     end
-    self.compiled[Spec.key] = apl
+    self.compiled[specKey] = apl
     return apl
 end
 
