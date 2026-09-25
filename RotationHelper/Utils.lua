@@ -57,6 +57,12 @@ function Utils.OnOff(value)
     return value and Utils.Colorize("ON", "40ff40") or Utils.Colorize("OFF", "ff4040")
 end
 
+-- "Blood of the North" -> "blood_of_the_north", "Glyph of Frost Strike" -> "glyph_of_frost_strike"
+function Utils.Key(name)
+    if not name then return nil end
+    return (name:lower():gsub("'", ""):gsub("[^%w]+", "_"):gsub("^_+", ""):gsub("_+$", ""))
+end
+
 -- Shallow key count, handy for debug output.
 function Utils.Count(t)
     local n = 0

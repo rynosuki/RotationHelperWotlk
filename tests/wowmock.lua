@@ -233,9 +233,26 @@ function Mock.NewSession(opts)
         [49909] = { "Icy Touch", "Interface\\Icons\\Spell_DeathKnight_IceTouch" },
         [49921] = { "Plague Strike", "Interface\\Icons\\Spell_DeathKnight_EmpowerRuneBlade" },
         [57623] = { "Horn of Winter", "Interface\\Icons\\INV_Misc_Horn_02" },
+        [57330] = { "Horn of Winter", "Interface\\Icons\\INV_Misc_Horn_02" },
+        [49930] = { "Blood Strike", "i" }, [50842] = { "Pestilence", "i" }, [49941] = { "Blood Boil", "i" },
+        [49938] = { "Death and Decay", "i" }, [49895] = { "Death Coil", "i" }, [49924] = { "Death Strike", "i" },
+        [45529] = { "Blood Tap", "i" }, [51271] = { "Unbreakable Armor", "i" },
+        [47568] = { "Empower Rune Weapon", "i" }, [49796] = { "Deathchill", "i" },
+        [42650] = { "Army of the Dead", "i" }, [46584] = { "Raise Dead", "i" }, [47528] = { "Mind Freeze", "i" },
+        [55095] = { "Frost Fever", "i" }, [55078] = { "Blood Plague", "i" }, [51124] = { "Killing Machine", "i" },
+        [59052] = { "Freezing Fog", "i" }, [48266] = { "Blood Presence", "i" }, [48263] = { "Frost Presence", "i" },
+        [48265] = { "Unholy Presence", "i" }, [2825] = { "Bloodlust", "i" }, [32182] = { "Heroism", "i" },
+        -- glyph spells
+        [58647] = { "Glyph of Frost Strike", "i" }, [58671] = { "Glyph of Obliterate", "i" },
     }
-    env.GetSpellInfo = function(id)
-        local s = session.spells[id]
+    -- Like the real client, a lookup by name only finds spells in the spellbook.
+    session.known = {}
+    env.GetSpellInfo = function(idOrName)
+        if type(idOrName) == "string" then
+            if session.known[idOrName] then return idOrName, "", "i" end
+            return nil
+        end
+        local s = session.spells[idOrName]
         if s then return s[1], "", s[2] end
     end
 
@@ -251,8 +268,98 @@ function Mock.NewSession(opts)
 
     -- Target and range: session.range[spellName] = 0 marks it out of range.
     session.hasTarget, session.range = false, {}
+    session.target = { name = "Training Dummy", guid = "0xF130000001", health = 100, healthMax = 100,
+        level = -1, canAttack = true, dead = false, classification = "worldboss" }
     env.UnitExists = function(unit) return unit == "target" and session.hasTarget end
     env.IsSpellInRange = function(name) return session.range[name] or 1 end
+    env.UnitGUID = function(unit) return unit == "target" and session.hasTarget and session.target.guid or nil end
+    local baseUnitName = env.UnitName
+    env.UnitName = function(unit)
+        if unit == "target" then return session.hasTarget and session.target.name or nil end
+        return baseUnitName(unit)
+    end
+    env.UnitCanAttack = function(_, unit) return unit == "target" and session.hasTarget and session.target.canAttack end
+    env.UnitIsDead = function(unit) return unit == "target" and session.hasTarget and session.target.dead end
+    env.UnitHealth = function(unit) return unit == "target" and session.target.health or 0 end
+    env.UnitHealthMax = function(unit) return unit == "target" and session.target.healthMax or 0 end
+    env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
+    env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
+    env.UnitCastingInfo = function() return nil end
+    env.UnitChannelInfo = function() return nil end
+    env.GetUnitSpeed = function() return session.speed or 0 end
+
+    -- Power: runic power by default.
+    session.power = { type = 6, current = 0, max = 130 }
+    env.UnitPowerType = function() return session.power.type end
+    env.UnitPower = function() return session.power.current end
+    env.UnitPowerMax = function() return session.power.max end
+
+    -- Runes: slots 1-2 blood, 3-4 unholy, 5-6 frost, all ready.
+    -- Set session.runes[i].readyAt to make a rune recharge.
+    session.runes = {}
+    for i, t in ipairs({ 1, 1, 2, 2, 3, 3 }) do session.runes[i] = { type = t } end
+    session.runeRegen = 10
+    env.GetRuneType = function(i) return session.runes[i].type end
+    env.GetRuneCooldown = function(i)
+        local r = session.runes[i]
+        if r.readyAt and r.readyAt > session.time then
+            return r.readyAt - session.runeRegen, session.runeRegen, false
+        end
+        return 0, 0, true
+    end
+
+    -- Auras: session.auras.player / .target = list of
+    -- { name, spellId, count, duration, expires, caster, harmful }
+    session.auras = { player = {}, target = {} }
+    env.UnitAura = function(unit, index, filter)
+        local wantHarmful = filter and filter:find("HARMFUL") ~= nil
+        local n = 0
+        for _, a in ipairs(session.auras[unit] or {}) do
+            if (a.harmful or false) == wantHarmful then
+                n = n + 1
+                if n == index then
+                    return a.name, "", "icon", a.count or 0, nil, a.duration or 0, a.expires or 0,
+                        a.caster or "player", nil, nil, a.spellId
+                end
+            end
+        end
+    end
+
+    -- Cooldowns by spell name: session.cooldowns[name] = { start, duration }
+    session.cooldowns = {}
+    env.GetSpellCooldown = function(name)
+        local c = session.cooldowns[name]
+        if c then return c[1], c[2], 1 end
+        return 0, 0, 1
+    end
+
+    -- Talents: session.talentTabs = { { name = "Frost", talents = { { "Name", rank }, ... } }, ... }
+    session.talentTabs = {
+        { name = "Blood", talents = { { "Butchery", 0 }, { "Subversion", 3 } } },
+        { name = "Frost", talents = { { "Blood of the North", 3 }, { "Killing Machine", 5 }, { "Chill of the Grave", 2 } } },
+        { name = "Unholy", talents = { { "Epidemic", 2 } } },
+    }
+    session.talentGroup = 1
+    env.GetActiveTalentGroup = function() return session.talentGroup end
+    env.GetNumTalentTabs = function() return #session.talentTabs end
+    env.GetTalentTabInfo = function(tab)
+        local t = session.talentTabs[tab]
+        local points = 0
+        for _, talent in ipairs(t.talents) do points = points + talent[2] end
+        return t.name, "icon", points, "bg"
+    end
+    env.GetNumTalents = function(tab) return #session.talentTabs[tab].talents end
+    env.GetTalentInfo = function(tab, i)
+        local talent = session.talentTabs[tab].talents[i]
+        return talent[1], "icon", 1, 1, talent[2], 5
+    end
+
+    -- Glyphs: session.glyphs[socket] = glyph spell ID
+    session.glyphs = {}
+    env.GetGlyphSocketInfo = function(socket)
+        local id = session.glyphs[socket]
+        return id ~= nil, 1, id, "icon"
+    end
 
     local _, tocMeta = ReadToc(root)
     env.GetAddOnMetadata = function(addon, field)
@@ -319,6 +426,18 @@ function Mock:Slash(cmd, msg)
 end
 
 function Mock:ClearChat() self.chat = {} end
+
+-- Adds an aura. unit is "player" or "target"; fields as in session.auras.
+function Mock:AddAura(unit, aura)
+    local list = self.auras[unit]
+    list[#list + 1] = aura
+end
+
+-- Marks spells (by name) as in the spellbook and refreshes the Spec module.
+function Mock:Learn(...)
+    for i = 1, select("#", ...) do self.known[(select(i, ...))] = true end
+    self:FireEvent("LEARNED_SPELL_IN_TAB")
+end
 
 -- Puts a spell on an action slot, optionally bound to a key.
 function Mock:PlaceSpell(slot, spellId, command, key)

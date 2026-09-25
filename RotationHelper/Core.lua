@@ -6,12 +6,34 @@ _G.RotationHelper = RH
 
 local Utils = ns.Utils
 local GetTime, UnitClass = GetTime, UnitClass
-local tinsert, ipairs, lower = table.insert, ipairs, string.lower
+local GetSpellInfo = GetSpellInfo
+local tinsert, ipairs, pairs, lower = table.insert, ipairs, pairs, string.lower
 
 RH.version = GetAddOnMetadata(ADDON_NAME, "Version") or "dev"
 
--- Classes that have a rotation module. Filled in by Classes/*.lua.
-RH.supportedClasses = { DEATHKNIGHT = true }
+-- Class data registered by Classes/*.lua, keyed by class token.
+ns.Classes = {}
+
+-- Resolves localized spell names from IDs and records any IDs the client
+-- doesn't know, so bad data is reported instead of silently ignored.
+function ns.RegisterClass(classToken, data)
+    data.classToken = classToken
+    data.badSpellIds = {}
+    for key, ability in pairs(data.abilities) do
+        ability.key = key
+        ability.name = GetSpellInfo(ability.id)
+        if not ability.name then tinsert(data.badSpellIds, key .. " (" .. ability.id .. ")") end
+    end
+    for key, aura in pairs(data.auras) do
+        aura.key = key
+        for _, id in ipairs(aura.ids or { aura.id }) do
+            if not GetSpellInfo(id) then tinsert(data.badSpellIds, key .. " (" .. id .. ")") end
+        end
+    end
+    data.gcdSpellName = GetSpellInfo(data.gcdSpell)
+    table.sort(data.badSpellIds)
+    ns.Classes[classToken] = data
+end
 
 local AOE_MODES = { "auto", "single", "aoe" }
 
@@ -53,7 +75,8 @@ function RH:OnInitialize()
 
     local _, class = UnitClass("player")
     self.playerClass = class
-    self.classSupported = self.supportedClasses[class] or false
+    self.classData = ns.Classes[class]
+    self.classSupported = self.classData ~= nil
 end
 
 function RH:OnEnable()
@@ -68,6 +91,8 @@ function RH:OnEnable()
 
     if not self.classSupported then
         self:Print(("No rotation available for %s yet; the addon will stay idle."):format(self.playerClass or "?"))
+    elseif #self.classData.badSpellIds > 0 then
+        self:Print("Unknown spell IDs in class data: " .. table.concat(self.classData.badSpellIds, ", "))
     end
 end
 
@@ -230,6 +255,7 @@ local HELP = {
     { "status", "show current settings" },
     { "lock", "lock/unlock the display" },
     { "test", "show/hide sample icons" },
+    { "snapshot", "print what the addon reads from the game" },
     { "scale <n>", "display scale (0.5-3)" },
     { "icons <n>", "number of icons shown (1-5)" },
     { "cd", "toggle cooldown recommendations" },
@@ -266,6 +292,8 @@ local commands = {
     pause = "TogglePause",
     debug = "ToggleDebug",
     test = "ToggleTestMode",
+    snapshot = "PrintSnapshot",
+    snap = "PrintSnapshot",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",

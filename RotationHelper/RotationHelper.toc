@@ -10,5 +10,15 @@ embeds.xml
 Utils.lua
 Core.lua
 
+Classes\DeathKnight.lua
+
+Engine\Spec.lua
+Engine\Resources.lua
+Engine\Auras.lua
+Engine\Cooldowns.lua
+Engine\State.lua
+
+Debug.lua
+
 UI\Keybinds.lua
 UI\Display.lua

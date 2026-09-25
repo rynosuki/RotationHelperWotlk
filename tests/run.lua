@@ -9,6 +9,7 @@ local SUITES = {
     "test_core",
     "test_keybinds",
     "test_display",
+    "test_state",
 }
 
 for _, suite in ipairs(SUITES) do
