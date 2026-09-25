@@ -23,6 +23,7 @@ local SUITES = {
     "test_latency",
     "test_waste",
     "test_interrupt",
+    "test_specprofiles",
 }
 
 for _, suite in ipairs(SUITES) do

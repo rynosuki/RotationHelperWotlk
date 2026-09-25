@@ -78,7 +78,7 @@ offline tests and has been checked in game.
   - *Check in game:* the icon appears on an interruptible cast, not on a shielded one, and shows
     Mind Freeze's cooldown after use.
 
-- [ ] **A4 Profile per talent spec** (S)
+- [ ] **A4 Profile per talent spec** (S) — *implemented in 1.5.0, waiting on the in-game check*
   - *Play:* dual spec switches layout, toggles and custom rotations automatically.
   - *How:* on `ACTIVE_TALENT_GROUP_CHANGED`, switch the AceDB profile to
     `db.char.specProfiles[group]`, if set. Two dropdowns (primary and secondary talents) go on

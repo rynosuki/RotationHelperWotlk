@@ -259,11 +259,48 @@ function Options:BuildOptionsTable()
 
     local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(RH.db)
     profiles.order = 4
+    self:AddSpecProfileOptions(profiles)
 
     return {
         type = "group", name = "RotationHelper " .. RH.version, childGroups = "tab",
         args = { general = general, display = display, rotation = rotation, profiles = profiles },
     }
+end
+
+-- "Per talent spec" section on the Profiles tab (see SpecProfiles.lua).
+local DONT_SWITCH = ""
+
+function Options:AddSpecProfileOptions(profiles)
+    local SpecProfiles = ns.SpecProfiles
+    local function ProfileChoices()
+        local choices = { [DONT_SWITCH] = "Don't switch" }
+        for _, name in ipairs(RH.db:GetProfiles()) do choices[name] = name end
+        return choices
+    end
+    local function GroupOption(group, order)
+        return {
+            type = "select", order = order, width = "double",
+            name = function() return SpecProfiles:GroupLabel(group) end,
+            values = ProfileChoices,
+            disabled = function() return SpecProfiles:NumGroups() < group end,
+            -- These get/set override AceDBOptions' handler methods for the group.
+            get = function() return SpecProfiles:Mapping()[group] or DONT_SWITCH end,
+            set = function(_, value)
+                SpecProfiles:Set(group, value ~= DONT_SWITCH and value or nil)
+            end,
+        }
+    end
+    profiles.args.specHeader = { type = "header", name = "Per talent spec", order = 100 }
+    profiles.args.specInfo = { type = "description", order = 101, fontSize = "medium",
+        name = function()
+            if SpecProfiles:NumGroups() < 2 then
+                return "Learn Dual Talent Specialization to switch profiles with your talents."
+            end
+            return "Switch to a profile automatically when you change talent spec. "
+                .. "Choosing one for the spec you're in switches now."
+        end }
+    profiles.args.specPrimary = GroupOption(1, 102)
+    profiles.args.specSecondary = GroupOption(2, 103)
 end
 
 function Options:GetOptionsTable()

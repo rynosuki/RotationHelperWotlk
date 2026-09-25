@@ -448,6 +448,8 @@ function Mock.NewSession(opts)
     }
     session.talentGroup = 1
     env.GetActiveTalentGroup = function() return session.talentGroup end
+    session.numTalentGroups = 2
+    env.GetNumTalentGroups = function() return session.numTalentGroups end
     env.GetNumTalentTabs = function() return #session.talentTabs end
     env.GetTalentTabInfo = function(tab)
         local t = session.talentTabs[tab]

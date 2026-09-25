@@ -51,6 +51,9 @@ end
 local AOE_MODES = { "auto", "single", "aoe" }
 
 local defaults = {
+    char = {
+        specProfiles = {}, -- [talent group] = profile name (SpecProfiles.lua)
+    },
     profile = {
         enabled = true,
         paused = false,
