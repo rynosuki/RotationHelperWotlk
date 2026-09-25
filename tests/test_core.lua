@@ -86,22 +86,35 @@ test("update loop is throttled and respects invalidate/pause", function()
     local calls = 0
     RH:RegisterUpdater(function() calls = calls + 1 end)
 
-    s:Tick(0.01) -- dirty from load -> runs immediately
+    s:Tick(0.05) -- dirty from load -> runs as soon as spacing allows
     eq(calls, 1, "first tick")
     s:Tick(0.05)
-    eq(calls, 1, "throttled")
+    eq(calls, 1, "nothing changed: waits for the 0.1s interval")
     s:Tick(0.06)
     eq(calls, 2, "after interval")
     RH:Invalidate()
-    s:Tick(0.01)
-    eq(calls, 3, "invalidate forces update")
+    s:Tick(0.02)
+    eq(calls, 2, "a change still waits for the 0.05s spacing")
+    s:Tick(0.03)
+    eq(calls, 3, "invalidate forces an early update")
 
     s:Slash("ACECONSOLE_RH", "pause")
     s:Tick(0.2)
     eq(calls, 3, "paused")
     s:Slash("ACECONSOLE_RH", "pause")
-    s:Tick(0.01)
+    s:Tick(0.05)
     eq(calls, 4, "resumed")
+end)
+
+test("constant changes still cap updates at 20 per second", function()
+    local s, RH = newAddon()
+    local calls = 0
+    RH:RegisterUpdater(function() calls = calls + 1 end)
+    for _ = 1, 60 do -- one second at 60 fps, something changing every frame
+        RH:Invalidate()
+        s:Tick(1 / 60)
+    end
+    truthy(calls <= 20 and calls >= 15, "updates in one second: " .. calls)
 end)
 
 test("updaters run by order, not registration order", function()

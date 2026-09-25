@@ -4,6 +4,9 @@ local Utils = ns.Utils
 
 -- /rh snapshot: prints what the engine sees, to check against the game.
 local format, concat, sort, pairs, ipairs = string.format, table.concat, table.sort, pairs, ipairs
+local GetTime, GetCVar = GetTime, GetCVar
+local UpdateAddOnMemoryUsage, GetAddOnMemoryUsage = UpdateAddOnMemoryUsage, GetAddOnMemoryUsage
+local UpdateAddOnCPUUsage, GetAddOnCPUUsage = UpdateAddOnCPUUsage, GetAddOnCPUUsage
 local huge = math.huge
 
 local RUNE_LETTER = { blood = "B", unholy = "U", frost = "F", death = "D" }
@@ -125,6 +128,42 @@ function RH:PrintSnapshot()
     PrintList("Glyphs:", SortedKeys(Spec.glyphs))
 
     self:PrintDecision(s)
+end
+
+-- /rh perf: what the addon costs. "/rh perf reset" starts a new measurement,
+-- e.g. right before a boss pull.
+function RH:PrintPerf(arg)
+    if arg == "reset" then
+        self:ResetPerf()
+        self:Print("Performance counters reset.")
+        return
+    end
+    local perf = self.perf
+    local seconds = math.max(GetTime() - perf.since, 0.001)
+    UpdateAddOnMemoryUsage()
+    local memory = GetAddOnMemoryUsage(ADDON_NAME)
+
+    self:Print(format("Performance over the last %s:", Utils.FormatTime(seconds)))
+    if perf.updates > 0 then
+        print(format("%s %d (%.1f per second), %.3f ms average, %.3f ms worst",
+            Label("Updates:"), perf.updates, perf.updates / seconds, perf.totalMs / perf.updates, perf.maxMs))
+        print(format("%s %.2f ms per second of play (%.3f%% of one CPU core)",
+            Label("Update cost:"), perf.totalMs / seconds, perf.totalMs / seconds / 10))
+    else
+        print(Label("Updates:") .. " " .. Dim("none yet"))
+    end
+    -- Memory goes up as garbage piles up and drops when Lua collects it,
+    -- so a steady climb here means garbage is being created.
+    print(format("%s %.0f KB (%+.2f KB/s since the start)", Label("Memory:"), memory,
+        (memory - perf.memoryStart) / seconds))
+    if GetCVar("scriptProfile") == "1" then
+        UpdateAddOnCPUUsage()
+        local cpu = GetAddOnCPUUsage(ADDON_NAME)
+        print(format("%s %.0f ms since login (includes events and the combat log)", Label("Total CPU:"), cpu))
+    else
+        print(Dim("For total CPU including events: /console scriptProfile 1, then /reload. "
+            .. "Turn it off again afterwards, it slows every addon down."))
+    end
 end
 
 -- Prints what the APL recommends for state `s`, and why.

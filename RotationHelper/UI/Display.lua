@@ -169,21 +169,37 @@ function Display:GetEntries()
     if recs and #recs > 0 then return recs end
 end
 
-local function Tint(texture, color)
-    texture:SetVertexColor(color[1], color[2], color[3])
+-- The setters below skip calls into the client when nothing changed; the
+-- display refreshes up to 20 times a second and rarely changes.
+local function Tint(b, color)
+    if b.tint == color then return end
+    b.tint = color
+    b.icon:SetVertexColor(color[1], color[2], color[3])
+end
+
+local function SetIcon(b, path)
+    if b.iconPath == path then return end
+    b.iconPath = path
+    b.icon:SetTexture(path)
+end
+
+local function SetKeyText(b, text)
+    if b.keyText == text then return end
+    b.keyText = text
+    b.key:SetText(text)
 end
 
 function Display:UpdateButton(b, entry, isMain, now)
     local info = SpellInfo(entry.spellId)
-    b.icon:SetTexture(info.icon)
-    b.key:SetText(ns.Keybinds:Get(info.name) or "")
+    SetIcon(b, info.icon)
+    SetKeyText(b, ns.Keybinds:Get(info.name) or "")
 
     if info.name and UnitExists("target") and IsSpellInRange(info.name, "target") == 0 then
-        Tint(b.icon, TINT_OUT_OF_RANGE)
+        Tint(b, TINT_OUT_OF_RANGE)
     elseif entry.lacksResources then
-        Tint(b.icon, TINT_NO_RESOURCES)
+        Tint(b, TINT_NO_RESOURCES)
     else
-        Tint(b.icon, TINT_NORMAL)
+        Tint(b, TINT_NORMAL)
     end
 
     -- Restarting the swipe every refresh would make it flicker, so only
@@ -248,7 +264,10 @@ function Display:UpdateStatus()
     elseif enemies > 1 then
         text = text .. "  " .. enemies
     end
-    status:SetText(text)
+    if status.lastText ~= text then
+        status.lastText = text
+        status:SetText(text)
+    end
     status:Show()
 end
 

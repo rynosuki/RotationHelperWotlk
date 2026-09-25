@@ -401,6 +401,13 @@ function Mock.NewSession(opts)
         if addon == ADDON_DIR then return tocMeta[field] end
     end
     env.GetAddOnInfo = function(addon) return addon, addon, "", true, true end
+    env.debugprofilestop = function() return os.clock() * 1000 end
+    env.UpdateAddOnMemoryUsage = function() end
+    env.GetAddOnMemoryUsage = function() return session.memoryKB or 250 end
+    env.UpdateAddOnCPUUsage = function() end
+    env.GetAddOnCPUUsage = function() return session.cpuMs or 0 end
+    session.cvars = { scriptProfile = "0" }
+    env.GetCVar = function(name) return session.cvars[name] end
     env.IsAddOnLoaded = function(addon) return addon == ADDON_DIR end
 
     env.CreateFrame = NewFrameFactory(session)
@@ -493,9 +500,11 @@ function Mock:PlaceSpell(slot, spellId, command, key)
     self:FireEvent("ACTIONBAR_SLOT_CHANGED", slot)
 end
 
+-- Matches `pattern` against chat lines with color codes removed.
 function Mock:ChatContains(pattern)
     for _, line in ipairs(self.chat) do
-        if line:find(pattern) then return true end
+        local plain = line:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        if plain:find(pattern) then return true end
     end
     return false
 end

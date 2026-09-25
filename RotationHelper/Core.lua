@@ -102,6 +102,7 @@ function RH:OnEnable()
     self:RegisterEvent("CHARACTER_POINTS_CHANGED", "OnTalentsChanged")
     self:RegisterEvent("PLAYER_TARGET_CHANGED", "Invalidate")
 
+    self:ResetPerf()
     self:StartUpdateLoop()
 
     if not self.classSupported then
@@ -150,14 +151,36 @@ function RH:IsActive()
     return self.classSupported and p.enabled and not p.paused
 end
 
+-- Events like UNIT_AURA on the target can fire every frame in a raid; don't
+-- update more than 20 times a second however often something changes.
+local MIN_UPDATE_SPACING = 0.05
+
+-- Cost of the update loop, for /rh perf. debugprofilestop() is a
+-- millisecond clock that works without script profiling.
+local debugprofilestop = debugprofilestop
+local perf = { updates = 0, totalMs = 0, maxMs = 0, since = 0 }
+RH.perf = perf
+
+function RH:ResetPerf()
+    perf.updates, perf.totalMs, perf.maxMs, perf.since = 0, 0, 0, GetTime()
+    UpdateAddOnMemoryUsage()
+    perf.memoryStart = GetAddOnMemoryUsage(ADDON_NAME)
+end
+
 local function RunUpdaters(now)
+    local start = debugprofilestop()
     for _, updater in ipairs(updaters) do
         updater.fn(RH, now)
     end
+    local ms = debugprofilestop() - start
+    perf.updates = perf.updates + 1
+    perf.totalMs = perf.totalMs + ms
+    if ms > perf.maxMs then perf.maxMs = ms end
 end
 
 updateFrame:SetScript("OnUpdate", function(_, elapsed)
     elapsedSince = elapsedSince + elapsed
+    if elapsedSince < MIN_UPDATE_SPACING then return end
     if not dirty and elapsedSince < RH.db.profile.updateInterval then return end
     elapsedSince = 0
     dirty = false
@@ -294,6 +317,7 @@ local HELP = {
     { "lock", "lock/unlock the display" },
     { "test", "show/hide sample icons" },
     { "snapshot", "print what the addon reads from the game" },
+    { "perf", "show CPU and memory use (/rh perf reset to start over)" },
     { "scale <n>", "display scale (0.5-3)" },
     { "icons <n>", "number of icons shown (1-5)" },
     { "cd", "toggle cooldown recommendations" },
@@ -333,6 +357,7 @@ local commands = {
     test = "ToggleTestMode",
     snapshot = "PrintSnapshot",
     snap = "PrintSnapshot",
+    perf = "PrintPerf",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",
