@@ -1,0 +1,11 @@
+<Bindings>
+    <Binding name="ROTATIONHELPER_TOGGLE_COOLDOWNS" header="ROTATIONHELPER">
+        RotationHelper:ToggleCooldowns()
+    </Binding>
+    <Binding name="ROTATIONHELPER_CYCLE_AOE">
+        RotationHelper:CycleAoEMode()
+    </Binding>
+    <Binding name="ROTATIONHELPER_TOGGLE_PAUSE">
+        RotationHelper:TogglePause()
+    </Binding>
+</Bindings>

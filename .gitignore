@@ -1,0 +1,9 @@
+# WoW client files that may end up here when testing
+WTF/
+*.bak
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

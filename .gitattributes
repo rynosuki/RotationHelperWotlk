@@ -1,0 +1,2 @@
+# The WoW client handles LF fine; keep line endings consistent in the repo.
+* text=auto eol=lf

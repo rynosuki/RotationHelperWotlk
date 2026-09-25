@@ -1,0 +1,11 @@
+## Interface: 30300
+## Title: RotationHelper
+## Notes: Hekili-style rotation helper for WotLK 3.3.5a
+## Version: 0.1.0
+## SavedVariables: RotationHelperDB
+## OptionalDeps: Ace3
+
+embeds.xml
+
+Utils.lua
+Core.lua
