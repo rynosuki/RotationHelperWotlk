@@ -43,13 +43,82 @@ test("macros resolve through GetMacroSpell", function()
     eq(keybinds(s):Get("Howling Blast"), "Q", "macro")
 end)
 
-test("Bartender4 bindings take priority", function()
+test("bar addons: CLICK bindings to their buttons' action slots", function()
     local s = newAddon()
-    s.env.Bartender4 = {}
+    local button = s.env.CreateFrame("CheckButton", "BT4Button3")
+    button.action = 3
+    s:PlaceSpell(3, 51425)
+    s.bindings["CLICK BT4Button3:LeftButton"] = "SHIFT-F"
+    s:FireEvent("UPDATE_BINDINGS")
+    eq(keybinds(s):Get("Obliterate"), "SF", "Bartender-style button")
+end)
+
+test("bar addons: action slot from the secure attribute", function()
+    local s = newAddon()
+    local button = s.env.CreateFrame("CheckButton", "ElvUI_Bar1Button4")
+    button:SetAttribute("action", 4)
+    s:PlaceSpell(4, 55268)
+    s.bindings["CLICK ElvUI_Bar1Button4:LeftButton"] = "E"
+    s:FireEvent("UPDATE_BINDINGS")
+    eq(keybinds(s):Get("Frost Strike"), "E", "attribute slot")
+end)
+
+test("DragonUI-style extra bar buttons with a spell or macro attribute", function()
+    local s = newAddon()
+    local spellButton = s.env.CreateFrame("CheckButton", "DragonUIExtraBarButton1")
+    spellButton:SetAttribute("type", "spell")
+    spellButton:SetAttribute("spell", "Howling Blast")
+    local idButton = s.env.CreateFrame("CheckButton", "DragonUIExtraBarButton2")
+    idButton:SetAttribute("type", "spell")
+    idButton:SetAttribute("spell", 49909)
+    local macroButton = s.env.CreateFrame("CheckButton", "DragonUIExtraBarButton3")
+    macroButton:SetAttribute("type", "macro")
+    macroButton:SetAttribute("macro", 5)
+    s.macros[5] = "Plague Strike"
+    s.bindings["CLICK DragonUIExtraBarButton1:LeftButton"] = "Z"
+    s.bindings["CLICK DragonUIExtraBarButton2:LeftButton"] = "X"
+    s.bindings["CLICK DragonUIExtraBarButton3:LeftButton"] = "C"
+    s:FireEvent("UPDATE_BINDINGS")
+    local K = keybinds(s)
+    eq(K:Get("Howling Blast"), "Z", "spell name attribute")
+    eq(K:Get("Icy Touch"), "X", "spell ID attribute")
+    eq(K:Get("Plague Strike"), "C", "macro attribute")
+end)
+
+test("hidden buttons are skipped (Blizzard bars replaced by a bar addon)", function()
+    local s = newAddon()
+    local blizzard = s.env.CreateFrame("CheckButton", "ActionButton3")
+    blizzard.action = 3
+    blizzard:Hide()
+    local bt4 = s.env.CreateFrame("CheckButton", "BT4Button3")
+    bt4.action = 3
     s:PlaceSpell(3, 51425, "ACTIONBUTTON3", "3")
     s.bindings["CLICK BT4Button3:LeftButton"] = "SHIFT-F"
     s:FireEvent("UPDATE_BINDINGS")
-    eq(keybinds(s):Get("Obliterate"), "SF", "BT4 binding")
+    eq(keybinds(s):Get("Obliterate"), "SF", "only the visible button's key")
+end)
+
+test("unknown CLICK buttons are ignored", function()
+    local s = newAddon()
+    s.bindings["CLICK NoSuchButton:LeftButton"] = "Q"
+    s:FireEvent("UPDATE_BINDINGS")
+    eq(keybinds(s):Get("Obliterate"), nil, "nothing")
+end)
+
+test("Blizzard buttons follow bar paging", function()
+    local s = newAddon()
+    local button = s.env.CreateFrame("CheckButton", "ActionButton3")
+    button.action = 75 -- a bonus bar page
+    s:PlaceSpell(75, 55268, "ACTIONBUTTON3", "3")
+    s:PlaceSpell(3, 51425)
+    eq(keybinds(s):Get("Frost Strike"), "3", "the current page's spell")
+    eq(keybinds(s):Get("Obliterate"), nil, "not the page-1 spell")
+end)
+
+test("ACTIONBUTTON12 is slot 12, not ACTIONBUTTON1 + 2", function()
+    local s = newAddon()
+    s:PlaceSpell(12, 51425, "ACTIONBUTTON12", "=")
+    eq(keybinds(s):Get("Obliterate"), "=", "slot 12")
 end)
 
 test("binding changes rebuild the map", function()

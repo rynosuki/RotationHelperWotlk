@@ -137,6 +137,11 @@ local function NewFrameFactory(session)
             fn(...)
         end
     end
+    function FrameMethods:SetAttribute(name, value)
+        self.attributes = self.attributes or {}
+        self.attributes[name] = value
+    end
+    function FrameMethods:GetAttribute(name) return self.attributes and self.attributes[name] end
     function FrameMethods:SetClampedToScreen() end
     function FrameMethods:SetFrameStrata() end
     function FrameMethods:SetParent(p) self.parent = p end
@@ -276,6 +281,18 @@ function Mock.NewSession(opts)
         if a then return a[1], a[2], a[3], a[4] end
     end
     env.GetBindingKey = function(command) return session.bindings[command] end
+    -- Bindings in a stable (sorted) order.
+    local function SortedCommands()
+        local commands = {}
+        for command in pairs(session.bindings) do commands[#commands + 1] = command end
+        table.sort(commands)
+        return commands
+    end
+    env.GetNumBindings = function() return #SortedCommands() end
+    env.GetBinding = function(i)
+        local command = SortedCommands()[i]
+        return command, session.bindings[command]
+    end
     env.GetMacroSpell = function(id) return session.macros[id] end
     env.GetSpellName = function() return nil end
 

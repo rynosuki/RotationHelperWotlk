@@ -1,25 +1,31 @@
 local ADDON_NAME, ns = ...
 local RH = ns.RH
 
--- Maps spell names to the key that casts them, by scanning action bars.
--- Supports the default UI, Bartender4 and Dominos. The map is rebuilt
--- lazily on the next lookup after any bar or binding change.
+-- Maps spell names to the key that casts them.
+--
+-- Walks every key binding instead of knowing each bar addon:
+--   - "CLICK <button>:LeftButton" bindings (Bartender4, Dominos, DragonUI's
+--     extra bars, ElvUI, ...): the button's action slot, or its spell/macro
+--     attribute, says what it casts.
+--   - Blizzard bar commands (ACTIONBUTTON3, MULTIACTIONBAR1BUTTON2, ...):
+--     mapped to the Blizzard button and its current action.
+-- Buttons that exist but are hidden (e.g. Blizzard bars replaced by a bar
+-- addon) are skipped. The map is rebuilt lazily after any bar or binding change.
 local Keybinds = RH:NewModule("Keybinds", "AceEvent-3.0")
 ns.Keybinds = Keybinds
 
-local GetActionInfo, GetBindingKey, GetSpellInfo = GetActionInfo, GetBindingKey, GetSpellInfo
+local GetActionInfo, GetSpellInfo = GetActionInfo, GetSpellInfo
 local GetSpellName, GetMacroSpell = GetSpellName, GetMacroSpell
-local wipe = wipe
+local GetNumBindings, GetBinding = GetNumBindings, GetBinding
+local wipe, tonumber, type = wipe, tonumber, type
 
-local MAX_ACTION_SLOTS = 120
-
--- Default UI: action slot ranges and the binding command for each bar.
+-- Blizzard binding command prefix -> button name prefix and first action slot.
 local BLIZZARD_BARS = {
-    { first = 1, last = 12, command = "ACTIONBUTTON" },
-    { first = 25, last = 36, command = "MULTIACTIONBAR3BUTTON" }, -- right bar
-    { first = 37, last = 48, command = "MULTIACTIONBAR4BUTTON" }, -- right bar 2
-    { first = 49, last = 60, command = "MULTIACTIONBAR2BUTTON" }, -- bottom right
-    { first = 61, last = 72, command = "MULTIACTIONBAR1BUTTON" }, -- bottom left
+    ACTIONBUTTON = { button = "ActionButton", firstSlot = 1 },
+    MULTIACTIONBAR3BUTTON = { button = "MultiBarRightButton", firstSlot = 25 },
+    MULTIACTIONBAR4BUTTON = { button = "MultiBarLeftButton", firstSlot = 37 },
+    MULTIACTIONBAR2BUTTON = { button = "MultiBarBottomRightButton", firstSlot = 49 },
+    MULTIACTIONBAR1BUTTON = { button = "MultiBarBottomLeftButton", firstSlot = 61 },
 }
 
 -- Longest patterns first so e.g. MOUSEWHEELUP isn't caught by BUTTON.
@@ -52,27 +58,6 @@ function Keybinds.FormatKey(key)
     return key
 end
 
-local function BlizzardCommand(slot)
-    for _, bar in ipairs(BLIZZARD_BARS) do
-        if slot >= bar.first and slot <= bar.last then
-            return bar.command .. (slot - bar.first + 1)
-        end
-    end
-end
-
-local function SlotKey(slot)
-    if _G.Bartender4 then
-        local key = GetBindingKey("CLICK BT4Button" .. slot .. ":LeftButton")
-        if key then return key end
-    end
-    if _G.Dominos then
-        local key = GetBindingKey("CLICK DominosActionButton" .. slot .. ":LeftButton")
-        if key then return key end
-    end
-    local command = BlizzardCommand(slot)
-    return command and GetBindingKey(command)
-end
-
 -- 3.3.5 GetActionInfo returns ("spell", spellbookIndex, bookType, spellID);
 -- fall back to the spellbook lookup if the spell ID is missing.
 local function SlotSpellName(slot)
@@ -85,13 +70,58 @@ local function SlotSpellName(slot)
     end
 end
 
+local function Attribute(button, name)
+    return button.GetAttribute and button:GetAttribute(name)
+end
+
+-- What a button casts: an action slot (most bar addons), or a spell or
+-- macro set directly as a secure attribute.
+local function ButtonSpellName(button)
+    local buttonType = Attribute(button, "type")
+    if buttonType == "spell" then
+        local spell = Attribute(button, "spell")
+        if type(spell) == "number" then return (GetSpellInfo(spell)) end
+        return spell
+    elseif buttonType == "macro" and GetMacroSpell then
+        local macro = Attribute(button, "macro")
+        return macro and (GetMacroSpell(macro))
+    end
+    local slot = tonumber(button.action or button._state_action or Attribute(button, "action"))
+    return slot and SlotSpellName(slot)
+end
+
+-- The spell a binding command casts, or nil. A nil second return means the
+-- binding points at a hidden button and should be ignored.
+local function CommandSpellName(command)
+    local buttonName = command:match("^CLICK (.+):[%w]+$")
+    if buttonName then
+        local button = _G[buttonName]
+        if not button or (button.IsVisible and not button:IsVisible()) then return nil end
+        return ButtonSpellName(button)
+    end
+
+    local prefix, index = command:match("^(ACTIONBUTTON)(%d+)$")
+    if not prefix then prefix, index = command:match("^(MULTIACTIONBAR%dBUTTON)(%d+)$") end
+    local bar = prefix and BLIZZARD_BARS[prefix]
+    if not bar then return nil end
+    index = tonumber(index)
+    local button = _G[bar.button .. index]
+    if button then
+        if button.IsVisible and not button:IsVisible() then return nil end
+        if button.action then return SlotSpellName(button.action) end
+    end
+    return SlotSpellName(bar.firstSlot + index - 1)
+end
+
 function Keybinds:Rebuild()
     wipe(keyBySpell)
-    for slot = 1, MAX_ACTION_SLOTS do
-        local name = SlotSpellName(slot)
-        if name and not keyBySpell[name] then
-            local key = SlotKey(slot)
-            if key then keyBySpell[name] = Keybinds.FormatKey(key) end
+    for i = 1, GetNumBindings() do
+        local command, key = GetBinding(i)
+        if command and key then
+            local name = CommandSpellName(command)
+            if name and not keyBySpell[name] then
+                keyBySpell[name] = Keybinds.FormatKey(key)
+            end
         end
     end
     dirty = false
@@ -112,6 +142,7 @@ function Keybinds:OnEnable()
     self:RegisterEvent("ACTIONBAR_SLOT_CHANGED", "MarkDirty")
     self:RegisterEvent("UPDATE_BINDINGS", "MarkDirty")
     self:RegisterEvent("ACTIONBAR_PAGE_CHANGED", "MarkDirty")
+    self:RegisterEvent("UPDATE_BONUS_ACTIONBAR", "MarkDirty")
     self:RegisterEvent("UPDATE_MACROS", "MarkDirty")
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "MarkDirty")
 end
