@@ -31,6 +31,7 @@ function Cooldowns.Read(state, classData, now)
         state.gcdDuration = state.buffs.unholy_presence and 1.0 or BASE_GCD
     end
     if state.gcdRemains < 0 then state.gcdRemains = 0 end
+    state.gcdEnd = now + state.gcdRemains
 
     local list = state.cooldowns
     for key, ability in pairs(classData.abilities) do

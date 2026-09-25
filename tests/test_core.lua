@@ -104,6 +104,17 @@ test("update loop is throttled and respects invalidate/pause", function()
     eq(calls, 4, "resumed")
 end)
 
+test("updaters run by order, not registration order", function()
+    local s, RH = newAddon()
+    local calls = {}
+    RH:RegisterUpdater(function() calls[#calls + 1] = "late" end, 200)
+    RH:RegisterUpdater(function() calls[#calls + 1] = "early" end, 1)
+    RH:RegisterUpdater(function() calls[#calls + 1] = "default" end)
+    s.ns.Recommender.Update = function() end
+    s:Tick(0.2)
+    eq(table.concat(calls, ","), "early,default,late", "order")
+end)
+
 test("combat events set inCombat", function()
     local s, RH = newAddon()
     s:FireEvent("PLAYER_REGEN_DISABLED")

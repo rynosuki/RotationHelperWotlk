@@ -19,10 +19,15 @@ ns.Classes = {}
 function ns.RegisterClass(classToken, data)
     data.classToken = classToken
     data.badSpellIds = {}
+    data.abilityByName = {}
     for key, ability in pairs(data.abilities) do
         ability.key = key
         ability.name = GetSpellInfo(ability.id)
-        if not ability.name then tinsert(data.badSpellIds, key .. " (" .. ability.id .. ")") end
+        if ability.name then
+            data.abilityByName[ability.name] = key
+        else
+            tinsert(data.badSpellIds, key .. " (" .. ability.id .. ")")
+        end
     end
     for key, aura in pairs(data.auras) do
         aura.key = key
@@ -33,6 +38,14 @@ function ns.RegisterClass(classToken, data)
     data.gcdSpellName = GetSpellInfo(data.gcdSpell)
     table.sort(data.badSpellIds)
     ns.Classes[classToken] = data
+end
+
+-- Default action lists registered by APLs/*.lua: ns.APLs[class][spec].
+ns.APLs = {}
+
+function ns.RegisterAPL(classToken, specKey, name, text)
+    ns.APLs[classToken] = ns.APLs[classToken] or {}
+    ns.APLs[classToken][specKey] = { name = name, text = text }
 end
 
 local AOE_MODES = { "auto", "single", "aoe" }
@@ -103,10 +116,14 @@ end
 ---------------------------------------------------------------------------
 -- Update loop
 --
--- Modules register an updater with RH:RegisterUpdater(fn). The loop calls
--- every updater at most once per `updateInterval`, and immediately on the
--- next frame after something calls RH:Invalidate().
+-- Modules register an updater with RH:RegisterUpdater(fn, order). The loop
+-- calls every updater, lowest order first, at most once per
+-- `updateInterval`, and immediately on the next frame after something
+-- calls RH:Invalidate(). The order is explicit because AceAddon r960
+-- enables modules in no particular order.
 ---------------------------------------------------------------------------
+RH.UPDATE_ORDER = { RECOMMEND = 10, DEFAULT = 50, DISPLAY = 100 }
+
 local updaters = {}
 local updateFrame = CreateFrame("Frame")
 updateFrame:Hide()
@@ -114,8 +131,12 @@ updateFrame:Hide()
 local elapsedSince = 0
 local dirty = true
 
-function RH:RegisterUpdater(fn)
-    tinsert(updaters, fn)
+function RH:RegisterUpdater(fn, order)
+    tinsert(updaters, { fn = fn, order = order or RH.UPDATE_ORDER.DEFAULT, index = #updaters + 1 })
+    table.sort(updaters, function(a, b)
+        if a.order ~= b.order then return a.order < b.order end
+        return a.index < b.index
+    end)
 end
 
 function RH:Invalidate()
@@ -128,8 +149,8 @@ function RH:IsActive()
 end
 
 local function RunUpdaters(now)
-    for _, fn in ipairs(updaters) do
-        fn(RH, now)
+    for _, updater in ipairs(updaters) do
+        updater.fn(RH, now)
     end
 end
 
@@ -159,6 +180,7 @@ end
 -- so trust the event name.
 function RH:OnCombatChanged(event)
     self.inCombat = event == "PLAYER_REGEN_DISABLED"
+    self.combatStart = self.inCombat and GetTime() or nil
     self:SendMessage("ROTATIONHELPER_COMBAT_CHANGED", self.inCombat)
     self:Invalidate()
 end

@@ -3,9 +3,11 @@ local test, eq, truthy, falsy, newAddon = T.test, T.eq, T.truthy, T.falsy, T.new
 
 local function display(s) return s.ns.Display end
 
--- Loads the addon with the display locked (the in-combat look).
+-- Loads the addon with the display locked (the in-combat look). These tests
+-- set RH.recommendations by hand, so the real recommender is switched off.
 local function lockedAddon(opts)
     local s, RH = newAddon(opts)
+    s.ns.Recommender.Update = function() end
     s:Slash("ACECONSOLE_RH", "lock")
     return s, RH
 end

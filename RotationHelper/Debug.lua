@@ -118,4 +118,30 @@ function RH:PrintSnapshot()
     end
     PrintList("Talents:", talents)
     PrintList("Glyphs:", SortedKeys(Spec.glyphs))
+
+    self:PrintDecision(s)
+end
+
+-- Prints what the APL recommends for state `s`, and why.
+function RH:PrintDecision(s)
+    local Recommender = ns.Recommender
+    local apl = Recommender:GetAPL()
+    if not apl then
+        print(Label("Recommendation:") .. " " .. Dim("no action list for this spec"))
+        return
+    end
+    local trace = {}
+    local action, readyAt, limitedBy = Recommender:Evaluate(s, trace)
+    if action then
+        local wait = readyAt - s.now
+        print(format("%s %s %s", Label("Recommendation:"), Utils.Colorize(action.name, "40ff40"),
+            wait > 0 and format("in %s (%s)", Utils.FormatTime(wait), limitedBy or "?") or "now"))
+    else
+        local t = s.target
+        local why = (t.exists and t.canAttack and not t.dead) and "nothing usable" or "no hostile target"
+        print(Label("Recommendation:") .. " " .. Dim("none (" .. why .. ")"))
+    end
+    for _, line in ipairs(trace) do
+        print("   " .. Dim(line))
+    end
 end

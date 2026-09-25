@@ -16,11 +16,18 @@ Engine\Spec.lua
 Engine\Resources.lua
 Engine\Auras.lua
 Engine\Cooldowns.lua
+Engine\Abilities.lua
+Engine\Expressions.lua
 Engine\State.lua
 
 APL\Lexer.lua
 APL\Parser.lua
 APL\Compiler.lua
+APL\Runner.lua
+
+APLs\DeathKnight_Frost.lua
+
+Engine\Recommender.lua
 
 Debug.lua
 

@@ -231,6 +231,6 @@ function Display:OnEnable()
     self:CreateFrames()
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "ApplySettings")
     self:RegisterMessage("ROTATIONHELPER_COMBAT_CHANGED", "Refresh")
-    RH:RegisterUpdater(function() Display:Refresh() end)
+    RH:RegisterUpdater(function() Display:Refresh() end, RH.UPDATE_ORDER.DISPLAY)
     self:ApplySettings()
 end

@@ -19,7 +19,12 @@ State.real = {
     debuffs = {},
     cooldowns = {},
     target = {},
+    variables = {}, -- APL variables, reset for every evaluation
+    lastCast = {},  -- ability key -> GetTime() of our last successful cast
 }
+
+-- Until enemy counting exists (milestone 7), the AoE toggle decides.
+local ENEMIES_BY_AOE_MODE = { auto = 1, single = 1, aoe = 3 }
 
 local function ReadTarget(t)
     t.exists = UnitExists("target") and true or false
@@ -57,7 +62,11 @@ function State:Reset(now)
     now = now or GetTime()
     s.now = now
     s.inCombat = RH.inCombat or false
+    s.combatStart = RH.combatStart
     s.moving = GetUnitSpeed and GetUnitSpeed("player") > 0 or false
+    local toggles = RH.db.profile.toggles
+    s.cooldownsEnabled = toggles.cooldowns
+    s.activeEnemies = ENEMIES_BY_AOE_MODE[toggles.aoeMode] or 1
 
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
@@ -76,12 +85,20 @@ function State:OnUnitEvent(_, unit)
     end
 end
 
+-- 3.3.5 passes (unit, spellName, spellRank, ...) with no spell ID.
+function State:OnSpellcastSucceeded(_, unit, spellName)
+    if unit ~= "player" then return end
+    local key = RH.classData.abilityByName[spellName]
+    if key then self.real.lastCast[key] = GetTime() end
+    RH:Invalidate()
+end
+
 function State:OnEnable()
     if not RH.classSupported then return end
     local invalidate = function() RH:Invalidate() end
     self:RegisterEvent("UNIT_AURA", "OnUnitEvent")
     self:RegisterEvent("UNIT_RUNIC_POWER", "OnUnitEvent")
-    self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnUnitEvent")
+    self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnSpellcastSucceeded")
     self:RegisterEvent("RUNE_POWER_UPDATE", invalidate)
     self:RegisterEvent("RUNE_TYPE_UPDATE", invalidate)
     self:RegisterEvent("SPELL_UPDATE_COOLDOWN", invalidate)

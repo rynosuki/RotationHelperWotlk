@@ -9,6 +9,8 @@ local ADDON_NAME, ns = ...
 --   rp        runic power cost (negative = generates)
 --   cooldown  base cooldown in seconds (0 = none)
 --   offGcd    true if the ability does not trigger the GCD
+--   rpCost    function(spec) -> runic power cost, when it depends on talents/glyphs
+--   freeWith  aura key; while that buff is up the ability costs no runes
 ns.RegisterClass("DEATHKNIGHT", {
     -- A spell with no cooldown and no rune cost; its cooldown is the GCD.
     gcdSpell = 49895, -- Death Coil
@@ -20,8 +22,10 @@ ns.RegisterClass("DEATHKNIGHT", {
         icy_touch = { id = 49909, runes = { frost = 1 }, rp = -10 },
         plague_strike = { id = 49921, runes = { unholy = 1 }, rp = -10 },
         obliterate = { id = 51425, runes = { frost = 1, unholy = 1 }, rp = -15 },
-        frost_strike = { id = 55268, rp = 40 },
-        howling_blast = { id = 51411, runes = { frost = 1, unholy = 1 }, rp = -15, cooldown = 8 },
+        frost_strike = { id = 55268, rp = 40,
+            rpCost = function(spec) return spec:HasGlyph("frost_strike") and 32 or 40 end },
+        howling_blast = { id = 51411, runes = { frost = 1, unholy = 1 }, rp = -15, cooldown = 8,
+            freeWith = "freezing_fog" },
         blood_strike = { id = 49930, runes = { blood = 1 }, rp = -10 },
         pestilence = { id = 50842, runes = { blood = 1 }, rp = -10 },
         blood_boil = { id = 49941, runes = { blood = 1 }, rp = -10 },
