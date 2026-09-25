@@ -71,7 +71,7 @@ local defaults = {
         },
         review = {
             enabled = true,
-            autoShow = true,   -- open the review window after a fight
+            autoShow = false,  -- open the review window after a fight (off: /rh review)
             minDuration = 20,  -- seconds; shorter fights aren't kept
         },
         threat = {

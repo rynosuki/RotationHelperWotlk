@@ -121,7 +121,6 @@ end)
 
 test("short fights aren't kept; only the last 10 are", function()
     local s, RH = Setup()
-    RH.db.profile.review.autoShow = false
     s:FireEvent("PLAYER_REGEN_DISABLED")
     Run(s, 5)
     s:FireEvent("PLAYER_REGEN_ENABLED")
@@ -155,8 +154,19 @@ local function WindowText(s)
     return table.concat(out, "\n")
 end
 
-test("the review opens after a fight and shows the numbers", function()
+test("the popup is off by default; nothing opens after a fight", function()
     local s, RH = Setup()
+    eq(RH.db.profile.review.autoShow, false, "default")
+    s:FireEvent("PLAYER_REGEN_DISABLED")
+    Run(s, 25, Busy)
+    s:FireEvent("PLAYER_REGEN_ENABLED")
+    eq(#RH.db.char.reviews, 1, "still recorded")
+    falsy(s.ns.ReviewWindow.frame and s.ns.ReviewWindow.frame:IsShown(), "no popup")
+end)
+
+test("with the popup on, the review opens after a fight and shows the numbers", function()
+    local s, RH = Setup()
+    RH.db.profile.review.autoShow = true
     s:FireEvent("PLAYER_REGEN_DISABLED")
     Run(s, 20, Busy)
     s.runes[3].readyAt, s.runes[5].readyAt = s.time, s.time
@@ -190,7 +200,6 @@ end)
 
 test("browsing saved fights and /rh review", function()
     local s, RH = Setup()
-    RH.db.profile.review.autoShow = false
     s:ClearChat()
     s:Slash("ACECONSOLE_RH", "review")
     truthy(s:ChatContains("No fights recorded yet"), "nothing yet")

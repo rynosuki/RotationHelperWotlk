@@ -78,8 +78,9 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
 
 ## Fight review
 
-After each fight longer than 20 seconds, a review window shows how it went, graded green, yellow
-or red:
+Every fight longer than 20 seconds is reviewed. `/rh review` (or the button on the General tab)
+shows how it went, graded green, yellow or red; to have it pop up by itself after each fight,
+turn on "Show after each fight" on the General tab.
 
 - **Time spent casting**: the share of the fight the GCD was in use while there was something to
   press (latency compensation isn't counted against you).
@@ -90,8 +91,8 @@ or red:
 - **Cooldowns left unused** while they were ready, and the **biggest mistakes** with their time,
   e.g. `0:42 Frost Strike instead of Obliterate (ready)`.
 
-The last 10 fights are kept per character: `/rh review` reopens the latest, the arrows in the
-title bar browse them, and `/rh review 3` opens a specific one. Settings are on the General tab.
+The last 10 fights are kept per character: `/rh review` opens the latest, the arrows in the
+title bar browse them, and `/rh review 3` opens a specific one.
 
 ## AoE detection
 
