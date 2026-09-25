@@ -62,6 +62,7 @@ function State:Reset(now)
     s.now = now
     s.inCombat = RH.inCombat or false
     s.combatStart = RH.combatStart
+    s.petAlive = (UnitExists("pet") and not UnitIsDead("pet")) and true or false
     s.moving = GetUnitSpeed and GetUnitSpeed("player") > 0 or false
     local toggles = RH.db.profile.toggles
     s.cooldownsEnabled = toggles.cooldowns

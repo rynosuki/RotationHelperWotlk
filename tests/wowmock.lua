@@ -262,6 +262,8 @@ function Mock.NewSession(opts)
         [55095] = { "Frost Fever", "i" }, [55078] = { "Blood Plague", "i" }, [51124] = { "Killing Machine", "i" },
         [59052] = { "Freezing Fog", "i" }, [48266] = { "Blood Presence", "i" }, [48263] = { "Frost Presence", "i" },
         [48265] = { "Unholy Presence", "i" }, [2825] = { "Bloodlust", "i" }, [32182] = { "Heroism", "i" },
+        [55271] = { "Scourge Strike", "i" }, [63560] = { "Ghoul Frenzy", "i" },
+        [49206] = { "Summon Gargoyle", "i" }, [49222] = { "Bone Shield", "i" }, [66803] = { "Desolation", "i" },
         -- glyph spells
         [58647] = { "Glyph of Frost Strike", "i" }, [58671] = { "Glyph of Obliterate", "i" },
     }
@@ -302,7 +304,11 @@ function Mock.NewSession(opts)
     session.hasTarget, session.range = false, {}
     session.target = { name = "Training Dummy", guid = "0xF130000001", health = 100, healthMax = 100,
         level = -1, canAttack = true, dead = false, classification = "worldboss" }
-    env.UnitExists = function(unit) return unit == "target" and session.hasTarget end
+    session.petAlive = false
+    env.UnitExists = function(unit)
+        if unit == "pet" then return session.petAlive end
+        return unit == "target" and session.hasTarget
+    end
     env.IsSpellInRange = function(name) return session.range[name] or 1 end
     env.UnitGUID = function(unit)
         if unit == "player" then return Mock.PLAYER_GUID end

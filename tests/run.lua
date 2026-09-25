@@ -13,6 +13,7 @@ local SUITES = {
     "test_apl",
     "test_engine",
     "test_frost",
+    "test_unholy",
     "test_predict",
     "test_targets",
     "test_options",

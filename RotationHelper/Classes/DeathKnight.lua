@@ -16,6 +16,7 @@ local ADDON_NAME, ns = ...
 --   convert   { runes = { base = true }, talents = { ... } }: spent runes of those
 --             base types become death runes if any listed talent is at rank 3
 --   apply     function(state, spec, Effects): the ability's other effects, for prediction
+--   requiresPet  true if it needs a living pet (Ghoul Frenzy)
 
 local EPIDEMIC_PER_RANK = 3 -- seconds added to disease duration
 local DISEASE_DURATION = 15
@@ -29,6 +30,11 @@ local function ChillOfTheGrave(spec)
     return 2.5 * spec:TalentRank("chill_of_the_grave")
 end
 
+-- Dirge: +2.5 runic power per rank on Death Strike, Obliterate, Plague Strike, Scourge Strike.
+local function Dirge(spec)
+    return 2.5 * spec:TalentRank("dirge")
+end
+
 local BLOOD_TO_DEATH = { runes = { blood = true }, talents = { "blood_of_the_north", "reaping" } }
 local FROST_UNHOLY_TO_DEATH = { runes = { frost = true, unholy = true }, talents = { "death_rune_mastery" } }
 
@@ -37,16 +43,18 @@ ns.RegisterClass("DEATHKNIGHT", {
     gcdSpell = 49895, -- Death Coil
     usesRunes = true,
 
-    specs = { blood = false, frost = true, unholy = false },
+    specs = { blood = false, frost = true, unholy = true },
 
     abilities = {
         icy_touch = { id = 49909, runes = { frost = 1 }, rp = -10, rpGain = ChillOfTheGrave,
             consumes = { "killing_machine", "deathchill" },
             apply = function(s, spec, fx) fx.ApplyDebuff(s, "frost_fever", DiseaseDuration(spec)) end },
-        plague_strike = { id = 49921, runes = { unholy = 1 }, rp = -10,
+        plague_strike = { id = 49921, runes = { unholy = 1 }, rp = -10, rpGain = Dirge,
             apply = function(s, spec, fx) fx.ApplyDebuff(s, "blood_plague", DiseaseDuration(spec)) end },
-        obliterate = { id = 51425, runes = { frost = 1, unholy = 1 }, rp = -15, rpGain = ChillOfTheGrave,
+        obliterate = { id = 51425, runes = { frost = 1, unholy = 1 }, rp = -15,
+            rpGain = function(spec) return ChillOfTheGrave(spec) + Dirge(spec) end,
             consumes = { "deathchill" }, convert = FROST_UNHOLY_TO_DEATH },
+        scourge_strike = { id = 55271, runes = { frost = 1, unholy = 1 }, rp = -15, rpGain = Dirge },
         frost_strike = { id = 55268, rp = 40,
             rpCost = function(spec) return spec:HasGlyph("frost_strike") and 32 or 40 end,
             consumes = { "killing_machine", "deathchill" } },
@@ -58,7 +66,11 @@ ns.RegisterClass("DEATHKNIGHT", {
                     fx.ApplyDebuff(s, "frost_fever", DiseaseDuration(spec))
                 end
             end },
-        blood_strike = { id = 49930, runes = { blood = 1 }, rp = -10, convert = BLOOD_TO_DEATH },
+        blood_strike = { id = 49930, runes = { blood = 1 }, rp = -10, convert = BLOOD_TO_DEATH,
+            -- Desolation: +5% damage for 20s.
+            apply = function(s, spec, fx)
+                if spec:TalentRank("desolation") > 0 then fx.ApplyBuff(s, "desolation", 20) end
+            end },
         pestilence = { id = 50842, runes = { blood = 1 }, rp = -10, convert = BLOOD_TO_DEATH,
             -- Glyph of Disease: refreshes both diseases on the target.
             apply = function(s, spec, fx)
@@ -72,7 +84,8 @@ ns.RegisterClass("DEATHKNIGHT", {
             convert = { runes = { blood = true }, talents = { "reaping" } } },
         death_and_decay = { id = 49938, runes = { blood = 1, unholy = 1, frost = 1 }, rp = -15, cooldown = 30 },
         death_coil = { id = 49895, rp = 40 },
-        death_strike = { id = 49924, runes = { frost = 1, unholy = 1 }, rp = -15, convert = FROST_UNHOLY_TO_DEATH },
+        death_strike = { id = 49924, runes = { frost = 1, unholy = 1 }, rp = -15, rpGain = Dirge,
+            convert = FROST_UNHOLY_TO_DEATH },
         horn_of_winter = { id = 57623, rp = -10, cooldown = 20,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "horn_of_winter", 120) end },
         blood_tap = { id = 45529, cooldown = 60, offGcd = true,
@@ -84,8 +97,15 @@ ns.RegisterClass("DEATHKNIGHT", {
         deathchill = { id = 49796, cooldown = 120, offGcd = true,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "deathchill", 30) end },
         army_of_the_dead = { id = 42650, runes = { blood = 1, unholy = 1, frost = 1 }, cooldown = 600 },
-        raise_dead = { id = 46584, cooldown = 180 },
+        raise_dead = { id = 46584, cooldown = 180,
+            apply = function(s, spec, fx) fx.SummonPet(s) end },
         mind_freeze = { id = 47528, rp = 20, cooldown = 10, offGcd = true },
+
+        -- Unholy
+        ghoul_frenzy = { id = 63560, runes = { unholy = 1 }, rp = -10, cooldown = 10, requiresPet = true },
+        summon_gargoyle = { id = 49206, rp = 60, cooldown = 180 },
+        bone_shield = { id = 49222, runes = { unholy = 1 }, rp = -10, cooldown = 60,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "bone_shield", 300) end },
     },
 
     -- Buffs are read from the player, debuffs from the target. Debuffs only
@@ -102,5 +122,7 @@ ns.RegisterClass("DEATHKNIGHT", {
         frost_presence = { id = 48263 },
         unholy_presence = { id = 48265 },
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
+        desolation = { id = 66803 },           -- from Blood Strike, Unholy talent
+        bone_shield = { id = 49222 },
     },
 })

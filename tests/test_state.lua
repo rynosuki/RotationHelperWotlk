@@ -95,10 +95,10 @@ end)
 
 test("a spec without a rotation is flagged unsupported", function()
     local s = newAddon()
-    s.talentTabs[3].talents[1][2] = 51
+    s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
-    eq(s.ns.Spec.key, "unholy", "spec")
-    eq(s.ns.Spec.supported, false, "unholy unsupported")
+    eq(s.ns.Spec.key, "blood", "spec")
+    eq(s.ns.Spec.supported, false, "blood unsupported")
 end)
 
 test("known abilities follow the spellbook", function()

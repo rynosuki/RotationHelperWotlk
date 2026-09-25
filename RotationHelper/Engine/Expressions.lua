@@ -11,7 +11,7 @@ local ADDON_NAME, ns = ...
 --   runic_power, runic_power.deficit|max|pct
 --   runes.blood|unholy|frost|death|total        (ready runes; "rune" works too)
 --   runes.TYPE.time_to_N                        (seconds until N of that type are ready)
---   gcd, gcd.remains, time, active_enemies, moving
+--   gcd, gcd.remains, time, active_enemies, moving, pet.alive
 --   target.health.pct, target.time_to_die
 --   talent.KEY.enabled|rank, glyph.KEY.enabled
 --   toggle.cooldowns
@@ -113,6 +113,7 @@ local SIMPLE = {
     time = function(s) return s.combatStart and max(0, s.now - s.combatStart) or 0 end,
     active_enemies = function(s) return s.activeEnemies end,
     moving = function(s) return B(s.moving) end,
+    ["pet.alive"] = function(s) return B(s.petAlive) end,
     ["target.health.pct"] = function(s) return s.target.healthPct end,
     -- 3600 when unknown or the target isn't losing health.
     ["target.time_to_die"] = function(s) return s.target.timeToDie end,

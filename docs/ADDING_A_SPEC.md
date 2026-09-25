@@ -22,13 +22,16 @@ UI/Display, Keybinds, Options
 Load order is in `RotationHelper.toc`: class files after `Core.lua`, APL files after the `APL/`
 modules, `Engine/Recommender.lua` after the APL files.
 
-## A new Death Knight spec (Blood or Unholy)
+## A new Death Knight spec (Blood)
+
+Frost and Unholy are done: [APLs/DeathKnight_Unholy.lua](../RotationHelper/APLs/DeathKnight_Unholy.lua)
+and [tests/test_unholy.lua](../tests/test_unholy.lua) are the most recent worked example of these steps.
 
 ### 1. Add missing abilities and auras
 
 Open [Classes/DeathKnight.lua](../RotationHelper/Classes/DeathKnight.lua) and add anything the
-spec uses. For Unholy that's e.g. Scourge Strike, Ghoul Frenzy, Summon Gargoyle, Unholy Blight and
-the Desolation buff. Use the **highest rank** spell ID from a WotLK spell database (3.3.5's
+spec uses. For Blood that's e.g. Heart Strike, Hysteria, Rune Tap, Vampiric Blood and Dancing
+Rune Weapon. Use the **highest rank** spell ID from a WotLK spell database (3.3.5's
 `GetSpellInfo` doesn't return spell IDs, so they can't be looked up in game). The addon checks
 them: at login it prints `Unknown spell IDs in class data: ...` for any ID the client doesn't know.
 
@@ -45,11 +48,12 @@ Ability fields (all optional except `id`):
 | `freeWith` | a buff key that makes it free (and is used up), like Rime for Howling Blast |
 | `consumes` | buff keys it uses up, e.g. `{ "killing_machine" }` |
 | `convert` | death rune conversion: `{ runes = { blood = true }, talents = { "blood_of_the_north" } }` |
+| `requiresPet` | `true` if it needs a living pet, like Ghoul Frenzy |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
 `apply` gets the virtual state and helpers from `Abilities.Effects`:
 `fx.ApplyBuff(s, key, duration)`, `fx.ApplyDebuff(s, key, duration)`, `fx.RemoveBuff(s, key)`,
-`fx.DebuffUp(s, key)`, `fx.ActivateAllRunes(s)`, `fx.BloodTap(s)`. Add a helper there if a new
+`fx.DebuffUp(s, key)`, `fx.ActivateAllRunes(s)`, `fx.BloodTap(s)`, `fx.SummonPet(s)`. Add a helper there if a new
 mechanic needs one. Only model what the rotation's conditions look at; the prediction doesn't need
 damage.
 
@@ -60,23 +64,23 @@ reading, but fix it anyway.
 
 ### 2. Write the APL
 
-Create `APLs/DeathKnight_Unholy.lua`:
+Create `APLs/DeathKnight_Blood.lua`:
 
 ```lua
 local ADDON_NAME, ns = ...
 
-ns.RegisterAPL("DEATHKNIGHT", "unholy", "Unholy (default)", [[
+ns.RegisterAPL("DEATHKNIGHT", "blood", "Blood (default)", [[
 actions.precombat=horn_of_winter,if=!buff.horn_of_winter.up
 actions=icy_touch,if=dot.frost_fever.remains<2
 actions+=/plague_strike,if=dot.blood_plague.remains<2
-actions+=/scourge_strike
+actions+=/heart_strike
 actions+=/death_coil,if=runic_power.deficit<20
 ...
 ]])
 ```
 
 The spec key is the talent tree's name in lowercase (`blood`, `frost`, `unholy`). Add the file to
-`RotationHelper.toc` next to the Frost one, and set `specs.unholy = true` in the class data.
+`RotationHelper.toc` next to the other APLs, and set `specs.blood = true` in the class data.
 
 The fastest way to develop the list is the in-game editor (`/rh apl`, pick the spec): it compiles
 on Accept and shows errors with line and column. Paste the result into the file when it works.

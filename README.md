@@ -4,8 +4,9 @@ A Hekili-style rotation helper for **World of Warcraft 3.3.5a** (WotLK), tested 
 It shows the ability to press next, plus a prediction of the few after it, based on a
 priority list you can read and edit in game.
 
-Supported so far: **Frost Death Knight** (dual-wield or two-handed). Any other Death Knight
-spec can get a rotation by writing one in the in-game editor. Other classes load but stay idle.
+Supported so far: **Frost** and **Unholy Death Knight**. Blood can get a rotation by writing one
+in the in-game editor. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+what's planned.
 
 ## Install
 

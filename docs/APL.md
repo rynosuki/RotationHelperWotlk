@@ -91,8 +91,8 @@ In the in-game editor, WoW shows `|` as `||`. Both mean "or".
 | `debuff.NAME.*` | same as `dot.NAME.*` |
 
 Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable_armor`,
-`deathchill`, `horn_of_winter`, `blood_presence`, `frost_presence`, `unholy_presence`,
-`bloodlust` (also Heroism); debuffs `frost_fever`, `blood_plague`.
+`deathchill`, `horn_of_winter`, `desolation`, `bone_shield`, `blood_presence`, `frost_presence`,
+`unholy_presence`, `bloodlust` (also Heroism); debuffs `frost_fever`, `blood_plague`.
 
 ### Cooldowns
 
@@ -124,6 +124,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `time` | seconds since combat started |
 | `active_enemies` | enemies counted (see AoE detection in the README) |
 | `moving` | 1 while moving |
+| `pet.alive` | 1 while your pet (ghoul) is out and alive |
 | `target.health.pct` | target health percent |
 | `target.time_to_die` | estimated seconds until the target dies (3600 if unknown, e.g. training dummies) |
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
@@ -137,8 +138,10 @@ by `_`. `/rh snapshot` lists your talents and glyphs in exactly this form.
 ### Abilities
 
 Death Knight: `icy_touch`, `plague_strike`, `obliterate`, `frost_strike`, `howling_blast`,
-`blood_strike`, `pestilence`, `blood_boil`, `death_and_decay`, `death_coil`, `death_strike`,
-`horn_of_winter`, `blood_tap`, `unbreakable_armor`, `empower_rune_weapon`, `deathchill`,
-`army_of_the_dead`, `raise_dead`, `mind_freeze`.
+`scourge_strike`, `blood_strike`, `pestilence`, `blood_boil`, `death_and_decay`, `death_coil`,
+`death_strike`, `horn_of_winter`, `blood_tap`, `unbreakable_armor`, `empower_rune_weapon`,
+`deathchill`, `ghoul_frenzy`, `summon_gargoyle`, `bone_shield`, `army_of_the_dead`, `raise_dead`,
+`mind_freeze`.
 
-Abilities you don't have (talents you didn't take) are skipped automatically.
+Abilities you don't have (talents you didn't take) are skipped automatically, and so are
+abilities that need a pet (Ghoul Frenzy) while you have none.

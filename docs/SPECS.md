@@ -28,7 +28,7 @@ Legend: role · power · engine features needed · notes.
 ### Death Knight — runes + runic power (engine complete)
 
 - [x] **Frost** (DPS) · done
-- [ ] **Unholy** (DPS) · data + APL only · Scourge Strike, Ghoul Frenzy, Summon Gargoyle, Desolation. The easiest next spec.
+- [ ] **Unholy** (DPS) · implemented in 1.1.0, waiting on an in-game check · Scourge Strike, Desolation, Ghoul Frenzy, Summon Gargoyle, Bone Shield.
 - [ ] **Blood** (DPS or tank) · data + APL only · Heart Strike, Hysteria, Rune Tap, Vampiric Blood. Probably separate DPS and tank lists.
 
 ### Paladin — mana
@@ -88,7 +88,7 @@ Legend: role · power · engine features needed · notes.
 
 ## Suggested order
 
-1. **Unholy DK**, **Blood DK**: data and APLs only, no engine work.
+1. **Unholy DK** (done), **Blood DK**: data and APLs only, no engine work.
 2. **E1 mana costs** → **Retribution Paladin**, then **Protection Paladin**.
 3. **E3 + E4 rage** → **Fury**, **Arms**, **Protection Warrior**.
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.

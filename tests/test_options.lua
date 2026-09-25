@@ -153,14 +153,14 @@ end)
 
 test("a spec without a default can get a custom rotation", function()
     local s, RH = Fight()
-    s.talentTabs[3].talents[1][2] = 51
+    s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
-    eq(First(s), nil, "unholy: nothing")
+    eq(First(s), nil, "blood: nothing")
     local rotation = Args(s, "rotation")
-    eq(Options(s):EditSpec(), "unholy", "editor follows the current spec")
-    truthy(Options(s):RotationStatus("unholy"):find("no rotation yet"), "status")
+    eq(Options(s):EditSpec(), "blood", "editor follows the current spec")
+    truthy(Options(s):RotationStatus("blood"):find("no rotation yet"), "status")
     rotation.text.set(nil, "actions=plague_strike\nactions+=/obliterate")
-    eq(First(s), "plague_strike", "unholy custom rotation")
+    eq(First(s), "plague_strike", "blood custom rotation")
 end)
 
 test("the spec picker edits other specs", function()

@@ -253,9 +253,9 @@ end)
 
 test("a spec without an APL recommends nothing", function()
     local s = Fight()
-    s.talentTabs[3].talents[1][2] = 51
+    s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
-    eq(Recommend(s), nil, "unholy")
+    eq(Recommend(s), nil, "blood")
 end)
 
 ---------------------------------------------------------------------------

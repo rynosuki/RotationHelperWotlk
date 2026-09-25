@@ -79,6 +79,7 @@ function Abilities.ReadyAt(state, key)
     local ability = RH.classData.abilities[key]
     if not ability then return nil, "unknown ability" end
     if not ns.Spec.known[key] then return nil, "not in spellbook" end
+    if ability.requiresPet and not state.petAlive then return nil, "no pet" end
 
     local t, limitedBy = state.now, nil
     local castEnd = state.now + (state.castRemains or 0)
@@ -134,6 +135,10 @@ function Effects.RemoveBuff(s, key)
         Utils.Release(rec)
         s.buffs[key] = nil
     end
+end
+
+function Effects.SummonPet(s)
+    s.petAlive = true
 end
 
 function Effects.DebuffUp(s, key)
