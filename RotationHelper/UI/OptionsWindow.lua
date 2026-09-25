@@ -115,6 +115,10 @@ function Window:Create()
     -- Held for the window's lifetime, never released back to AceGUI.
     local container = AceGUI:Create("SimpleGroup")
     container:SetLayout("Fill")
+    -- By default a SimpleGroup shrinks to fit its content after each layout.
+    -- Its content (the tab group) fills it, so starting from 0 it could never
+    -- grow back: the window decides the height instead.
+    container:SetAutoAdjustHeight(false)
     container.frame:SetParent(content)
     container.frame:SetFrameStrata(content:GetFrameStrata())
     container.frame:SetFrameLevel(content:GetFrameLevel() + 1)
@@ -142,9 +146,8 @@ function Window:Create()
     return f
 end
 
--- Sizes the container from the window's own size. The content frame's
--- anchored size can't be used: right after the window is shown, 3.3.5
--- still reports it as 0, which squashed the options into a 50px strip.
+-- Sizes the container from the window's own size (an anchored frame's
+-- size reads as 0 right after the window is shown).
 function Window:Resize()
     local f = self.frame
     self.container:SetWidth(f:GetWidth() - CONTENT_LEFT - CONTENT_RIGHT)

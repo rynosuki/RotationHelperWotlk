@@ -230,7 +230,10 @@ local function SkinButtonFrame(w, button, text)
     Fade(w, button.GetHighlightTexture and button:GetHighlightTexture())
     local fill = Box(w, "button" .. tostring(button), button, Around(button))
     Hover(w, button, fill)
-    Font(w, text or button:GetFontString())
+    text = text or button:GetFontString()
+    Font(w, text)
+    -- White instead of Blizzard gold; disabled buttons keep their grey.
+    if not button.IsEnabled or button:IsEnabled() then TextColor(w, text, T.text) end
 end
 
 function skinners.Button(w)

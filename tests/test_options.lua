@@ -35,6 +35,7 @@ local function StubDialog(s)
         function c:SetHeight(h) self.height = h end
         function c:DoLayout() end
         function c:ReleaseChildren() self.released = self.released + 1 end
+        function c:SetAutoAdjustHeight(adjust) self.noAutoHeight = not adjust end
         return c
     end
 
@@ -81,6 +82,7 @@ test("the options fill the window, also after resizing", function()
     -- 820x660 window, minus 10+10 at the sides and 44 above, 14 below.
     eq(Window.container.width, 800, "width")
     eq(Window.container.height, 602, "height")
+    eq(Window.container.noAutoHeight, true, "doesn't shrink to its content")
     Window.frame:SetWidth(700)
     Window.frame:SetHeight(500)
     Window.frame.scripts.OnSizeChanged(Window.frame)
