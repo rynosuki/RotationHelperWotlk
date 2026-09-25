@@ -63,15 +63,21 @@ function RH:PrintSnapshot()
         return
     end
 
+    local Spec = ns.Spec
+    Spec:Update() -- read talents fresh, so the output never shows stale data
     local s = ns.State:Reset()
     local now = s.now
-    local Spec = ns.Spec
     local classData = self.classData
 
     self:Print(format("Snapshot at %.1f (%s)", now, s.inCombat and "in combat" or "out of combat"))
 
-    print(format("%s %s (%s), talent group %d%s", Label("Spec:"), tostring(Spec.key),
-        concat(Spec.points, "/"), Spec.group, Spec.supported and "" or Dim(" (no rotation for this spec yet)")))
+    if Spec.loaded then
+        print(format("%s %s (%s), talent group %d%s", Label("Spec:"), tostring(Spec.key),
+            concat(Spec.points, "/"), Spec.group, Spec.supported and "" or Dim(" (no rotation for this spec yet)")))
+    else
+        print(format("%s %s", Label("Spec:"), Utils.Colorize(format(
+            "talent API returned no points (%d trees, talent group %d)", Spec.numTabs or 0, Spec.group), "ff4040")))
+    end
 
     if classData.usesRunes then PrintRunes(s, now) end
 

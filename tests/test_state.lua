@@ -45,6 +45,54 @@ test("detects spec, talents and glyphs", function()
     eq(Spec.supported, true, "frost supported")
 end)
 
+-- Loads the addon while the talent API still returns nothing, as it can
+-- right after login. Returns the session and the real talent data.
+local function addonWithTalentsNotLoaded()
+    local Mock = require("wowmock")
+    local s = Mock.NewSession()
+    local talentTabs = s.talentTabs
+    s.talentTabs = {}
+    s:LoadAddon()
+    return s, talentTabs
+end
+
+test("retries until talent data is available after login", function()
+    local s, talentTabs = addonWithTalentsNotLoaded()
+    local Spec = s.ns.Spec
+    eq(Spec.loaded, false, "not loaded at login")
+    eq(Spec.key, nil, "no spec yet")
+    s.talentTabs = talentTabs
+    s:Tick(1)
+    eq(Spec.loaded, false, "not retried before the delay")
+    s:Tick(1.5)
+    eq(Spec.loaded, true, "loaded after retry")
+    eq(Spec.key, "frost", "spec after retry")
+    eq(Spec:TalentRank("killing_machine"), 5, "talents after retry")
+end)
+
+test("stops retrying after the retry limit", function()
+    local s = addonWithTalentsNotLoaded()
+    local Spec = s.ns.Spec
+    for _ = 1, 40 do s:Tick(2.1) end
+    eq(Spec.retries, 30, "retries capped")
+    eq(Spec.retryTimer, nil, "no timer pending")
+end)
+
+test("/rh snapshot explains missing talent data", function()
+    local s = addonWithTalentsNotLoaded()
+    s:ClearChat()
+    s:Slash("ACECONSOLE_RH", "snapshot")
+    truthy(s:ChatContains("talent API returned no points %(0 trees, talent group 1%)"), "diagnostic")
+end)
+
+test("/rh snapshot re-reads talents", function()
+    local s, talentTabs = addonWithTalentsNotLoaded()
+    s.talentTabs = talentTabs -- loaded, but no event or retry has run yet
+    s:ClearChat()
+    s:Slash("ACECONSOLE_RH", "snapshot")
+    truthy(s:ChatContains("frost %(3/10/2%)"), "fresh spec")
+end)
+
 test("a spec without a rotation is flagged unsupported", function()
     local s = newAddon()
     s.talentTabs[3].talents[1][2] = 51
