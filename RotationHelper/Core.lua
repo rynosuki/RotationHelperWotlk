@@ -53,6 +53,7 @@ local AOE_MODES = { "auto", "single", "aoe" }
 local defaults = {
     char = {
         specProfiles = {}, -- [talent group] = profile name (SpecProfiles.lua)
+        reviews = {},      -- fight review summaries, newest last (Engine/Review.lua)
     },
     profile = {
         enabled = true,
@@ -67,6 +68,11 @@ local defaults = {
         latency = {
             mode = "auto", -- auto (lag tolerance or latency) | fixed | off
             fixedMs = 100,
+        },
+        review = {
+            enabled = true,
+            autoShow = true,   -- open the review window after a fight
+            minDuration = 20,  -- seconds; shorter fights aren't kept
         },
         threat = {
             enabled = true,
@@ -164,8 +170,8 @@ end
 -- Each updater runs protected: an error is recorded (see Errors below),
 -- `onError` gets a chance to clean up, and the other updaters still run.
 ---------------------------------------------------------------------------
-RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, THREAT = 22, DEFAULT = 50, DISPLAY = 100,
-    INTERRUPT = 110 }
+RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, THREAT = 22, REVIEW = 25, DEFAULT = 50,
+    DISPLAY = 100, INTERRUPT = 110 }
 
 local updaters = {}
 local updateFrame = CreateFrame("Frame")
@@ -399,6 +405,10 @@ function RH:SetIconCount(arg)
     SetDisplayNumber(self, "numIcons", "icons", arg, 1, 5, true)
 end
 
+function RH:ShowReview(arg)
+    ns.ReviewWindow:Show(tonumber(arg))
+end
+
 function RH:OpenOptions()
     if not ns.Options:Open() then self:PrintHelp() end
 end
@@ -419,6 +429,7 @@ local HELP = {
     { "test", "show/hide sample icons" },
     { "snapshot", "print what the addon reads from the game" },
     { "why <ability>", "why an ability is or isn't recommended right now" },
+    { "review [n]", "show the last fight review (or saved fight n)" },
     { "perf", "show CPU and memory use (/rh perf reset to start over)" },
     { "errors", "show recorded errors (/rh errors clear to empty the list)" },
     { "scale <n>", "display scale (0.5-3)" },
@@ -463,6 +474,7 @@ local commands = {
     perf = "PrintPerf",
     errors = "PrintErrors",
     why = "PrintWhy",
+    review = "ShowReview",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",

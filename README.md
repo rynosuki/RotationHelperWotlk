@@ -67,6 +67,7 @@ update as soon as one happens.
 | `/rh icons <1-5>` | How many icons to show. |
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
 | `/rh why <ability>` | Why an ability is or isn't recommended right now, e.g. `/rh why frost strike`. |
+| `/rh review [n]` | Show the last fight review, or saved fight n. |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
 | `/rh status` | Print the current settings. |
@@ -74,6 +75,23 @@ update as soon as one happens.
 
 Toggles can also be bound to keys (Escape > Key Bindings > RotationHelper), or used from the minimap
 button: left click opens the options, right click toggles cooldowns, drag moves it.
+
+## Fight review
+
+After each fight longer than 20 seconds, a review window shows how it went, graded green, yellow
+or red:
+
+- **Time spent casting**: the share of the fight the GCD was in use while there was something to
+  press (latency compensation isn't counted against you).
+- **Following the icons**: how many of your GCD casts matched one of the first two icons.
+  Off-GCD cooldowns only count when they match, so weaving one early isn't a mistake.
+- **Rune pairs sitting full** and **runic power at the cap**, in seconds per minute.
+- **Disease uptime** on your target.
+- **Cooldowns left unused** while they were ready, and the **biggest mistakes** with their time,
+  e.g. `0:42 Frost Strike instead of Obliterate (ready)`.
+
+The last 10 fights are kept per character: `/rh review` reopens the latest, the arrows in the
+title bar browse them, and `/rh review 3` opens a specific one. Settings are on the General tab.
 
 ## AoE detection
 

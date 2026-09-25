@@ -45,6 +45,10 @@ ns.RegisterClass("DEATHKNIGHT", {
     interrupt = "mind_freeze", -- shown by the interrupt icon
     -- Procs worth highlighting when the recommended ability spends them.
     procs = { "killing_machine", "freezing_fog" },
+    -- For the fight review: cooldowns whose unused time is reported, and
+    -- debuffs whose uptime on the target is measured.
+    majorCooldowns = { "unbreakable_armor", "empower_rune_weapon", "summon_gargoyle", "deathchill" },
+    reviewDebuffs = { "frost_fever", "blood_plague" },
 
     specs = { blood = false, frost = true, unholy = true },
 

@@ -117,6 +117,8 @@ end
 function State:ApplyLookahead(s, now)
     local lookahead, source = self:Lookahead()
     s.lookahead, s.lookaheadSource = lookahead, source
+    -- The unshifted values, for measuring (the fight review).
+    s.realGcdEnd, s.realCastRemains = s.gcdEnd, s.castRemains
     if lookahead <= 0 then return end
     s.gcdEnd = math.max(now, s.gcdEnd - lookahead)
     s.gcdRemains = s.gcdEnd - now

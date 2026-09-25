@@ -159,7 +159,7 @@ offline tests and has been checked in game.
 
 ## Phase B — Fight review (M–L)
 
-- [ ] **B1 Recording**
+- [ ] **B1 Recording** — *implemented in 1.8.0, waiting on the in-game check*
   - *Play:* the addon tells you how well you played, not only what to press.
   - *How:* `Engine/Review.lua`, an updater that runs after the Recommender. For each fight it
     records:
@@ -170,10 +170,10 @@ offline tests and has been checked in game.
     - time that major cooldowns were ready but unused (new class data list `majorCooldowns`),
     - recommendation adherence: on `UNIT_SPELLCAST_SUCCEEDED`, the cast is compared with the
       first two icons shown at that moment. Mismatches are stored with the combat time.
-- [ ] **B2 Shared themed window**
+- [ ] **B2 Shared themed window** — *implemented in 1.8.0*
   - *How:* the window builder in `UI/OptionsWindow.lua` (title bar, close, resize grip, Escape)
     moves to `UI/Window.lua`, so the options and the review share it.
-- [ ] **B3 Review window**
+- [ ] **B3 Review window** — *implemented in 1.8.0, waiting on the in-game check*
   - *How:* `UI/Review.lua` shows:
     - a summary with colour-coded grades per metric,
     - the three biggest mistakes, e.g. "0:42 Plague Strike instead of Obliterate".

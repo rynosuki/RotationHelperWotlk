@@ -156,6 +156,26 @@ function Options:BuildOptionsTable()
         get = function() return RH.db.profile.minimap.show end,
         set = function(_, value) RH.db.profile.minimap.show = value; Changed() end }
 
+    local function ReviewOption(option)
+        option.get = function(info) return RH.db.profile.review[info[#info]] end
+        option.set = function(info, value) RH.db.profile.review[info[#info]] = value end
+        return option
+    end
+    general.args.reviewHeader = { type = "header", name = "Fight review", order = 30 }
+    general.args.reviewInfo = { type = "description", order = 31, fontSize = "medium",
+        name = "After each fight: time spent casting, waste, disease uptime, unused cooldowns and how closely "
+            .. "you followed the icons. /rh review opens the last one." }
+    general.args.reviewEnabled = { type = "toggle", name = "Record fights", order = 32,
+        get = function() return RH.db.profile.review.enabled end,
+        set = function(_, value) RH.db.profile.review.enabled = value end }
+    general.args.autoShow = ReviewOption({ type = "toggle", name = "Show after each fight", order = 33,
+        disabled = function() return not RH.db.profile.review.enabled end })
+    general.args.minDuration = ReviewOption({ type = "range", name = "Only fights longer than (seconds)",
+        order = 34, min = 5, max = 120, step = 5,
+        disabled = function() return not RH.db.profile.review.enabled end })
+    general.args.openReview = { type = "execute", name = "Show the last review", order = 35,
+        func = function() ns.ReviewWindow:Show() end }
+
     general.args.threatHeader = { type = "header", name = "Threat warning", order = 20 }
     general.args.threatEnabled = { type = "toggle", name = "Warn about threat", order = 21,
         desc = "In a group: a red border and THREAT under the icons when you're close to pulling aggro.",
