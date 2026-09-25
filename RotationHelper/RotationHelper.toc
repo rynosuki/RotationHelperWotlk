@@ -18,6 +18,10 @@ Engine\Auras.lua
 Engine\Cooldowns.lua
 Engine\State.lua
 
+APL\Lexer.lua
+APL\Parser.lua
+APL\Compiler.lua
+
 Debug.lua
 
 UI\Keybinds.lua
