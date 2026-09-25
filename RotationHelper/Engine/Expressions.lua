@@ -114,8 +114,8 @@ local SIMPLE = {
     active_enemies = function(s) return s.activeEnemies end,
     moving = function(s) return B(s.moving) end,
     ["target.health.pct"] = function(s) return s.target.healthPct end,
-    -- Placeholder until time-to-die tracking exists (milestone 7).
-    ["target.time_to_die"] = function(s) return s.target.timeToDie or 300 end,
+    -- 3600 when unknown or the target isn't losing health.
+    ["target.time_to_die"] = function(s) return s.target.timeToDie end,
     ["toggle.cooldowns"] = function(s) return B(s.cooldownsEnabled) end,
 }
 

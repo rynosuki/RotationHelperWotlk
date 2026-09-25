@@ -69,6 +69,7 @@ local defaults = {
             spacing = 4,
             direction = "RIGHT", -- RIGHT | LEFT | UP | DOWN
             hideOutOfCombat = false,
+            showStatus = true, -- toggle states under the main icon
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
     },
@@ -122,7 +123,7 @@ end
 -- calls RH:Invalidate(). The order is explicit because AceAddon r960
 -- enables modules in no particular order.
 ---------------------------------------------------------------------------
-RH.UPDATE_ORDER = { RECOMMEND = 10, DEFAULT = 50, DISPLAY = 100 }
+RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, DEFAULT = 50, DISPLAY = 100 }
 
 local updaters = {}
 local updateFrame = CreateFrame("Frame")

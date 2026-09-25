@@ -18,6 +18,7 @@ Engine\Auras.lua
 Engine\Cooldowns.lua
 Engine\Abilities.lua
 Engine\Expressions.lua
+Engine\Targets.lua
 Engine\State.lua
 
 APL\Lexer.lua

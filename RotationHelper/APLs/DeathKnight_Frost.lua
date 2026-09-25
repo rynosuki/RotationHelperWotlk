@@ -36,7 +36,8 @@ actions.cooldowns=blood_tap,if=talent.unbreakable_armor.enabled&cooldown.unbreak
 actions.cooldowns+=/unbreakable_armor
 # Deathchill guarantees a crit: save it for an Obliterate that's castable now.
 actions.cooldowns+=/deathchill,if=runes.frost+runes.death>=1&runes.unholy+runes.death>=1&runes.frost+runes.unholy+runes.death>=2
-actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2
+# 5 minute cooldown: don't spend it on something that's about to die.
+actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
 
 ## 3+ targets
 actions.aoe=icy_touch,if=!dot.frost_fever.up

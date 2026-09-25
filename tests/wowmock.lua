@@ -192,6 +192,19 @@ function Mock.NewSession(opts)
     env.floor, env.ceil, env.abs, env.max, env.min = math.floor, math.ceil, math.abs, math.max, math.min
     env.mod = math.fmod
 
+    -- WoW's bit library (Lua 5.1 has none).
+    env.bit = {
+        band = function(a, b)
+            local result, bitValue = 0, 1
+            while a > 0 and b > 0 do
+                local ra, rb = a % 2, b % 2
+                if ra == 1 and rb == 1 then result = result + bitValue end
+                a, b, bitValue = (a - ra) / 2, (b - rb) / 2, bitValue * 2
+            end
+            return result
+        end,
+    }
+
     env.geterrorhandler = function() return function(err) error(err, 0) end end
     env.seterrorhandler = function() end
     env.debugstack = function() return debug.traceback() end
@@ -272,7 +285,10 @@ function Mock.NewSession(opts)
         level = -1, canAttack = true, dead = false, classification = "worldboss" }
     env.UnitExists = function(unit) return unit == "target" and session.hasTarget end
     env.IsSpellInRange = function(name) return session.range[name] or 1 end
-    env.UnitGUID = function(unit) return unit == "target" and session.hasTarget and session.target.guid or nil end
+    env.UnitGUID = function(unit)
+        if unit == "player" then return Mock.PLAYER_GUID end
+        return unit == "target" and session.hasTarget and session.target.guid or nil
+    end
     local baseUnitName = env.UnitName
     env.UnitName = function(unit)
         if unit == "target" then return session.hasTarget and session.target.name or nil end
@@ -426,6 +442,18 @@ function Mock:Slash(cmd, msg)
 end
 
 function Mock:ClearChat() self.chat = {} end
+
+Mock.PLAYER_GUID = "0x0000000000000001"
+-- Combat log unit flags: us (mine, friendly player), and a hostile NPC.
+Mock.FLAGS_ME = 0x511
+Mock.FLAGS_HOSTILE_NPC = 0xa48
+Mock.FLAGS_FRIENDLY_NPC = 0xa18
+
+-- Fires a combat log event with 3.3.5's argument layout.
+function Mock:CombatLog(subevent, srcGUID, srcFlags, dstGUID, dstFlags)
+    self:FireEvent("COMBAT_LOG_EVENT_UNFILTERED", self.time, subevent,
+        srcGUID, "src", srcFlags, dstGUID, "dst", dstFlags, 49909, "Icy Touch", 16)
+end
 
 -- Adds an aura. unit is "player" or "target"; fields as in session.auras.
 function Mock:AddAura(unit, aura)

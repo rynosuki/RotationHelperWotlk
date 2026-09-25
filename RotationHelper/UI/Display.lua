@@ -100,6 +100,10 @@ function Display:CreateFrames()
     for i = 1, MAX_ICONS do
         self.buttons[i] = CreateButton(f, i)
     end
+
+    -- Toggle states under the main icon, e.g. "CD  AUTO 3".
+    f.status = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    f.status:SetPoint("TOPLEFT", self.buttons[1], "BOTTOMLEFT", 0, -2)
 end
 
 ---------------------------------------------------------------------------
@@ -221,7 +225,31 @@ function Display:Refresh()
 
     local showLabel = not self.db.locked
     if showLabel then self.frame.label:Show() else self.frame.label:Hide() end
+    self:UpdateStatus()
     self.frame:Show()
+end
+
+local AOE_LABELS = { single = "ST", aoe = "AOE" }
+
+-- "CD" is green when cooldowns are on, red when off. The AoE part shows
+-- the forced mode, or in auto mode the enemy count once there's more than one.
+function Display:UpdateStatus()
+    local status = self.frame.status
+    if not self.db.showStatus then
+        status:Hide()
+        return
+    end
+    local toggles = RH.db.profile.toggles
+    local text = toggles.cooldowns and "|cff40ff40CD|r" or "|cffff4040CD|r"
+    local mode = AOE_LABELS[toggles.aoeMode]
+    local enemies = ns.State.real.activeEnemies or 1
+    if mode then
+        text = text .. "  |cffffd100" .. mode .. "|r"
+    elseif enemies > 1 then
+        text = text .. "  " .. enemies
+    end
+    status:SetText(text)
+    status:Show()
 end
 
 ---------------------------------------------------------------------------

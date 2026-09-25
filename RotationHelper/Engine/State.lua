@@ -25,9 +25,6 @@ State.real = {
     lastCast = {},  -- ability key -> GetTime() of our last successful cast
 }
 
--- Until enemy counting exists (milestone 7), the AoE toggle decides.
-local ENEMIES_BY_AOE_MODE = { auto = 1, single = 1, aoe = 3 }
-
 local function ReadTarget(t)
     t.exists = UnitExists("target") and true or false
     if not t.exists then
@@ -68,13 +65,17 @@ function State:Reset(now)
     s.moving = GetUnitSpeed and GetUnitSpeed("player") > 0 or false
     local toggles = RH.db.profile.toggles
     s.cooldownsEnabled = toggles.cooldowns
-    s.activeEnemies = ENEMIES_BY_AOE_MODE[toggles.aoeMode] or 1
 
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
     ns.Cooldowns.Read(s, classData, now)
     ReadTarget(s.target)
     ReadCast(s, now)
+
+    local t = s.target
+    local Targets = ns.Targets
+    s.activeEnemies = Targets:ActiveEnemies(now, toggles.aoeMode, t.exists and t.canAttack and not t.dead)
+    t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
     return s
 end
 

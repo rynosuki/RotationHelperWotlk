@@ -89,13 +89,16 @@ function RH:PrintSnapshot()
 
     local t = s.target
     if t.exists then
-        print(format("%s %s, level %s %s, %.0f%% health%s%s", Label("Target:"), t.name,
+        local ttd = t.timeToDie >= ns.Targets.TTD_UNKNOWN and "unknown" or Utils.FormatTime(t.timeToDie)
+        print(format("%s %s, level %s %s, %.0f%% health, dies in %s%s%s", Label("Target:"), t.name,
             t.level == -1 and "??" or tostring(t.level), t.classification or "",
-            t.healthPct, t.canAttack and "" or ", not attackable", t.dead and ", dead" or ""))
+            t.healthPct, ttd, t.canAttack and "" or ", not attackable", t.dead and ", dead" or ""))
         PrintList("Debuffs:", AuraItems(s.debuffs, now))
     else
         print(Label("Target:") .. " " .. Dim("none"))
     end
+    print(format("%s %d active (AoE mode %s, %d seen in the combat log)", Label("Enemies:"), s.activeEnemies,
+        self.db.profile.toggles.aoeMode, ns.Targets:CountEnemies(now)))
 
     local cds = {}
     for _, key in ipairs(SortedKeys(s.cooldowns)) do
