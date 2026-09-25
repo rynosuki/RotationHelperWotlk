@@ -76,13 +76,23 @@ function RegionMethods:IsVisible()
     return true
 end
 function RegionMethods:SetAlpha(a) self.alpha = a end
+function RegionMethods:GetAlpha() return self.alpha or 1 end
 function RegionMethods:GetName() return self.name end
 function RegionMethods:GetParent() return self.parent end
+function RegionMethods:GetObjectType() return self.objectType end
 
 local TextureMethods = setmetatable({}, { __index = RegionMethods })
 TextureMethods.__index = TextureMethods
-function TextureMethods:SetTexture(t) self.texture = t end
+-- SetTexture(path) or SetTexture(r, g, b, a) for a solid color.
+function TextureMethods:SetTexture(t, g, b, a)
+    if type(t) == "number" then
+        self.texture, self.color = nil, { t, g, b, a }
+    else
+        self.texture, self.color = t, nil
+    end
+end
 function TextureMethods:GetTexture() return self.texture end
+function TextureMethods:SetDesaturated(d) self.desaturated = d end
 function TextureMethods:SetTexCoord(...) self.texCoord = { ... } end
 function TextureMethods:SetVertexColor(r, g, b, a) self.vertexColor = { r, g, b, a } end
 function TextureMethods:SetDrawLayer(layer) self.layer = layer end
@@ -92,9 +102,16 @@ local FontStringMethods = setmetatable({}, { __index = RegionMethods })
 FontStringMethods.__index = FontStringMethods
 function FontStringMethods:SetText(t) self.text = t end
 function FontStringMethods:GetText() return self.text end
+local DEFAULT_FONT = { "Fonts\\FRIZQT__.TTF", 12, "" }
 function FontStringMethods:SetFont(...) self.font = { ... } end
+function FontStringMethods:GetFont() return unpack(self.font or DEFAULT_FONT) end
 function FontStringMethods:SetFontObject(f) self.fontObject = f end
+function FontStringMethods:GetFontObject() return self.fontObject end
 function FontStringMethods:SetTextColor(...) self.textColor = { ... } end
+function FontStringMethods:GetTextColor()
+    if self.textColor then return unpack(self.textColor) end
+    return 1, 1, 1, 1
+end
 function FontStringMethods:SetJustifyH(j) self.justifyH = j end
 function FontStringMethods:SetJustifyV(j) self.justifyV = j end
 function FontStringMethods:SetShadowOffset() end
@@ -103,16 +120,53 @@ local function NewFrameFactory(session)
     local FrameMethods = setmetatable({}, { __index = RegionMethods })
     FrameMethods.__index = FrameMethods
 
+    local function AddRegion(frame, region)
+        frame.regions = frame.regions or {}
+        frame.regions[#frame.regions + 1] = region
+        if region.name then session.env[region.name] = region end
+        return region
+    end
     function FrameMethods:CreateTexture(name, layer)
-        return setmetatable({ name = name, parent = self, layer = layer, points = {}, shown = true }, TextureMethods)
+        return AddRegion(self, setmetatable({ name = name, parent = self, layer = layer, points = {}, shown = true,
+            objectType = "Texture" }, TextureMethods))
     end
     function FrameMethods:CreateFontString(name, layer, template)
-        return setmetatable({ name = name, parent = self, layer = layer, template = template,
-            points = {}, shown = true }, FontStringMethods)
+        return AddRegion(self, setmetatable({ name = name, parent = self, layer = layer, template = template,
+            points = {}, shown = true, objectType = "FontString" }, FontStringMethods))
     end
+    function FrameMethods:GetRegions() return unpack(self.regions or {}) end
     function FrameMethods:SetBackdrop(b) self.backdrop = b end
+    function FrameMethods:GetBackdrop() return self.backdrop end
     function FrameMethods:SetBackdropColor(...) self.backdropColor = { ... } end
+    function FrameMethods:GetBackdropColor() return unpack(self.backdropColor or {}) end
     function FrameMethods:SetBackdropBorderColor(...) self.backdropBorderColor = { ... } end
+    function FrameMethods:GetBackdropBorderColor() return unpack(self.backdropBorderColor or {}) end
+    -- Font methods for edit boxes.
+    function FrameMethods:SetFont(...) self.font = { ... } end
+    function FrameMethods:GetFont() return unpack(self.font or DEFAULT_FONT) end
+    function FrameMethods:GetFontObject() return self.fontObject end
+    function FrameMethods:SetFontObject(f) self.fontObject = f end
+    -- Sliders and buttons.
+    function FrameMethods:SetThumbTexture(path)
+        self.thumb = self.thumb or self:CreateTexture()
+        self.thumb:SetTexture(path)
+    end
+    function FrameMethods:GetThumbTexture() return self.thumb end
+    function FrameMethods:GetHighlightTexture() return self.highlightTexture end
+    function FrameMethods:SetHighlightTexture(path)
+        self.highlightTexture = self.highlightTexture or self:CreateTexture()
+        self.highlightTexture:SetTexture(path)
+    end
+    function FrameMethods:SetNormalTexture() end
+    function FrameMethods:SetPushedTexture() end
+    function FrameMethods:GetFontString() return self.fontString end
+    function FrameMethods:SetText(text) self.text = text end
+    -- Window behavior.
+    function FrameMethods:SetResizable(r) self.resizable = r end
+    function FrameMethods:SetMinResize(w, h) self.minResize = { w, h } end
+    function FrameMethods:SetToplevel() end
+    function FrameMethods:StartSizing() self.sizing = true end
+    function FrameMethods:GetFrameStrata() return self.strata or "MEDIUM" end
     function FrameMethods:SetScale(s) self.scale = s end
     function FrameMethods:GetScale() return self.scale or 1 end
     function FrameMethods:EnableMouse(e) self.mouseEnabled = e and true or false end
@@ -145,7 +199,7 @@ local function NewFrameFactory(session)
     end
     function FrameMethods:GetAttribute(name) return self.attributes and self.attributes[name] end
     function FrameMethods:SetClampedToScreen() end
-    function FrameMethods:SetFrameStrata() end
+    function FrameMethods:SetFrameStrata(strata) self.strata = strata end
     function FrameMethods:SetParent(p) self.parent = p end
 
     return function(frameType, name, parent, template)
@@ -418,6 +472,8 @@ function Mock.NewSession(opts)
 
     env.CreateFrame = NewFrameFactory(session)
     env.UIParent = env.CreateFrame("Frame", "UIParent")
+    env.UISpecialFrames = {}
+    env.HideUIPanel = function(frame) if frame then frame:Hide() end end
 
     session.toc = tocMeta
     return setmetatable(session, { __index = Mock })

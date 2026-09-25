@@ -24,14 +24,27 @@ local function First(s)
     return action and action.name
 end
 
--- Registers a fake AceConfigDialog that records what was opened.
+-- Registers a fake AceConfigDialog that records what was opened, and a fake
+-- AceGUI whose containers count ReleaseChildren calls.
 local function StubDialog(s)
+    local gui = s.env.LibStub:NewLibrary("AceGUI-3.0", 99999)
+    function gui:Create(widgetType)
+        local c = { type = widgetType, frame = s.env.CreateFrame("Frame"), children = {}, released = 0 }
+        function c:SetLayout() end
+        function c:SetWidth(w) self.width = w end
+        function c:SetHeight(h) self.height = h end
+        function c:DoLayout() end
+        function c:ReleaseChildren() self.released = self.released + 1 end
+        return c
+    end
+
     local dialog = s.env.LibStub:NewLibrary("AceConfigDialog-3.0", 99999)
-    dialog.opened = {}
-    function dialog:Open(app) self.opened[#self.opened + 1] = app end
+    dialog.opened, dialog.containers = {}, {}
+    function dialog:Open(app, container)
+        self.opened[#self.opened + 1] = app
+        self.containers[#self.containers + 1] = container
+    end
     function dialog:SelectGroup(app, group) self.selected = group end
-    function dialog:SetDefaultSize() end
-    function dialog:AddToBlizOptions() end
     return dialog
 end
 
@@ -46,13 +59,63 @@ test("the options table passes AceConfig validation", function()
     truthy(registry:GetOptionsTable("RotationHelper"), "registered")
 end)
 
-test("/rh opens the panel, /rh apl the rotation tab", function()
+test("/rh opens our window with the options drawn into it", function()
     local s = newAddon()
     local dialog = StubDialog(s)
     s:Slash("ACECONSOLE_RH", "")
-    eq(dialog.opened[1], "RotationHelper", "opened")
+    local Window = s.ns.OptionsWindow
+    truthy(Window.frame:IsShown(), "window shown")
+    eq(dialog.opened[1], "RotationHelper", "options drawn")
+    eq(dialog.containers[1], Window.container, "into our container")
+    eq(Window.frame.strata, "FULLSCREEN_DIALOG", "same strata as AceGUI windows")
+    eq(s.env.UISpecialFrames[1], "RotationHelperOptionsWindow", "Escape closes it")
     s:Slash("ACECONSOLE_RH", "apl")
     eq(dialog.selected, "rotation", "rotation tab")
+end)
+
+test("closing the window gives the widgets back to AceGUI", function()
+    local s = newAddon()
+    StubDialog(s)
+    s:Slash("ACECONSOLE_RH", "")
+    local Window = s.ns.OptionsWindow
+    Window.closeButton.scripts.OnClick(Window.closeButton)
+    falsy(Window.frame:IsShown(), "hidden")
+    eq(Window.container.released, 1, "children released")
+end)
+
+test("slash commands redraw the open window", function()
+    local s = newAddon()
+    local dialog = StubDialog(s)
+    s:Slash("ACECONSOLE_RH", "")
+    local before = #dialog.opened
+    s:Slash("ACECONSOLE_RH", "cd")
+    s:Tick(0.05)
+    eq(#dialog.opened, before + 1, "redrawn once")
+    s:Tick(0.05)
+    eq(#dialog.opened, before + 1, "not again")
+    s.ns.OptionsWindow:Close()
+    s:Slash("ACECONSOLE_RH", "cd")
+    s:Tick(0.05)
+    eq(#dialog.opened, before + 1, "closed: no redraw")
+end)
+
+test("Interface > AddOns has a launcher for the window", function()
+    local Mock = require("wowmock")
+    local s = Mock.NewSession()
+    local categories = {}
+    s.env.InterfaceOptions_AddCategory = function(panel) categories[#categories + 1] = panel end
+    s.env.InterfaceOptionsFrame = s.env.CreateFrame("Frame")
+    s.env.GameMenuFrame = s.env.CreateFrame("Frame")
+    s:LoadAddon()
+    eq(categories[1].name, "RotationHelper", "category")
+    StubDialog(s)
+    local button
+    for _, f in ipairs(s.frames) do
+        if f.parent == categories[1] and f.frameType == "Button" then button = f end
+    end
+    button.scripts.OnClick(button)
+    truthy(s.ns.OptionsWindow.frame:IsShown(), "window opened")
+    falsy(s.env.InterfaceOptionsFrame:IsShown(), "Blizzard options closed")
 end)
 
 test("/rh without the dialog prints help instead", function()

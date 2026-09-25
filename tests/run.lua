@@ -17,6 +17,7 @@ local SUITES = {
     "test_predict",
     "test_targets",
     "test_options",
+    "test_skin",
     "test_perf",
 }
 

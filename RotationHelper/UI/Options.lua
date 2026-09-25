@@ -222,23 +222,49 @@ end
 ---------------------------------------------------------------------------
 -- Opening
 ---------------------------------------------------------------------------
--- Opens the panel, optionally on a tab ("rotation"). Returns false if the
--- config dialog isn't available.
+-- Opens the options window, optionally on a tab ("rotation"). Returns false
+-- if the config libraries aren't available.
 function Options:Open(tab)
-    local dialog = LibStub("AceConfigDialog-3.0", true)
-    if not dialog then return false end
-    dialog:Open(ADDON_NAME)
-    if tab then dialog:SelectGroup(ADDON_NAME, tab) end
-    return true
+    return ns.OptionsWindow:Open(tab)
+end
+
+-- Redraws the window if it's open; for settings changed outside it (slash
+-- commands, key bindings).
+function Options:RefreshIfOpen()
+    ns.OptionsWindow:QueueRender()
+end
+
+-- Interface > AddOns entry: a short page with a button that opens our
+-- window, instead of drawing the options in Blizzard's panel.
+function Options:CreateBlizzardLauncher()
+    if not InterfaceOptions_AddCategory then return end
+    local panel = CreateFrame("Frame", "RotationHelperInterfaceOptionsPanel", UIParent)
+    panel.name = "RotationHelper"
+    panel:Hide()
+
+    local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("RotationHelper " .. RH.version)
+    local text = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    text:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
+    text:SetText("The options have their own window. You can also open it with /rh.")
+
+    local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    button:SetWidth(160)
+    button:SetHeight(24)
+    button:SetPoint("TOPLEFT", text, "BOTTOMLEFT", 0, -12)
+    button:SetText("Open options")
+    button:SetScript("OnClick", function()
+        HideUIPanel(InterfaceOptionsFrame)
+        HideUIPanel(GameMenuFrame)
+        Options:Open()
+    end)
+    InterfaceOptions_AddCategory(panel)
 end
 
 function Options:OnEnable()
     LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(ADDON_NAME, function()
         return Options:GetOptionsTable()
     end)
-    local dialog = LibStub("AceConfigDialog-3.0", true)
-    if dialog then
-        dialog:SetDefaultSize(ADDON_NAME, 780, 640)
-        dialog:AddToBlizOptions(ADDON_NAME, "RotationHelper")
-    end
+    self:CreateBlizzardLauncher()
 end

@@ -220,6 +220,14 @@ function RH:OnConfigChanged()
     self:Invalidate()
 end
 
+-- For changes made by slash commands or key bindings: also redraws the
+-- options window if it's open. (Changes made in the window must not do
+-- that: redrawing mid-drag would break its sliders.)
+function RH:SettingChangedOutsideOptions()
+    self:OnConfigChanged()
+    ns.Options:RefreshIfOpen()
+end
+
 ---------------------------------------------------------------------------
 -- Toggles (also used by key bindings, see Bindings.xml)
 ---------------------------------------------------------------------------
@@ -227,7 +235,7 @@ function RH:ToggleCooldowns()
     local t = self.db.profile.toggles
     t.cooldowns = not t.cooldowns
     self:Print("Cooldowns: " .. Utils.OnOff(t.cooldowns))
-    self:OnConfigChanged()
+    self:SettingChangedOutsideOptions()
 end
 
 function RH:CycleAoEMode()
@@ -238,21 +246,21 @@ function RH:CycleAoEMode()
     end
     t.aoeMode = AOE_MODES[nextIndex]
     self:Print("AoE mode: " .. Utils.Colorize(t.aoeMode, "ffd100"))
-    self:OnConfigChanged()
+    self:SettingChangedOutsideOptions()
 end
 
 function RH:TogglePause()
     local p = self.db.profile
     p.paused = not p.paused
     self:Print(p.paused and "Paused." or "Resumed.")
-    self:OnConfigChanged()
+    self:SettingChangedOutsideOptions()
 end
 
 function RH:ToggleLock()
     local d = self.db.profile.display
     d.locked = not d.locked
     self:Print("Display " .. (d.locked and "locked." or "unlocked; drag to move."))
-    self:OnConfigChanged()
+    self:SettingChangedOutsideOptions()
 end
 
 function RH:ToggleDebug()
@@ -274,6 +282,7 @@ function RH:ToggleTestMode()
     local display = ns.Display
     display:SetTestMode(not display.testMode)
     self:Print("Test icons " .. (display.testMode and "shown." or "hidden."))
+    ns.Options:RefreshIfOpen()
 end
 
 -- Parses a number argument and stores it in the display settings.
@@ -287,7 +296,7 @@ local function SetDisplayNumber(self, key, label, arg, minValue, maxValue, integ
     if integer then value = math.floor(value + 0.5) end
     self.db.profile.display[key] = value
     self:Print(("%s set to %s."):format(label, value))
-    self:OnConfigChanged()
+    self:SettingChangedOutsideOptions()
 end
 
 function RH:SetScale(arg)
@@ -375,6 +384,7 @@ function RH:SlashCommand(input)
     elseif cmd == "reset" then
         self.db:ResetProfile()
         self:Print("Profile reset.")
+        ns.Options:RefreshIfOpen()
     elseif commands[cmd] then
         self[commands[cmd]](self, rest)
     else
