@@ -9,12 +9,30 @@ ns.Recommender = Recommender
 local Compiler, Runner = ns.APL.Compiler, ns.APL.Runner
 local State, Abilities = ns.State, ns.Abilities
 
-local wipe, ipairs = wipe, ipairs
+local wipe, ipairs, IsSpellInRange = wipe, ipairs, IsSpellInRange
 
 local context = {
     ReadyAt = function(s, key) return Abilities.ReadyAt(s, key) end,
     LastUsed = function(s, key) return s.lastCast[key] end,
 }
+
+-- For the out-of-range alternative: the same, but abilities that are out
+-- of range of the target are unusable. Abilities without a range (Horn of
+-- Winter, self buffs) report nil and count as in range.
+local function InRange(key)
+    local name = RH.classData.abilities[key].name
+    return not (name and IsSpellInRange(name, "target") == 0)
+end
+
+local rangedContext = {
+    ReadyAt = function(s, key)
+        if not InRange(key) then return nil, "out of range" end
+        return Abilities.ReadyAt(s, key)
+    end,
+    LastUsed = context.LastUsed,
+}
+
+local alternativeEntry = {}
 
 local MAX_PREDICTIONS = 5
 
@@ -29,7 +47,7 @@ function Recommender:OnEnable()
     self.resolver = ns.Expressions.CreateResolver(RH.classData)
     -- After an error, clear the icons: stale advice is worse than none.
     RH:RegisterUpdater(function(_, now) Recommender:Update(now) end, RH.UPDATE_ORDER.RECOMMEND,
-        "recommendations", function() RH.recommendations = nil end)
+        "recommendations", function() RH.recommendations, RH.alternative = nil, nil end)
     -- A profile switch can change the custom rotations.
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "Reset")
 end
@@ -104,19 +122,38 @@ end
 -- Runs the APL against state `s`. Out of combat the precombat list goes
 -- first; the main list needs a living hostile target.
 -- Returns action, readyAt, limitedBy (or nil).
-function Recommender:Evaluate(s, trace)
+function Recommender:Evaluate(s, trace, ctx)
     local apl = self:GetAPL()
     if not apl then return nil end
+    ctx = ctx or context
 
     local action, readyAt, limitedBy
     if not s.inCombat and apl.lists.precombat then
-        action, readyAt, limitedBy = Runner.Run(apl, s, context, "precombat", trace)
+        action, readyAt, limitedBy = Runner.Run(apl, s, ctx, "precombat", trace)
     end
     local t = s.target
     if not action and t.exists and t.canAttack and not t.dead then
-        action, readyAt, limitedBy = Runner.Run(apl, s, context, "default", trace)
+        action, readyAt, limitedBy = Runner.Run(apl, s, ctx, "default", trace)
     end
     return action, readyAt, limitedBy
+end
+
+-- When the main recommendation is out of range of the target: the best
+-- thing that is in range (Icy Touch, Howling Blast, Death Coil, ...), or nil.
+function Recommender:Alternative(recs, n)
+    if n == 0 or not RH.db.profile.display.alternative then return nil end
+    local s = State.real
+    local t = s.target
+    if not (t.exists and t.canAttack and not t.dead) or InRange(recs[1].name) then return nil end
+    local action, readyAt, limitedBy = self:Evaluate(s, nil, rangedContext)
+    if not action or action.name == recs[1].name then return nil end
+    local e = alternativeEntry
+    e.name = action.name
+    e.spellId = RH.classData.abilities[action.name].id
+    e.wait = readyAt - s.now
+    e.lacksResources = limitedBy == "runes"
+    e.action, e.limitedBy = action, limitedBy
+    return e
 end
 
 -- Whether `proc` is *why* this line was picked, not just spent by it: the
@@ -173,4 +210,5 @@ function Recommender:Update(now)
     State:Reset(now)
     local recs, n = self:Predict(RH.db.profile.display.numIcons)
     RH.recommendations = n > 0 and recs or nil
+    RH.alternative = self:Alternative(recs, n)
 end

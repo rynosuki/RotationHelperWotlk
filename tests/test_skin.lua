@@ -218,7 +218,7 @@ end)
 test("ApplyTree walks children and ignores unknown widget types", function()
     local parent = Widget("SimpleGroup", { children = {} })
     local box = CheckBox()
-    local unknown = Widget("ColorPicker")
+    local unknown = Widget("Keybinding")
     parent.children = { box, unknown }
     Skin.ApplyTree(parent)
     truthy(box.rhSkinned, "child styled")

@@ -162,6 +162,7 @@ local function NewFrameFactory(session)
         self.highlightTexture:SetTexture(path)
     end
     function FrameMethods:SetNormalTexture() end
+    function FrameMethods:RegisterForClicks(...) self.clicks = { ... } end
     function FrameMethods:SetPushedTexture() end
     function FrameMethods:GetFontString() return self.fontString end
     function FrameMethods:SetText(text) self.text = text end
@@ -379,6 +380,16 @@ function Mock.NewSession(opts)
     end
     env.UnitCanAttack = function(_, unit) return unit == "target" and session.hasTarget and session.target.canAttack end
     env.UnitIsDead = function(unit) return unit == "target" and session.hasTarget and session.target.dead end
+    -- Group and threat: session.party / session.raid = member counts;
+    -- session.threat = { isTanking, scaledPercent } on the target.
+    session.party, session.raid = 0, 0
+    env.GetNumPartyMembers = function() return session.party end
+    env.GetNumRaidMembers = function() return session.raid end
+    env.UnitDetailedThreatSituation = function(unit, target)
+        local t = session.threat
+        if not t or target ~= "target" or not session.hasTarget then return nil end
+        return t.isTanking, t.isTanking and 3 or 1, t.scaledPercent, t.scaledPercent, 1000
+    end
     env.UnitHealth = function(unit) return unit == "target" and session.target.health or 0 end
     env.UnitHealthMax = function(unit) return unit == "target" and session.target.healthMax or 0 end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
@@ -493,6 +504,13 @@ function Mock.NewSession(opts)
     env.CreateFrame = NewFrameFactory(session)
     env.UIParent = env.CreateFrame("Frame", "UIParent")
     env.UISpecialFrames = {}
+
+    -- The minimap (centered at 500,500) and the cursor, for the minimap button.
+    env.Minimap = env.CreateFrame("Frame", "Minimap")
+    function env.Minimap:GetCenter() return 500, 500 end
+    function env.Minimap:GetEffectiveScale() return 1 end
+    session.cursor = { 500, 500 }
+    env.GetCursorPosition = function() return session.cursor[1], session.cursor[2] end
 
     -- Keyboard, tooltip and sound.
     session.shift = false

@@ -60,7 +60,7 @@ local function EvaluateAbility(action, s)
         Trace(action, "unusable: %s", limitedBy or "?")
         return
     end
-    t = max(t, run.minTime)
+    if run.minTime > t then t, limitedBy = run.minTime, "wait" end
     if run.best and t >= run.bestTime then
         Trace(action, "later than %s", run.best.name)
         return

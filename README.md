@@ -34,6 +34,11 @@ what's planned.
 | Small icon above the big one | Your target is casting something you can interrupt: press it (Mind Freeze). |
 | Golden glow on an icon | That ability spends a proc (Killing Machine, Rime). An optional sound can play for new procs (Display options). |
 | Small proc icon in the bottom-right corner | That proc is *why* the ability is recommended now, e.g. Frost Strike because of Killing Machine, or the free Howling Blast from Rime. |
+| `RUNES` / `COOLDOWN` / `CAST` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
+| Small icon below the status line | The big icon's ability is out of range; this is the best thing you can do from where you are. |
+| Steady red border, `THREAT` on the status line | In a group: you're close to pulling aggro (default 90%). |
+
+Colors can be changed under Display > Colors, including a color-blind friendly preset.
 
 Hold **Shift** over the (locked) display to hover an icon for a tooltip explaining why it's
 recommended (which rotation line, what it's waiting on), and to click `CD` or the AoE mode to
@@ -61,12 +66,14 @@ update as soon as one happens.
 | `/rh scale <0.5-3>` | Display scale. |
 | `/rh icons <1-5>` | How many icons to show. |
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
+| `/rh why <ability>` | Why an ability is or isn't recommended right now, e.g. `/rh why frost strike`. |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
 | `/rh status` | Print the current settings. |
 | `/rh help` | List the commands. |
 
-Toggles can also be bound to keys: Escape > Key Bindings > RotationHelper.
+Toggles can also be bound to keys (Escape > Key Bindings > RotationHelper), or used from the minimap
+button: left click opens the options, right click toggles cooldowns, drag moves it.
 
 ## AoE detection
 

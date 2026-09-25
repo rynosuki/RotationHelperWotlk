@@ -115,7 +115,7 @@ offline tests and has been checked in game.
   - *Check in game:* glow on the Frost Strike that uses Killing Machine and on the free Howling
     Blast, and no glow otherwise.
 
-- [ ] **A8 Configurable colors** (S)
+- [ ] **A8 Configurable colors** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* readable for everyone, including colour-blind players.
   - *How:*
     - The tints for out of range, missing resources, waste and threat move into
@@ -124,33 +124,33 @@ offline tests and has been checked in game.
     - A colour-blind friendly preset.
   - *Check in game:* changed colours apply immediately; the preset switches all of them.
 
-- [ ] **A9 `/rh why <ability>`** (S)
+- [ ] **A9 `/rh why <ability>`** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* a direct answer to "why isn't it telling me to press X?".
   - *How:* runs one evaluation with a trace and prints that ability's lines: whether its
     condition is true, when it's ready, and what it waits for (runes, cooldown, runic power,
     line_cd, a higher-priority action).
   - *Check in game:* `/rh why obliterate` while runes are down says it waits on runes, with the time.
 
-- [ ] **A10 Hold indicator** (S)
+- [ ] **A10 Hold indicator** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* a clear "wait" state instead of an icon that just sits there.
   - *How:* when the main wait is longer than a GCD, an hourglass overlays the icon, with a short
     reason taken from `limitedBy`, e.g. "runes 2.3s" or "cooldown".
   - *Check in game:* with all runes down and no runic power, the hourglass and reason appear.
 
-- [ ] **A11 Out-of-range alternative** (S)
+- [ ] **A11 Out-of-range alternative** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* when you're pushed away or the boss moves, you get the best thing you *can* do from
     there (Icy Touch, Howling Blast, Death Coil).
   - *How:* when the main ability is out of range, the Runner runs once more with a context filter
     that rejects out-of-range abilities. The result appears as a small secondary icon.
   - *Check in game:* step out of melee; a ranged option appears beside the red main icon.
 
-- [ ] **A12 Threat warning** (S)
+- [ ] **A12 Threat warning** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* avoid pulling aggro in pugs.
   - *How:* `UnitDetailedThreatSituation("player", "target")`: when the scaled percent reaches the
     setting (default 90), the display border turns orange.
   - *Check in game:* in a group, the border turns orange when close to the tank's threat.
 
-- [ ] **A13 Minimap button** (S)
+- [ ] **A13 Minimap button** (S) — *implemented in 1.7.0, waiting on the in-game check*
   - *Play:* quick access without slash commands.
   - *How:* our own small button, with no library. Left click opens the options, right click
     toggles cooldowns, and it can be dragged around the minimap. Its position is stored in the

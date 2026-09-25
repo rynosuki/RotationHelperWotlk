@@ -152,6 +152,21 @@ function Options:BuildOptionsTable()
         get = function() return RH.db.profile.updateInterval end,
         set = function(_, value) RH.db.profile.updateInterval = value end }
 
+    general.args.minimap = { type = "toggle", name = "Minimap button", order = 5,
+        get = function() return RH.db.profile.minimap.show end,
+        set = function(_, value) RH.db.profile.minimap.show = value; Changed() end }
+
+    general.args.threatHeader = { type = "header", name = "Threat warning", order = 20 }
+    general.args.threatEnabled = { type = "toggle", name = "Warn about threat", order = 21,
+        desc = "In a group: a red border and THREAT under the icons when you're close to pulling aggro.",
+        get = function() return RH.db.profile.threat.enabled end,
+        set = function(_, value) RH.db.profile.threat.enabled = value end }
+    general.args.threatThreshold = { type = "range", name = "Warn at (% of aggro)", order = 22,
+        min = 50, max = 100, step = 5,
+        disabled = function() return not RH.db.profile.threat.enabled end,
+        get = function() return RH.db.profile.threat.threshold end,
+        set = function(_, value) RH.db.profile.threat.threshold = value end }
+
     general.args.latencyHeader = { type = "header", name = "Latency", order = 10 }
     general.args.latencyMode = { type = "select", name = "Show the next ability early", order = 11,
         values = LATENCY_MODES,
@@ -237,6 +252,39 @@ function Options:BuildOptionsTable()
             min = 0, max = 5, step = 0.5, desc = "How long a cap may last before warning (about one GCD by default)." }),
     }
     for key, option in pairs(wasteArgs) do display.args[key] = option end
+
+    display.args.holdIndicator = { type = "toggle", name = "Say what the icon waits on", order = 28,
+        desc = "When the main ability is more than a GCD away, label it RUNES, COOLDOWN, CAST or WAIT." }
+    display.args.alternative = { type = "toggle", name = "In-range alternative", order = 29,
+        desc = "When the main ability is out of range, show the best in-range one below it." }
+
+    -- Colors, with presets.
+    local function ColorOption(key, name, order)
+        return { type = "color", name = name, order = order,
+            get = function() return unpack(RH.db.profile.display.colors[key]) end,
+            set = function(_, r, g, b)
+                RH.db.profile.display.colors[key] = { r, g, b }
+                Changed()
+            end }
+    end
+    local function Preset(presetName)
+        return function()
+            local colors = RH.db.profile.display.colors
+            for key, color in pairs(ns.Display.COLOR_PRESETS[presetName]) do
+                colors[key] = { color[1], color[2], color[3] }
+            end
+            Changed()
+        end
+    end
+    display.args.colorsHeader = { type = "header", name = "Colors", order = 40 }
+    display.args.colorOutOfRange = ColorOption("outOfRange", "Out of range", 41)
+    display.args.colorNoResources = ColorOption("noResources", "Not enough resources", 42)
+    display.args.colorWaste = ColorOption("waste", "Waste warning", 43)
+    display.args.colorThreat = ColorOption("threat", "Threat warning", 44)
+    display.args.colorsDefault = { type = "execute", name = "Default colors", order = 45, func = Preset("default") }
+    display.args.colorsColorblind = { type = "execute", name = "Color-blind friendly", order = 46,
+        desc = "The Okabe-Ito palette: easy to tell apart with the common kinds of color blindness.",
+        func = Preset("colorblind") }
 
     local rotation = {
         type = "group", name = "Rotation", order = 3,

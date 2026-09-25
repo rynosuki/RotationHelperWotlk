@@ -131,6 +131,90 @@ function RH:PrintSnapshot()
     self:PrintDecision(s)
 end
 
+-- /rh why <ability>: why an ability is (or isn't) recommended right now.
+-- Accepts "frost_strike" or "frost strike".
+local WAITING_ON = { gcd = "the GCD", runes = "runes", cooldown = "its cooldown", cast = "your cast",
+    wait = "a wait line" }
+
+function RH:PrintWhy(arg)
+    if not self.classSupported then
+        self:Print("No class data for " .. tostring(self.playerClass) .. ".")
+        return
+    end
+    local key = Utils.Key(arg or "")
+    if key == "" then
+        self:Print("Usage: /rh why <ability>, e.g. /rh why frost strike")
+        return
+    end
+    local ability = self.classData.abilities[key]
+    if not ability then
+        self:Print(format("Unknown ability '%s'. Use the rotation's names, e.g. frost_strike.", key))
+        return
+    end
+    local apl = ns.Recommender:GetAPL()
+    if not apl then
+        self:Print("No rotation for this spec.")
+        return
+    end
+
+    local s = ns.State:Reset()
+    local trace = {}
+    local chosen, chosenAt = ns.Recommender:Evaluate(s, trace)
+    self:Print(format("Why (not) %s?", Utils.Colorize(key, "ffd100")))
+
+    -- Where the rotation uses it.
+    local places = {}
+    for _, listName in ipairs(apl.listOrder) do
+        for _, action in ipairs(apl.lists[listName]) do
+            if action.name == key then
+                places[#places + 1] = format("%s line %d", listName == "default" and "main list" or listName, action.line)
+            end
+        end
+    end
+    if #places == 0 then
+        print(format("   It isn't in your rotation (%s).", apl.name))
+    else
+        print("   In " .. apl.name .. ": " .. concat(places, ", "))
+    end
+
+    -- Whether it can be used, and when.
+    local t, reason = ns.Abilities.ReadyAt(s, key)
+    if not t then
+        local detail = reason
+        if reason == "runic power" then
+            detail = format("runic power (needs %d, have %d)", ns.Abilities.RunicPowerCost(ability), s.power)
+        end
+        print("   Can't be used now: " .. detail)
+    elseif t - s.now <= 0.05 then
+        print("   Usable now.")
+    else
+        print(format("   Usable in %.1fs, waiting on %s.", t - s.now, WAITING_ON[reason] or tostring(reason)))
+    end
+
+    -- What the rotation made of it.
+    local mentioned = false
+    for _, line in ipairs(trace) do
+        if line:find(":" .. key .. "  ", 1, true) then
+            print("   " .. Dim(line))
+            mentioned = true
+        end
+    end
+    if #places > 0 and not mentioned then
+        print("   " .. Dim("Not checked this time: something before it was chosen, or its list wasn't run."))
+    end
+
+    if not chosen then
+        print("   Nothing is recommended right now.")
+    elseif chosen.name == key then
+        print("   " .. Utils.Colorize("It is the recommendation.", "40ff40"))
+    else
+        local wait = chosenAt - s.now
+        print(format("   Recommended instead: %s (%s line %d)%s", Utils.Colorize(chosen.name, "40ff40"),
+            chosen.list == "default" and "main list" or chosen.list, chosen.line,
+            wait > 0.05 and format(", ready in %.1fs", wait) or ""))
+    end
+end
+
 -- /rh errors: recorded errors with their stacks. "/rh errors clear" empties
 -- the list. Viewing them clears the "!" on the display.
 function RH:PrintErrors(arg)

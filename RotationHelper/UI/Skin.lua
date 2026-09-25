@@ -309,6 +309,10 @@ function skinners.Heading(w)
     TextColor(w, w.label, T.heading)
 end
 
+function skinners.ColorPicker(w)
+    Font(w, w.text)
+end
+
 function skinners.Label(w)
     Font(w, w.label)
     -- The label sized itself for the old font; SetText measures it again.

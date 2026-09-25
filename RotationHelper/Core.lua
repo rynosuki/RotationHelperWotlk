@@ -68,6 +68,14 @@ local defaults = {
             mode = "auto", -- auto (lag tolerance or latency) | fixed | off
             fixedMs = 100,
         },
+        threat = {
+            enabled = true,
+            threshold = 90, -- % of the threat needed to pull aggro
+        },
+        minimap = {
+            show = true,
+            angle = 200, -- degrees around the minimap
+        },
         waste = {
             enabled = true,
             runes = true,      -- a rune pair with both runes ready
@@ -91,6 +99,14 @@ local defaults = {
             procGlow = true,   -- glow on icons that spend a proc (Killing Machine, Rime)
             procBadge = true,  -- the proc's icon in the corner when it's why an ability is recommended
             procSound = "none", -- PlaySound name for a new proc, or "none"
+            holdIndicator = true, -- label what the main icon waits on when it's more than a GCD away
+            alternative = true,   -- in-range alternative when the main ability is out of range
+            colors = {            -- see Display.COLOR_PRESETS
+                outOfRange = { 1, 0.25, 0.25 },
+                noResources = { 0.4, 0.5, 1 },
+                waste = { 1, 0.5, 0 },
+                threat = { 0.9, 0.1, 0.1 },
+            },
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
     },
@@ -148,7 +164,8 @@ end
 -- Each updater runs protected: an error is recorded (see Errors below),
 -- `onError` gets a chance to clean up, and the other updaters still run.
 ---------------------------------------------------------------------------
-RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, DEFAULT = 50, DISPLAY = 100, INTERRUPT = 110 }
+RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, THREAT = 22, DEFAULT = 50, DISPLAY = 100,
+    INTERRUPT = 110 }
 
 local updaters = {}
 local updateFrame = CreateFrame("Frame")
@@ -401,6 +418,7 @@ local HELP = {
     { "lock", "lock/unlock the display" },
     { "test", "show/hide sample icons" },
     { "snapshot", "print what the addon reads from the game" },
+    { "why <ability>", "why an ability is or isn't recommended right now" },
     { "perf", "show CPU and memory use (/rh perf reset to start over)" },
     { "errors", "show recorded errors (/rh errors clear to empty the list)" },
     { "scale <n>", "display scale (0.5-3)" },
@@ -444,6 +462,7 @@ local commands = {
     snap = "PrintSnapshot",
     perf = "PrintPerf",
     errors = "PrintErrors",
+    why = "PrintWhy",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",

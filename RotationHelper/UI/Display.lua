@@ -30,8 +30,27 @@ local CHIP_GAP = 6
 Display.PROC_SOUNDS = { none = "None", MapPing = "Ping", RaidWarning = "Raid warning", ReadyCheck = "Ready check" }
 
 local TINT_NORMAL = { 1, 1, 1 }
-local TINT_OUT_OF_RANGE = { 1, 0.25, 0.25 }
-local TINT_NO_RESOURCES = { 0.4, 0.5, 1 }
+
+-- Color presets for the configurable colors (profile.display.colors).
+-- The color-blind friendly one uses the Okabe-Ito palette, whose colors
+-- stay distinguishable with the common kinds of color blindness.
+Display.COLOR_PRESETS = {
+    default = {
+        outOfRange = { 1, 0.25, 0.25 },
+        noResources = { 0.4, 0.5, 1 },
+        waste = { 1, 0.5, 0 },
+        threat = { 0.9, 0.1, 0.1 },
+    },
+    colorblind = {
+        outOfRange = { 0.84, 0.37, 0 },    -- vermillion
+        noResources = { 0.34, 0.71, 0.91 }, -- sky blue
+        waste = { 0.9, 0.62, 0 },          -- orange
+        threat = { 0.8, 0.47, 0.65 },      -- reddish purple
+    },
+}
+
+-- What the main icon waits on, when it's more than a GCD away.
+local HOLD_LABELS = { runes = "RUNES", cooldown = "COOLDOWN", cast = "CAST", wait = "WAIT" }
 
 -- Where each queued icon goes relative to the previous one.
 local GROW = {
@@ -118,6 +137,13 @@ function Display.CreateButton(parent, name, large)
     badge:Hide()
     b.badge = badge
 
+    -- Hold label: what the main icon waits on (RUNES, COOLDOWN, ...).
+    b.hold = b.overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    b.hold:SetPoint("BOTTOM", b, "BOTTOM", 0, 2)
+    b.hold:SetTextColor(1, 1, 1)
+    b.hold:SetShadowOffset(1, -1)
+    b.hold:Hide()
+
     b:Hide()
     return b
 end
@@ -158,9 +184,20 @@ function Display:CreateFrames()
     warn:SetPoint("TOPLEFT", -3, 3)
     warn:SetPoint("BOTTOMRIGHT", 3, -3)
     warn:SetBackdrop({ edgeFile = WHITE, edgeSize = 2 })
-    warn:SetBackdropBorderColor(1, 0.5, 0, 1)
     warn:Hide()
     main.warn = warn
+
+    -- Threat warning: a steady border outside the waste border.
+    local threat = CreateFrame("Frame", nil, main)
+    threat:SetPoint("TOPLEFT", -6, 6)
+    threat:SetPoint("BOTTOMRIGHT", 6, -6)
+    threat:SetBackdrop({ edgeFile = WHITE, edgeSize = 2 })
+    threat:Hide()
+    main.threat = threat
+
+    -- In-range alternative when the main ability is out of range, below
+    -- the status line.
+    self.altButton = Display.CreateButton(f, "RotationHelperAlternativeButton", false)
 
     -- Status line under the main icon: "CD", the AoE mode or enemy count,
     -- and waste labels. The first two are chips that Shift-click toggles.
@@ -249,7 +286,17 @@ function Display:ApplySettings()
             b:SetPoint(grow[1], self.buttons[i - 1], grow[2], grow[3] * d.spacing, grow[4] * d.spacing)
             Display.SetButtonSize(b, queueSize)
         end
+        b.tint = nil -- colors may have changed
     end
+
+    local main, colors = self.buttons[1], d.colors
+    main.warn:SetBackdropBorderColor(colors.waste[1], colors.waste[2], colors.waste[3], 1)
+    main.threat:SetBackdropBorderColor(colors.threat[1], colors.threat[2], colors.threat[3], 1)
+    local alt = self.altButton
+    alt:ClearAllPoints()
+    alt:SetPoint("TOPLEFT", main, "BOTTOMLEFT", 0, -(STATUS_HEIGHT + 4))
+    Display.SetButtonSize(alt, queueSize)
+    alt.tint = nil
 
     self:Refresh()
 end
@@ -304,12 +351,26 @@ function Display:UpdateButton(b, entry, isMain, now)
     SetIcon(b, info.icon)
     SetKeyText(b, ns.Keybinds:Get(info.name) or "")
 
+    local colors = self.db.colors
     if info.name and UnitExists("target") and IsSpellInRange(info.name, "target") == 0 then
-        Tint(b, TINT_OUT_OF_RANGE)
+        Tint(b, colors.outOfRange)
     elseif entry.lacksResources then
-        Tint(b, TINT_NO_RESOURCES)
+        Tint(b, colors.noResources)
     else
         Tint(b, TINT_NORMAL)
+    end
+
+    -- Hold label on the main icon when it's more than a GCD away.
+    local hold = isMain and self.db.holdIndicator and entry.wait
+        and entry.wait > (ns.State.real.gcdDuration or 1.5) and HOLD_LABELS[entry.limitedBy]
+    if hold then
+        if b.holdText ~= hold then
+            b.holdText = hold
+            b.hold:SetText(hold)
+        end
+        b.hold:Show()
+    else
+        b.hold:Hide()
     end
 
     -- Restarting the swipe every refresh would make it flicker, so only
@@ -360,8 +421,18 @@ function Display:Refresh()
     local showLabel = not self.db.locked
     if showLabel then self.frame.label:Show() else self.frame.label:Hide() end
     if showError then self.frame.errorMark:Show() else self.frame.errorMark:Hide() end
+    local main = self.buttons[1]
     local waste = RH.waste
-    if waste and waste.any and entries then self.buttons[1].warn:Show() else self.buttons[1].warn:Hide() end
+    if waste and waste.any and entries then main.warn:Show() else main.warn:Hide() end
+    local threat = RH.threat
+    if threat and threat.warn and entries then main.threat:Show() else main.threat:Hide() end
+
+    local alternative = self.db.alternative and entries and RH.alternative
+    if alternative then
+        self:UpdateButton(self.altButton, alternative, false, now)
+    else
+        self.altButton:Hide()
+    end
     self:UpdateProcs(entries, count)
     self:UpdateStatus()
     self.frame:Show()
@@ -421,6 +492,10 @@ function Display:UpdateStatus()
     if waste and waste.runes then wasteText = "|cffff8000RUNES|r" end
     if waste and waste.runicPower then
         wasteText = wasteText == "" and "|cffff8000RP|r" or (wasteText .. "  |cffff8000RP|r")
+    end
+    local threat = RH.threat
+    if threat and threat.warn then
+        wasteText = wasteText == "" and "|cffff2020THREAT|r" or (wasteText .. "  |cffff2020THREAT|r")
     end
     if f.wasteText.lastText ~= wasteText then
         f.wasteText.lastText = wasteText
