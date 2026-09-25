@@ -292,7 +292,7 @@ test("/rh snapshot shows the decision", function()
     Diseases(s, 15, 15)
     s:ClearChat()
     s:Slash("ACECONSOLE_RH", "snapshot")
-    truthy(s:ChatContains("Recommendation:.*obliterate.*now"), "recommendation line")
+    truthy(s:ChatContains("Recommendation:.*obliterate.* > "), "recommendation line with queue")
     truthy(s:ChatContains("default:obliterate  best so far"), "trace")
 end)
 

@@ -13,7 +13,8 @@ local Abilities = {}
 ns.Abilities = Abilities
 
 local RH = ns.RH
-local ipairs, pairs, sort = ipairs, pairs, table.sort
+local Utils = ns.Utils
+local ipairs, pairs, sort, min, max = ipairs, pairs, table.sort, math.min, math.max
 
 local NUM_RUNES = 6
 
@@ -62,6 +63,12 @@ function Abilities.RunicPowerCost(ability)
     return ability.rp and ability.rp > 0 and ability.rp or 0
 end
 
+function Abilities.RunicPowerGain(ability)
+    local gain = ability.rp and ability.rp < 0 and -ability.rp or 0
+    if ability.rpGain then gain = gain + ability.rpGain(ns.Spec) end
+    return gain
+end
+
 local function BuffUpAt(state, key, at)
     local rec = state.buffs[key]
     return rec ~= nil and rec.expires > at
@@ -92,4 +99,131 @@ function Abilities.ReadyAt(state, key)
         if runesAt > t then t, limitedBy = runesAt, "runes" end
     end
     return t, limitedBy
+end
+
+---------------------------------------------------------------------------
+-- Simulation: what using an ability does to a (virtual) state.
+---------------------------------------------------------------------------
+-- Helpers for class handlers: ability.apply(state, spec, Effects).
+-- Durations count from state.now.
+local Effects = {}
+Abilities.Effects = Effects
+
+local function SetAura(list, key, now, duration, stacks)
+    local rec = list[key]
+    if not rec then
+        rec = Utils.Acquire()
+        list[key] = rec
+    end
+    rec.duration = duration
+    rec.stacks = stacks or 1
+    rec.expires = duration and (now + duration) or math.huge
+end
+
+function Effects.ApplyBuff(s, key, duration, stacks)
+    SetAura(s.buffs, key, s.now, duration, stacks)
+end
+
+function Effects.ApplyDebuff(s, key, duration, stacks)
+    SetAura(s.debuffs, key, s.now, duration, stacks)
+end
+
+function Effects.RemoveBuff(s, key)
+    local rec = s.buffs[key]
+    if rec then
+        Utils.Release(rec)
+        s.buffs[key] = nil
+    end
+end
+
+function Effects.DebuffUp(s, key)
+    local rec = s.debuffs[key]
+    return rec ~= nil and rec.expires > s.now
+end
+
+-- Empower Rune Weapon: every rune is ready immediately.
+function Effects.ActivateAllRunes(s)
+    for i = 1, NUM_RUNES do
+        if s.runes[i].readyAt > s.now then s.runes[i].readyAt = s.now end
+    end
+end
+
+-- Blood Tap: a blood rune becomes a ready death rune. Prefers one that's
+-- recharging, so a ready blood rune isn't wasted.
+function Effects.BloodTap(s)
+    local pick
+    for i = 1, NUM_RUNES do
+        local rune = s.runes[i]
+        if rune.base == "blood" and rune.type == "blood" then
+            if not pick or rune.readyAt > s.runes[pick].readyAt then pick = i end
+        end
+    end
+    if pick then
+        s.runes[pick].type = "death"
+        s.runes[pick].readyAt = min(s.runes[pick].readyAt, s.now)
+    end
+end
+
+-- Whether spending a rune of base `base` turns it into a death rune, e.g.
+-- Blood of the North for Blood Strike. ability.convert = { runes = { blood = true },
+-- talents = { "blood_of_the_north" } }: any listed talent at rank 3.
+local function Converts(ability, base)
+    local convert = ability.convert
+    if not (convert and convert.runes[base]) then return false end
+    for _, talent in ipairs(convert.talents) do
+        if ns.Spec:TalentRank(talent) >= 3 then return true end
+    end
+    return false
+end
+
+local function SpendRune(s, i, ability)
+    local rune = s.runes[i]
+    rune.readyAt = s.now + s.runeRegen
+    -- A spent death rune goes back to its slot's type, unless converted again.
+    rune.type = Converts(ability, rune.base) and "death" or rune.base
+end
+
+-- Deterministic order: every type takes its own runes before death runes.
+local RUNE_ORDER = { "blood", "unholy", "frost" }
+
+local function FindReadyRune(s, runeType)
+    for i = 1, NUM_RUNES do
+        local rune = s.runes[i]
+        if rune.type == runeType and rune.readyAt <= s.now then return i end
+    end
+end
+
+local function SpendRunes(s, ability)
+    for _, runeType in ipairs(RUNE_ORDER) do
+        for _ = 1, ability.runes[runeType] or 0 do
+            local i = FindReadyRune(s, runeType) or FindReadyRune(s, "death")
+            if i then SpendRune(s, i, ability) end
+        end
+    end
+end
+
+-- Moves `s` to time `t` and applies using ability `key` there: GCD,
+-- cooldown, runes, runic power, consumed procs, and the ability's own
+-- effects (ability.apply). Procs that might happen (Killing Machine,
+-- Rime) are random and not predicted.
+function Abilities.Apply(s, key, t)
+    local ability = RH.classData.abilities[key]
+    s.now = t
+    s.castRemains = 0
+    if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
+
+    local cd = s.cooldowns[key]
+    if cd then cd.readyAt = t + (cd.duration or ability.cooldown) end
+
+    local free = ability.freeWith and BuffUpAt(s, ability.freeWith, t)
+    if ability.runes and not free then SpendRunes(s, ability) end
+    if free then Effects.RemoveBuff(s, ability.freeWith) end
+
+    s.power = max(0, min(s.powerMax, s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)))
+
+    if ability.consumes then
+        for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end
+    end
+    if ability.apply then ability.apply(s, ns.Spec, Effects) end
+    s.lastCast[key] = t
 end

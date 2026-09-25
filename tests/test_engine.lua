@@ -283,7 +283,7 @@ end)
 
 test("runner: line_cd", function()
     local s = newAddon()
-    local lastUsed = function(name) return name == "a" and 95 or nil end
+    local lastUsed = function(_, name) return name == "a" and 95 or nil end
     eq(Run(s, "actions=a,line_cd=10\nactions+=/b", { a = 0, b = 0 }, nil, { lastUsed = lastUsed }), "b", "a used 5s ago")
     eq(Run(s, "actions=a,line_cd=3\nactions+=/b", { a = 0, b = 0 }, nil, { lastUsed = lastUsed }), "a", "line_cd over")
 end)

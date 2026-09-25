@@ -48,7 +48,7 @@ local RunList
 local function EvaluateAbility(action, s)
     local ctx = run.ctx
     if action.lineCd and ctx.LastUsed then
-        local last = ctx.LastUsed(action.name)
+        local last = ctx.LastUsed(s, action.name)
         if last and run.base - last < action.lineCd then
             Trace(action, "line_cd (%.1fs left)", action.lineCd - (run.base - last))
             return
@@ -128,7 +128,7 @@ end
 
 -- Evaluates `listName` (default "default") against state `s`.
 -- ctx.ReadyAt(s, name) -> time, limitedBy | nil, reason   (required)
--- ctx.LastUsed(name)   -> time of last use, for line_cd  (optional)
+-- ctx.LastUsed(s, name) -> time of last use, for line_cd (optional)
 -- ctx.floor            -> earliest time anything can be used (default s.now)
 -- Returns action, readyAt, limitedBy; or nil if nothing is usable.
 -- Pass a table as `trace` to collect a line per decision.

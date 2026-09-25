@@ -1,5 +1,7 @@
 local ADDON_NAME, ns = ...
 local RH = ns.RH
+local Utils = ns.Utils
+local pairs, ipairs, type, wipe = pairs, ipairs, type, wipe
 
 -- A snapshot of the real game state. The recommendation engine reads from
 -- here; milestone 6 adds a virtual copy that can be moved forward in time.
@@ -74,6 +76,74 @@ function State:Reset(now)
     ReadTarget(s.target)
     ReadCast(s, now)
     return s
+end
+
+---------------------------------------------------------------------------
+-- Virtual state: a copy of the real state that the prediction can change
+-- (spend runes, apply buffs, ...) without touching the snapshot.
+---------------------------------------------------------------------------
+State.virtual = {
+    runes = {},
+    buffs = {},
+    debuffs = {},
+    cooldowns = {},
+    variables = {},
+    lastCast = {},
+}
+
+local function CopyAuras(dst, src)
+    for key, rec in pairs(dst) do
+        Utils.Release(rec)
+        dst[key] = nil
+    end
+    for key, rec in pairs(src) do
+        local copy = Utils.Acquire()
+        copy.spellId, copy.stacks, copy.duration, copy.expires = rec.spellId, rec.stacks, rec.duration, rec.expires
+        dst[key] = copy
+    end
+end
+
+local function CopyMap(dst, src)
+    for key in pairs(dst) do
+        if src[key] == nil then dst[key] = nil end
+    end
+    for key, value in pairs(src) do dst[key] = value end
+end
+
+-- Copies `src` into `dst`, reusing dst's tables. The target is shared,
+-- since nothing the prediction does changes it.
+function State.CopyInto(dst, src)
+    for key, value in pairs(dst) do
+        if type(value) ~= "table" and src[key] == nil then dst[key] = nil end
+    end
+    for key, value in pairs(src) do
+        if type(value) ~= "table" then dst[key] = value end
+    end
+
+    for i, rune in ipairs(src.runes) do
+        local copy = dst.runes[i] or {}
+        dst.runes[i] = copy
+        copy.type, copy.base, copy.readyAt = rune.type, rune.base, rune.readyAt
+    end
+
+    CopyAuras(dst.buffs, src.buffs)
+    CopyAuras(dst.debuffs, src.debuffs)
+
+    for key, cd in pairs(src.cooldowns) do
+        local copy = dst.cooldowns[key] or {}
+        dst.cooldowns[key] = copy
+        copy.readyAt, copy.duration = cd.readyAt, cd.duration
+    end
+
+    CopyMap(dst.lastCast, src.lastCast)
+    wipe(dst.variables)
+    dst.target = src.target
+    return dst
+end
+
+-- Returns the virtual state, freshly copied from the real one.
+function State:Virtual()
+    return State.CopyInto(self.virtual, self.real)
 end
 
 ---------------------------------------------------------------------------

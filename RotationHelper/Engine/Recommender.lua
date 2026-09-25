@@ -11,12 +11,15 @@ local State, Abilities = ns.State, ns.Abilities
 
 local context = {
     ReadyAt = function(s, key) return Abilities.ReadyAt(s, key) end,
-    LastUsed = function(key) return State.real.lastCast[key] end,
+    LastUsed = function(s, key) return s.lastCast[key] end,
 }
+
+local MAX_PREDICTIONS = 5
 
 -- Reused so updates don't create garbage.
 local recommendations = {}
-local mainEntry = {}
+local entries = {}
+for i = 1, MAX_PREDICTIONS do entries[i] = {} end
 
 function Recommender:OnEnable()
     if not RH.classSupported then return end
@@ -73,16 +76,33 @@ function Recommender:Evaluate(s, trace)
     return action, readyAt, limitedBy
 end
 
-function Recommender:Update(now)
-    local s = State:Reset(now)
-    local action, readyAt, limitedBy = self:Evaluate(s)
-    if not action then
-        RH.recommendations = nil
-        return
+-- Predicts the next `count` actions from the current real state: pick an
+-- action, simulate using it on a virtual copy of the state, and repeat.
+-- Fills and returns the shared recommendations list (entries:
+-- { name, spellId, wait, lacksResources }, wait counted from now), and the
+-- number of entries. `trace` collects the decision trace of the first pick.
+function Recommender:Predict(count, trace)
+    local now = State.real.now
+    local v = State:Virtual()
+    local n = 0
+    for i = 1, math.min(count, MAX_PREDICTIONS) do
+        local action, readyAt, limitedBy = self:Evaluate(v, i == 1 and trace or nil)
+        if not action then break end
+        n = i
+        local entry = entries[i]
+        entry.name = action.name
+        entry.spellId = RH.classData.abilities[action.name].id
+        entry.wait = readyAt - now
+        entry.lacksResources = limitedBy == "runes"
+        recommendations[i] = entry
+        Abilities.Apply(v, action.name, readyAt)
     end
-    mainEntry.spellId = RH.classData.abilities[action.name].id
-    mainEntry.wait = readyAt - s.now
-    mainEntry.lacksResources = limitedBy == "runes"
-    recommendations[1] = mainEntry
-    RH.recommendations = recommendations
+    for i = n + 1, #recommendations do recommendations[i] = nil end
+    return recommendations, n
+end
+
+function Recommender:Update(now)
+    State:Reset(now)
+    local recs, n = self:Predict(RH.db.profile.display.numIcons)
+    RH.recommendations = n > 0 and recs or nil
 end

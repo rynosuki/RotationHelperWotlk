@@ -131,16 +131,21 @@ function RH:PrintDecision(s)
         return
     end
     local trace = {}
-    local action, readyAt, limitedBy = Recommender:Evaluate(s, trace)
-    if action then
-        local wait = readyAt - s.now
-        print(format("%s %s %s", Label("Recommendation:"), Utils.Colorize(action.name, "40ff40"),
-            wait > 0 and format("in %s (%s)", Utils.FormatTime(wait), limitedBy or "?") or "now"))
+    local recs, n = Recommender:Predict(self.db.profile.display.numIcons, trace)
+    if n > 0 then
+        local queue = {}
+        for i = 1, n do
+            local entry = recs[i]
+            queue[i] = (i == 1 and Utils.Colorize(entry.name, "40ff40") or entry.name)
+                .. (entry.wait > 0.05 and (" " .. Dim("+" .. Utils.FormatTime(entry.wait))) or "")
+        end
+        print(Label("Recommendation:") .. " " .. concat(queue, " > "))
     else
         local t = s.target
         local why = (t.exists and t.canAttack and not t.dead) and "nothing usable" or "no hostile target"
         print(Label("Recommendation:") .. " " .. Dim("none (" .. why .. ")"))
     end
+    if #trace > 0 then print("   " .. Dim("Why the first one:")) end
     for _, line in ipairs(trace) do
         print("   " .. Dim(line))
     end

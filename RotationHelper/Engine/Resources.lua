@@ -2,7 +2,7 @@ local ADDON_NAME, ns = ...
 
 -- Reads power and (for Death Knights) runes.
 --
--- state.runes[1..6] = { type = "blood"|"unholy"|"frost"|"death", readyAt = time }
+-- state.runes[1..6] = { type = "blood"|"unholy"|"frost"|"death", base = slot type, readyAt = time }
 -- state.runeRegen   = seconds for one rune to regenerate (10 base)
 -- state.power, state.powerMax, state.powerType ("runic_power", "rage", ...)
 local Resources = {}
@@ -17,6 +17,9 @@ local BASE_RUNE_REGEN = 10
 -- GetRuneType() values
 Resources.RUNE_TYPES = { "blood", "unholy", "frost", "death" }
 
+-- The type each rune slot has when it isn't a death rune.
+Resources.SLOT_BASE = { "blood", "blood", "unholy", "unholy", "frost", "frost" }
+
 local POWER_TYPES = { [0] = "mana", [1] = "rage", [2] = "focus", [3] = "energy", [6] = "runic_power" }
 
 local function ReadRunes(state, now)
@@ -30,6 +33,7 @@ local function ReadRunes(state, now)
         end
         local start, duration, ready = GetRuneCooldown(i)
         rune.type = Resources.RUNE_TYPES[GetRuneType(i)] or "unknown"
+        rune.base = Resources.SLOT_BASE[i]
         if ready or not start or start == 0 then
             rune.readyAt = now
         else
