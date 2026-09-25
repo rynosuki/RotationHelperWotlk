@@ -100,4 +100,5 @@ lua tests/run.lua
 (Lua 5.1 is needed, e.g. `winget install -e --id rjpcomputing.luaforwindows`.)
 
 To add a spec or class, see [docs/ADDING_A_SPEC.md](docs/ADDING_A_SPEC.md). Planned specs
-and the engine work they need are tracked in [docs/SPECS.md](docs/SPECS.md).
+and the engine work they need are tracked in [docs/SPECS.md](docs/SPECS.md), and planned
+enhancements (fight review, simulator, latency compensation, ...) in [docs/ROADMAP.md](docs/ROADMAP.md).

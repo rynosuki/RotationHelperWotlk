@@ -1,6 +1,7 @@
 # Spec roadmap
 
 Every WotLK 3.3.5a spec, what it needs from the engine, and a suggested order.
+Enhancements planned before more specs (fight review, simulator, ...) are in [ROADMAP.md](ROADMAP.md).
 Tick a spec off when it has a default APL, scenario tests, and has been checked in game.
 
 How to add one: [ADDING_A_SPEC.md](ADDING_A_SPEC.md).
