@@ -29,6 +29,10 @@ local defaults = {
             locked = false,
             scale = 1.0,
             numIcons = 4,
+            iconSize = 50,
+            queueScale = 0.8, -- queued icons relative to the main icon
+            spacing = 4,
+            direction = "RIGHT", -- RIGHT | LEFT | UP | DOWN
             hideOutOfCombat = false,
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
@@ -194,9 +198,40 @@ end
 ---------------------------------------------------------------------------
 -- Slash commands
 ---------------------------------------------------------------------------
+function RH:ToggleTestMode()
+    local display = ns.Display
+    display:SetTestMode(not display.testMode)
+    self:Print("Test icons " .. (display.testMode and "shown." or "hidden."))
+end
+
+-- Parses a number argument and stores it in the display settings.
+local function SetDisplayNumber(self, key, label, arg, minValue, maxValue, integer)
+    local value = tonumber(arg)
+    if not value or value < minValue or value > maxValue then
+        self:Print(("Usage: /rh %s <%s-%s> (currently %s)"):format(label, minValue, maxValue,
+            tostring(self.db.profile.display[key])))
+        return
+    end
+    if integer then value = math.floor(value + 0.5) end
+    self.db.profile.display[key] = value
+    self:Print(("%s set to %s."):format(label, value))
+    self:OnConfigChanged()
+end
+
+function RH:SetScale(arg)
+    SetDisplayNumber(self, "scale", "scale", arg, 0.5, 3)
+end
+
+function RH:SetIconCount(arg)
+    SetDisplayNumber(self, "numIcons", "icons", arg, 1, 5, true)
+end
+
 local HELP = {
     { "status", "show current settings" },
     { "lock", "lock/unlock the display" },
+    { "test", "show/hide sample icons" },
+    { "scale <n>", "display scale (0.5-3)" },
+    { "icons <n>", "number of icons shown (1-5)" },
     { "cd", "toggle cooldown recommendations" },
     { "aoe", "cycle AoE mode (auto / single / aoe)" },
     { "pause", "pause/resume recommendations" },
@@ -230,18 +265,22 @@ local commands = {
     aoe = "CycleAoEMode",
     pause = "TogglePause",
     debug = "ToggleDebug",
+    test = "ToggleTestMode",
+    scale = "SetScale",
+    icons = "SetIconCount",
     help = "PrintHelp",
 }
 
 function RH:SlashCommand(input)
-    local cmd = lower(self:GetArgs(input or "", 1) or "")
+    local cmd, rest = (input or ""):match("^%s*(%S*)%s*(.-)%s*$")
+    cmd = lower(cmd)
     if cmd == "" then
         self:PrintHelp()
     elseif cmd == "reset" then
         self.db:ResetProfile()
         self:Print("Profile reset.")
     elseif commands[cmd] then
-        self[commands[cmd]](self)
+        self[commands[cmd]](self, rest)
     else
         self:Print(("Unknown command '%s'."):format(cmd))
         self:PrintHelp()

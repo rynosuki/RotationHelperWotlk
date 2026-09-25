@@ -9,3 +9,6 @@ embeds.xml
 
 Utils.lua
 Core.lua
+
+UI\Keybinds.lua
+UI\Display.lua

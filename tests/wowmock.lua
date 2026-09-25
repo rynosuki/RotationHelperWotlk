@@ -36,9 +36,93 @@ end
 ---------------------------------------------------------------------------
 -- Frames
 ---------------------------------------------------------------------------
+-- Methods shared by frames, textures and font strings.
+local RegionMethods = {}
+
+function RegionMethods:SetPoint(point, rel, relPoint, x, y)
+    -- Normalize the short forms SetPoint("TOPLEFT", x, y) and SetPoint("CENTER").
+    if type(rel) == "number" or rel == nil then
+        rel, relPoint, x, y = self.parent, point, rel or 0, relPoint or 0
+    end
+    self.points[#self.points + 1] = { point, rel, relPoint, x, y }
+end
+function RegionMethods:GetPoint(i)
+    local p = self.points[i or 1]
+    if p then return p[1], p[2], p[3], p[4], p[5] end
+end
+function RegionMethods:ClearAllPoints() self.points = {} end
+function RegionMethods:SetAllPoints(rel) self.points = { { "ALL", rel or self.parent } } end
+function RegionMethods:SetWidth(w) self.width = w end
+function RegionMethods:SetHeight(h) self.height = h end
+function RegionMethods:GetWidth() return self.width or 0 end
+function RegionMethods:GetHeight() return self.height or 0 end
+function RegionMethods:Show()
+    self.shown = true
+    if self.scripts and self.scripts.OnShow then self.scripts.OnShow(self) end
+end
+function RegionMethods:Hide()
+    self.shown = false
+    if self.scripts and self.scripts.OnHide then self.scripts.OnHide(self) end
+end
+function RegionMethods:IsShown() return self.shown end
+function RegionMethods:IsVisible()
+    local r = self
+    while r do
+        if not r.shown then return false end
+        r = r.parent
+    end
+    return true
+end
+function RegionMethods:SetAlpha(a) self.alpha = a end
+function RegionMethods:GetName() return self.name end
+function RegionMethods:GetParent() return self.parent end
+
+local TextureMethods = setmetatable({}, { __index = RegionMethods })
+TextureMethods.__index = TextureMethods
+function TextureMethods:SetTexture(t) self.texture = t end
+function TextureMethods:GetTexture() return self.texture end
+function TextureMethods:SetTexCoord(...) self.texCoord = { ... } end
+function TextureMethods:SetVertexColor(r, g, b, a) self.vertexColor = { r, g, b, a } end
+function TextureMethods:SetDrawLayer(layer) self.layer = layer end
+function TextureMethods:SetBlendMode() end
+
+local FontStringMethods = setmetatable({}, { __index = RegionMethods })
+FontStringMethods.__index = FontStringMethods
+function FontStringMethods:SetText(t) self.text = t end
+function FontStringMethods:GetText() return self.text end
+function FontStringMethods:SetFont(...) self.font = { ... } end
+function FontStringMethods:SetFontObject(f) self.fontObject = f end
+function FontStringMethods:SetTextColor(...) self.textColor = { ... } end
+function FontStringMethods:SetJustifyH(j) self.justifyH = j end
+function FontStringMethods:SetJustifyV(j) self.justifyV = j end
+function FontStringMethods:SetShadowOffset() end
+
 local function NewFrameFactory(session)
-    local FrameMethods = {}
+    local FrameMethods = setmetatable({}, { __index = RegionMethods })
     FrameMethods.__index = FrameMethods
+
+    function FrameMethods:CreateTexture(name, layer)
+        return setmetatable({ name = name, parent = self, layer = layer, points = {}, shown = true }, TextureMethods)
+    end
+    function FrameMethods:CreateFontString(name, layer, template)
+        return setmetatable({ name = name, parent = self, layer = layer, template = template,
+            points = {}, shown = true }, FontStringMethods)
+    end
+    function FrameMethods:SetBackdrop(b) self.backdrop = b end
+    function FrameMethods:SetBackdropColor(...) self.backdropColor = { ... } end
+    function FrameMethods:SetBackdropBorderColor(...) self.backdropBorderColor = { ... } end
+    function FrameMethods:SetScale(s) self.scale = s end
+    function FrameMethods:GetScale() return self.scale or 1 end
+    function FrameMethods:EnableMouse(e) self.mouseEnabled = e and true or false end
+    function FrameMethods:IsMouseEnabled() return self.mouseEnabled end
+    function FrameMethods:SetMovable(m) self.movable = m end
+    function FrameMethods:RegisterForDrag(...) self.dragButtons = { ... } end
+    function FrameMethods:StartMoving() self.moving = true end
+    function FrameMethods:StopMovingOrSizing() self.moving = false end
+    function FrameMethods:SetFrameLevel(l) self.frameLevel = l end
+    function FrameMethods:GetFrameLevel() return self.frameLevel or 1 end
+    -- Cooldown frames
+    function FrameMethods:SetCooldown(start, duration) self.cooldownStart, self.cooldownDuration = start, duration end
 
     function FrameMethods:RegisterEvent(e) self.events[e] = true end
     function FrameMethods:UnregisterEvent(e) self.events[e] = nil end
@@ -53,28 +137,14 @@ local function NewFrameFactory(session)
             fn(...)
         end
     end
-    function FrameMethods:Show()
-        self.shown = true
-        if self.scripts.OnShow then self.scripts.OnShow(self) end
-    end
-    function FrameMethods:Hide()
-        self.shown = false
-        if self.scripts.OnHide then self.scripts.OnHide(self) end
-    end
-    function FrameMethods:IsShown() return self.shown end
-    function FrameMethods:IsVisible() return self.shown end
-    function FrameMethods:GetName() return self.name end
-    -- Layout/visual methods are no-ops for now.
-    for _, m in ipairs({ "SetPoint", "ClearAllPoints", "SetSize", "SetWidth", "SetHeight",
-        "SetParent", "SetScale", "SetAlpha", "SetMovable", "EnableMouse", "RegisterForDrag",
-        "SetClampedToScreen", "SetFrameStrata", "SetFrameLevel", "SetAllPoints" }) do
-        FrameMethods[m] = function() end
-    end
+    function FrameMethods:SetClampedToScreen() end
+    function FrameMethods:SetFrameStrata() end
+    function FrameMethods:SetParent(p) self.parent = p end
 
-    return function(frameType, name, parent)
+    return function(frameType, name, parent, template)
         local f = setmetatable({
-            frameType = frameType, name = name, parent = parent,
-            events = {}, scripts = {}, shown = true,
+            frameType = frameType, name = name, parent = parent, template = template,
+            events = {}, scripts = {}, points = {}, shown = true,
         }, FrameMethods)
         session.frames[#session.frames + 1] = f
         if name then session.env[name] = f end
@@ -155,6 +225,35 @@ function Mock.NewSession(opts)
     env.InCombatLockdown = function() return session.inCombat or false end
     env.GetCurrentRegion = nil
 
+    -- Spells: id -> { name, icon }. Tests may add more via session.spells.
+    session.spells = {
+        [51425] = { "Obliterate", "Interface\\Icons\\Spell_DeathKnight_ClassIcon" },
+        [55268] = { "Frost Strike", "Interface\\Icons\\Spell_DeathKnight_EmpowerRuneBlade2" },
+        [51411] = { "Howling Blast", "Interface\\Icons\\Spell_Frost_ArcticWinds" },
+        [49909] = { "Icy Touch", "Interface\\Icons\\Spell_DeathKnight_IceTouch" },
+        [49921] = { "Plague Strike", "Interface\\Icons\\Spell_DeathKnight_EmpowerRuneBlade" },
+        [57623] = { "Horn of Winter", "Interface\\Icons\\INV_Misc_Horn_02" },
+    }
+    env.GetSpellInfo = function(id)
+        local s = session.spells[id]
+        if s then return s[1], "", s[2] end
+    end
+
+    -- Action bars: slot -> { type, id, subType, spellId }; bindings: command -> key.
+    session.actions, session.bindings, session.macros = {}, {}, {}
+    env.GetActionInfo = function(slot)
+        local a = session.actions[slot]
+        if a then return a[1], a[2], a[3], a[4] end
+    end
+    env.GetBindingKey = function(command) return session.bindings[command] end
+    env.GetMacroSpell = function(id) return session.macros[id] end
+    env.GetSpellName = function() return nil end
+
+    -- Target and range: session.range[spellName] = 0 marks it out of range.
+    session.hasTarget, session.range = false, {}
+    env.UnitExists = function(unit) return unit == "target" and session.hasTarget end
+    env.IsSpellInRange = function(name) return session.range[name] or 1 end
+
     local _, tocMeta = ReadToc(root)
     env.GetAddOnMetadata = function(addon, field)
         if addon == ADDON_DIR then return tocMeta[field] end
@@ -220,6 +319,13 @@ function Mock:Slash(cmd, msg)
 end
 
 function Mock:ClearChat() self.chat = {} end
+
+-- Puts a spell on an action slot, optionally bound to a key.
+function Mock:PlaceSpell(slot, spellId, command, key)
+    self.actions[slot] = { "spell", slot, "spell", spellId }
+    if command then self.bindings[command] = key end
+    self:FireEvent("ACTIONBAR_SLOT_CHANGED", slot)
+end
 
 function Mock:ChatContains(pattern)
     for _, line in ipairs(self.chat) do
