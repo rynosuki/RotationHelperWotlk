@@ -28,6 +28,8 @@ what's planned.
 | Big icon | The ability to use next. |
 | Small icons | The predicted next abilities, in order. |
 | Cooldown swipe on the big icon | The ability isn't usable yet: GCD, cooldown or runes. Auto attack until the swipe finishes. |
+| Big icon flashes | Press it now. With latency compensation (General options) the flash comes slightly before the GCD ends, as soon as the client would queue your press. |
+| Red `!` left of the icons | The addon hit an error; see `/rh errors`. |
 | Blue icon | Waiting on runes. |
 | Red icon | Your target is out of range for it. |
 | Text in the corner | The key the ability is bound to. |
@@ -52,6 +54,7 @@ update as soon as one happens.
 | `/rh icons <1-5>` | How many icons to show. |
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
+| `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
 | `/rh status` | Print the current settings. |
 | `/rh help` | List the commands. |
 

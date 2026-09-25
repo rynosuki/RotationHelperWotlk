@@ -27,7 +27,9 @@ function Recommender:OnEnable()
     self.compiled = {} -- spec key -> compiled APL, or false if there is none
     if not RH.classSupported then return end
     self.resolver = ns.Expressions.CreateResolver(RH.classData)
-    RH:RegisterUpdater(function(_, now) Recommender:Update(now) end, RH.UPDATE_ORDER.RECOMMEND)
+    -- After an error, clear the icons: stale advice is worse than none.
+    RH:RegisterUpdater(function(_, now) Recommender:Update(now) end, RH.UPDATE_ORDER.RECOMMEND,
+        "recommendations", function() RH.recommendations = nil end)
     -- A profile switch can change the custom rotations.
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "Reset")
 end

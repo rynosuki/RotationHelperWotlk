@@ -15,6 +15,8 @@ local GetSpellInfo, GetTime, UnitExists, IsSpellInRange = GetSpellInfo, GetTime,
 local abs = math.abs
 
 local MAX_ICONS = 5
+local FLASH_DURATION = 0.3
+local FLASH_ALPHA = 0.55
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
 local TINT_NORMAL = { 1, 1, 1 }
@@ -76,6 +78,13 @@ local function CreateButton(parent, index)
     b.key:SetPoint("TOPRIGHT", -2, -3)
     b.key:SetJustifyH("RIGHT")
 
+    -- "Press now" flash: brightens the icon briefly (additive white).
+    b.flash = b.overlay:CreateTexture(nil, "OVERLAY")
+    b.flash:SetAllPoints(b.icon)
+    b.flash:SetTexture(1, 1, 1)
+    b.flash:SetBlendMode("ADD")
+    b.flash:Hide()
+
     b:Hide()
     return b
 end
@@ -104,6 +113,41 @@ function Display:CreateFrames()
     -- Toggle states under the main icon, e.g. "CD  AUTO 3".
     f.status = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     f.status:SetPoint("TOPLEFT", self.buttons[1], "BOTTOMLEFT", 0, -2)
+
+    -- Shown after an error until /rh errors has been used.
+    f.errorMark = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    f.errorMark:SetPoint("RIGHT", self.buttons[1], "LEFT", -4, 0)
+    f.errorMark:SetTextColor(1, 0.2, 0.2)
+    f.errorMark:SetText("!")
+    f.errorMark:Hide()
+
+    -- Per frame, only while the display is shown: times the flash exactly,
+    -- since the GCD ending fires no event and updates run at most 20/s.
+    f:SetScript("OnUpdate", function() Display:Animate(GetTime()) end)
+end
+
+function Display:StartFlash(b, now)
+    if self.db.pressFlash and b:IsShown() then b.flashStart = now end
+end
+
+-- Flashes the main icon when its predicted ready time is reached.
+function Display:Animate(now)
+    local b = self.buttons[1]
+    if b.readyAt and now >= b.readyAt then
+        b.readyAt = nil
+        self:StartFlash(b, now)
+    end
+    local start = b.flashStart
+    if start then
+        local t = now - start
+        if t >= FLASH_DURATION then
+            b.flash:Hide()
+            b.flashStart = nil
+        else
+            b.flash:SetAlpha(FLASH_ALPHA * (1 - t / FLASH_DURATION))
+            b.flash:Show()
+        end
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -212,7 +256,11 @@ function Display:UpdateButton(b, entry, isMain, now)
             b.cooldown:SetCooldown(now, wait)
             b.readyAt = readyAt
         end
+        b.readySpell = entry.spellId
     elseif b.readyAt then
+        -- The ability we were counting down to is ready now (a refresh got
+        -- here before Animate did).
+        if isMain and b.readySpell == entry.spellId then self:StartFlash(b, now) end
         b.cooldown:Hide()
         b.readyAt = nil
     end
@@ -223,7 +271,11 @@ end
 function Display:Refresh()
     if not self.frame then return end
     local entries = self:GetEntries()
-    if not entries then
+    -- An unseen error keeps the display (and its "!") visible even when the
+    -- error left nothing to recommend.
+    local showError = RH.unseenErrors > 0 and RH:IsActive()
+    if not entries and not showError then
+        self.frame.errorMark:Hide()
         self.frame:Hide()
         return
     end
@@ -231,7 +283,7 @@ function Display:Refresh()
     local now = GetTime()
     local count = self.db.numIcons
     for i, b in ipairs(self.buttons) do
-        local entry = i <= count and entries[i]
+        local entry = entries and i <= count and entries[i]
         if entry then
             self:UpdateButton(b, entry, i == 1, now)
         else
@@ -241,6 +293,7 @@ function Display:Refresh()
 
     local showLabel = not self.db.locked
     if showLabel then self.frame.label:Show() else self.frame.label:Hide() end
+    if showError then self.frame.errorMark:Show() else self.frame.errorMark:Hide() end
     self:UpdateStatus()
     self.frame:Show()
 end
@@ -278,6 +331,6 @@ function Display:OnEnable()
     self:CreateFrames()
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "ApplySettings")
     self:RegisterMessage("ROTATIONHELPER_COMBAT_CHANGED", "Refresh")
-    RH:RegisterUpdater(function() Display:Refresh() end, RH.UPDATE_ORDER.DISPLAY)
+    RH:RegisterUpdater(function() Display:Refresh() end, RH.UPDATE_ORDER.DISPLAY, "display")
     self:ApplySettings()
 end

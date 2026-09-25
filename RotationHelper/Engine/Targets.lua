@@ -164,5 +164,5 @@ function Targets:OnEnable()
         if not inCombat then Targets:OnCombatEnded() end
     end)
     self:RegisterEvent("PLAYER_TARGET_CHANGED", function() Targets:SampleTarget(GetTime()) end)
-    RH:RegisterUpdater(function(_, now) Targets:SampleTarget(now) end, RH.UPDATE_ORDER.TARGETS)
+    RH:RegisterUpdater(function(_, now) Targets:SampleTarget(now) end, RH.UPDATE_ORDER.TARGETS, "target tracking")
 end

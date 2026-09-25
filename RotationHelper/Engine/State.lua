@@ -13,6 +13,7 @@ local GetTime, UnitExists, UnitGUID, UnitName, UnitCanAttack, UnitIsDead =
 local UnitHealth, UnitHealthMax, UnitLevel, UnitClassification =
     UnitHealth, UnitHealthMax, UnitLevel, UnitClassification
 local UnitCastingInfo, UnitChannelInfo, GetUnitSpeed = UnitCastingInfo, UnitChannelInfo, GetUnitSpeed
+local GetCVar, GetNetStats, tonumber = GetCVar, GetNetStats, tonumber
 
 State.real = {
     now = 0,
@@ -73,11 +74,53 @@ function State:Reset(now)
     ReadTarget(s.target)
     ReadCast(s, now)
 
+    self:ApplyLookahead(s, now)
+
     local t = s.target
     local Targets = ns.Targets
     s.activeEnemies = Targets:ActiveEnemies(now, toggles.aoeMode, t.exists and t.canAttack and not t.dead)
     t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
     return s
+end
+
+---------------------------------------------------------------------------
+-- Latency compensation. The 3.3.5 client queues a press made shortly
+-- before the GCD (or a cast) ends: the "lag tolerance" window, set under
+-- Interface > Combat > Custom Lag Tolerance (CVars reducedLagTolerance and
+-- MaxSpellStartRecoveryOffset), otherwise based on latency. Ending the GCD
+-- and cast that much earlier makes the next ability show (and flash) as
+-- soon as pressing it gets queued. Runes and cooldowns aren't shifted: a
+-- press for a rune that isn't back yet is refused, not queued.
+---------------------------------------------------------------------------
+local MAX_LOOKAHEAD_MS = 400
+
+-- Returns the lookahead in seconds and where it came from.
+function State:Lookahead()
+    local settings = RH.db.profile.latency
+    if settings.mode == "off" then return 0, "off" end
+    local ms, source
+    if settings.mode == "fixed" then
+        ms, source = settings.fixedMs, "fixed"
+    else
+        if GetCVar("reducedLagTolerance") == "1" then
+            ms, source = tonumber(GetCVar("MaxSpellStartRecoveryOffset")), "custom lag tolerance"
+        end
+        if not ms then
+            local _, _, latency = GetNetStats()
+            ms, source = latency, "latency"
+        end
+    end
+    ms = math.max(0, math.min(ms or 0, MAX_LOOKAHEAD_MS))
+    return ms / 1000, source
+end
+
+function State:ApplyLookahead(s, now)
+    local lookahead, source = self:Lookahead()
+    s.lookahead, s.lookaheadSource = lookahead, source
+    if lookahead <= 0 then return end
+    s.gcdEnd = math.max(now, s.gcdEnd - lookahead)
+    s.gcdRemains = s.gcdEnd - now
+    s.castRemains = math.max(0, s.castRemains - lookahead)
 end
 
 ---------------------------------------------------------------------------

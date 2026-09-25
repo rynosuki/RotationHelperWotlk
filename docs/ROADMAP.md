@@ -37,15 +37,21 @@ offline tests and has been checked in game.
 
 ## Phase A — small wins
 
-- [ ] **A1 Latency compensation** (S)
-  - *Play:* the 3.3.5 client has no spell queue, so every press arrives a ping late. Showing the
-    next ability one ping early, with a "press now" flash, removes that gap.
-  - *How:* `State:Reset` evaluates at `GetTime() + lookahead`. The lookahead is the world latency
-    from `GetNetStats()` (3rd return, ms), or a fixed value set in the options. Rune, aura and
-    cooldown times are absolute, so this is a pure time shift. The main icon's border flashes
-    when its wait reaches 0.
-  - *Check in game:* with high ping, the icon changes slightly before the GCD ends, and the flash
-    lines up with when a press actually goes through.
+- [ ] **A1 Latency compensation** (S) — *implemented in 1.3.0, waiting on the in-game check*
+  - *Play:* the 3.3.5 client queues a press made shortly before the GCD ends: the "lag tolerance"
+    window, set under Interface > Combat > Custom Lag Tolerance, otherwise based on latency.
+    Showing the next ability, with a "press now" flash, as soon as a press would be queued
+    removes the wait-and-react gap.
+  - *How:* `State:ApplyLookahead` ends the GCD and the current cast early by the lookahead.
+    - The lookahead is the Custom Lag Tolerance CVar (`MaxSpellStartRecoveryOffset`) if enabled,
+      otherwise the latency from `GetNetStats()`. A fixed value or "off" are the alternatives.
+      It's capped at 400 ms.
+    - Runes and cooldowns are *not* shifted: a press for a rune that isn't back yet is refused,
+      not queued.
+    - The main icon flashes when its ready time arrives. That's timed per frame, since the GCD
+      ending fires no event.
+  - *Check in game:* the icon changes and flashes slightly before the GCD swipe ends, and a press
+    at the flash goes through. `/rh snapshot` shows the lookahead and where it came from.
 
 - [ ] **A2 Waste warnings** (S)
   - *Play:* a capped rune pair or capped runic power is lost damage. A warning while it's
@@ -79,7 +85,7 @@ offline tests and has been checked in game.
     the Profiles tab.
   - *Check in game:* switching talents switches the profile; the Profiles tab shows the new one.
 
-- [ ] **A5 Error protection** (S)
+- [ ] **A5 Error protection** (S) — *implemented in 1.3.0, waiting on the in-game check*
   - *Play:* a bug should never leave you with a frozen display or chat spam mid-fight.
   - *How:*
     - `RunUpdaters` in Core calls each updater through `xpcall` with `debugstack`.

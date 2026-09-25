@@ -86,9 +86,10 @@ function RH:PrintSnapshot()
 
     if classData.usesRunes then PrintRunes(s, now) end
 
-    print(format("%s %s %d/%d   %s %s   %s %s%s", Label("Power:"), s.powerType, s.power, s.powerMax,
+    print(format("%s %s %d/%d   %s %s   %s %s%s   %s %d ms %s", Label("Power:"), s.powerType, s.power, s.powerMax,
         Label("GCD:"), Utils.FormatTime(s.gcdRemains),
-        Label("Cast:"), s.castName or "-", s.castName and (" " .. Utils.FormatTime(s.castRemains)) or ""))
+        Label("Cast:"), s.castName or "-", s.castName and (" " .. Utils.FormatTime(s.castRemains)) or "",
+        Label("Lookahead:"), s.lookahead * 1000 + 0.5, Dim("(" .. s.lookaheadSource .. ")")))
 
     PrintList("Buffs:", AuraItems(s.buffs, now))
 
@@ -128,6 +129,32 @@ function RH:PrintSnapshot()
     PrintList("Glyphs:", SortedKeys(Spec.glyphs))
 
     self:PrintDecision(s)
+end
+
+-- /rh errors: recorded errors with their stacks. "/rh errors clear" empties
+-- the list. Viewing them clears the "!" on the display.
+function RH:PrintErrors(arg)
+    if arg == "clear" then
+        self:ClearErrors()
+        self:Print("Errors cleared.")
+        self:Invalidate()
+        return
+    end
+    if #self.errors == 0 then
+        self:Print("No errors recorded.")
+        return
+    end
+    self:Print(format("%d error(s), newest last:", #self.errors))
+    for _, err in ipairs(self.errors) do
+        print(format("%s %s%s", Label(err.source .. ":"), err.message,
+            err.count > 1 and Dim(format(" (x%d)", err.count)) or ""))
+        for line in (err.stack or ""):gmatch("[^\n]+") do
+            print("   " .. Dim(line))
+        end
+    end
+    print(Dim("/rh errors clear to empty the list."))
+    self.unseenErrors = 0
+    self:Invalidate()
 end
 
 -- /rh perf: what the addon costs. "/rh perf reset" starts a new measurement,

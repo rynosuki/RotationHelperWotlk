@@ -16,6 +16,11 @@ local DEFAULT_POINT = { "CENTER", "UIParent", "CENTER", 0, -150 }
 
 local AOE_MODES = { auto = "Auto (count enemies)", single = "Single target", aoe = "AoE (3+ targets)" }
 local DIRECTIONS = { RIGHT = "Right", LEFT = "Left", UP = "Up", DOWN = "Down" }
+local LATENCY_MODES = {
+    auto = "By lag tolerance / latency (recommended)",
+    fixed = "By a fixed amount",
+    off = "Off",
+}
 
 local SYNTAX_HELP = table.concat({
     "Lines look like |cffffd100actions+=/obliterate,if=runes.frost>=1|r. "
@@ -147,6 +152,24 @@ function Options:BuildOptionsTable()
         get = function() return RH.db.profile.updateInterval end,
         set = function(_, value) RH.db.profile.updateInterval = value end }
 
+    general.args.latencyHeader = { type = "header", name = "Latency", order = 10 }
+    general.args.latencyMode = { type = "select", name = "Show the next ability early", order = 11,
+        values = LATENCY_MODES,
+        desc = "The client queues a press made just before the GCD ends. Showing the next ability that much "
+            .. "early lets you press as soon as it will be accepted.",
+        get = function() return RH.db.profile.latency.mode end,
+        set = function(_, value) RH.db.profile.latency.mode = value; Changed() end }
+    general.args.latencyFixed = { type = "range", name = "Fixed amount (ms)", order = 12,
+        min = 0, max = 400, step = 10,
+        hidden = function() return RH.db.profile.latency.mode ~= "fixed" end,
+        get = function() return RH.db.profile.latency.fixedMs end,
+        set = function(_, value) RH.db.profile.latency.fixedMs = value; Changed() end }
+    general.args.latencyCurrent = { type = "description", order = 13, fontSize = "medium",
+        name = function()
+            local seconds, source = ns.State:Lookahead()
+            return ("Currently %d ms (%s)."):format(seconds * 1000 + 0.5, source)
+        end }
+
     local display = WithAccessors({
         type = "group", name = "Display", order = 2,
         args = {
@@ -173,6 +196,8 @@ function Options:BuildOptionsTable()
             hideOutOfCombat = { type = "toggle", name = "Hide out of combat", order = 21 },
             showStatus = { type = "toggle", name = "Show toggle status", order = 22,
                 desc = "CD / AoE mode / enemy count under the main icon." },
+            pressFlash = { type = "toggle", name = "Flash when it's time to press", order = 23,
+                desc = "Briefly brighten the main icon the moment its ability can be pressed." },
         },
     }, ProfileOption("display"))
 

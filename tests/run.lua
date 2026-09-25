@@ -19,6 +19,8 @@ local SUITES = {
     "test_options",
     "test_skin",
     "test_perf",
+    "test_errors",
+    "test_latency",
 }
 
 for _, suite in ipairs(SUITES) do

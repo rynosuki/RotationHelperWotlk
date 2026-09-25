@@ -6,7 +6,7 @@ _G.RotationHelper = RH
 
 local Utils = ns.Utils
 local GetTime, UnitClass = GetTime, UnitClass
-local GetSpellInfo = GetSpellInfo
+local GetSpellInfo, debugstack, xpcall, wipe = GetSpellInfo, debugstack, xpcall, wipe
 local tinsert, ipairs, pairs, lower = table.insert, ipairs, pairs, string.lower
 
 RH.version = GetAddOnMetadata(ADDON_NAME, "Version") or "dev"
@@ -61,6 +61,10 @@ local defaults = {
             aoeMode = "auto", -- auto | single | aoe
         },
         customAPLs = {}, -- [class][spec] = APL text edited in the options
+        latency = {
+            mode = "auto", -- auto (lag tolerance or latency) | fixed | off
+            fixedMs = 100,
+        },
         display = {
             locked = false,
             scale = 1.0,
@@ -71,6 +75,7 @@ local defaults = {
             direction = "RIGHT", -- RIGHT | LEFT | UP | DOWN
             hideOutOfCombat = false,
             showStatus = true, -- toggle states under the main icon
+            pressFlash = true, -- flash the main icon when it can be pressed
             point = { "CENTER", "UIParent", "CENTER", 0, -150 },
         },
     },
@@ -119,11 +124,14 @@ end
 ---------------------------------------------------------------------------
 -- Update loop
 --
--- Modules register an updater with RH:RegisterUpdater(fn, order). The loop
--- calls every updater, lowest order first, at most once per
--- `updateInterval`, and immediately on the next frame after something
+-- Modules register an updater with RH:RegisterUpdater(fn, order, name,
+-- onError). The loop calls every updater, lowest order first, at most once
+-- per `updateInterval`, and immediately on the next frame after something
 -- calls RH:Invalidate(). The order is explicit because AceAddon r960
 -- enables modules in no particular order.
+--
+-- Each updater runs protected: an error is recorded (see Errors below),
+-- `onError` gets a chance to clean up, and the other updaters still run.
 ---------------------------------------------------------------------------
 RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, DEFAULT = 50, DISPLAY = 100 }
 
@@ -134,8 +142,9 @@ updateFrame:Hide()
 local elapsedSince = 0
 local dirty = true
 
-function RH:RegisterUpdater(fn, order)
-    tinsert(updaters, { fn = fn, order = order or RH.UPDATE_ORDER.DEFAULT, index = #updaters + 1 })
+function RH:RegisterUpdater(fn, order, name, onError)
+    tinsert(updaters, { fn = fn, order = order or RH.UPDATE_ORDER.DEFAULT, index = #updaters + 1,
+        name = name or "updater", onError = onError })
     table.sort(updaters, function(a, b)
         if a.order ~= b.order then return a.order < b.order end
         return a.index < b.index
@@ -167,10 +176,61 @@ function RH:ResetPerf()
     perf.memoryStart = GetAddOnMemoryUsage(ADDON_NAME)
 end
 
+---------------------------------------------------------------------------
+-- Errors: a bug in one updater must not freeze the display or spam chat.
+-- Unique errors (by message) are kept, the newest MAX_ERRORS of them; the
+-- first occurrence prints one chat line, repeats only count. The display
+-- shows a red "!" until /rh errors has been used.
+---------------------------------------------------------------------------
+local MAX_ERRORS = 20
+RH.errors = {}          -- oldest first: { source, message, stack, count, first, last }
+RH.unseenErrors = 0
+
+function RH:RecordError(source, message, stack)
+    local now = GetTime()
+    for _, err in ipairs(self.errors) do
+        if err.message == message and err.source == source then
+            err.count = err.count + 1
+            err.last = now
+            return err
+        end
+    end
+    local err = { source = source, message = message, stack = stack, count = 1, first = now, last = now }
+    tinsert(self.errors, err)
+    if #self.errors > MAX_ERRORS then table.remove(self.errors, 1) end
+    self.unseenErrors = self.unseenErrors + 1
+    self:Print(("|cffff4040Error in %s:|r %s (details: /rh errors)"):format(source, message))
+    return err
+end
+
+function RH:ClearErrors()
+    wipe(self.errors)
+    self.unseenErrors = 0
+end
+
+-- xpcall in Lua 5.1 can't pass arguments, so the function and time go
+-- through upvalues; this keeps the no-error path free of garbage.
+local currentFn, currentNow
+local function CallCurrent() return currentFn(RH, currentNow) end
+local lastStack
+local function CaptureStack(message)
+    lastStack = debugstack(2, 12, 0)
+    return message
+end
+
+local function RunUpdater(updater, now)
+    currentFn, currentNow = updater.fn, now
+    local ok, message = xpcall(CallCurrent, CaptureStack)
+    if not ok then
+        RH:RecordError(updater.name, tostring(message), lastStack)
+        if updater.onError then pcall(updater.onError, RH) end
+    end
+end
+
 local function RunUpdaters(now)
     local start = debugprofilestop()
     for _, updater in ipairs(updaters) do
-        updater.fn(RH, now)
+        RunUpdater(updater, now)
     end
     local ms = debugprofilestop() - start
     perf.updates = perf.updates + 1
@@ -327,6 +387,7 @@ local HELP = {
     { "test", "show/hide sample icons" },
     { "snapshot", "print what the addon reads from the game" },
     { "perf", "show CPU and memory use (/rh perf reset to start over)" },
+    { "errors", "show recorded errors (/rh errors clear to empty the list)" },
     { "scale <n>", "display scale (0.5-3)" },
     { "icons <n>", "number of icons shown (1-5)" },
     { "cd", "toggle cooldown recommendations" },
@@ -367,6 +428,7 @@ local commands = {
     snapshot = "PrintSnapshot",
     snap = "PrintSnapshot",
     perf = "PrintPerf",
+    errors = "PrintErrors",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",

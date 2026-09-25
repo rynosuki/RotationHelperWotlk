@@ -467,6 +467,8 @@ function Mock.NewSession(opts)
     env.UpdateAddOnCPUUsage = function() end
     env.GetAddOnCPUUsage = function() return session.cpuMs or 0 end
     session.cvars = { scriptProfile = "0" }
+    session.latencyMs = 0
+    env.GetNetStats = function() return 0, 0, session.latencyMs end
     env.GetCVar = function(name) return session.cvars[name] end
     env.IsAddOnLoaded = function(addon) return addon == ADDON_DIR end
 
