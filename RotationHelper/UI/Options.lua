@@ -98,6 +98,22 @@ function Options:RevertRotation(specKey)
     return true
 end
 
+-- Simulates the rotation in the editor (Engine/Sim.lua) with your talents,
+-- so only for your current spec. Results appear under the editor.
+Options.simResults = {}
+local SIM_SECONDS, SIM_RUNS = 300, 5
+
+function Options:Simulate(specKey)
+    local apl = ns.Recommender:Compile(self:RotationText(specKey))
+    if #apl.errors > 0 then
+        self.simResults[specKey] = "|cffff4040Fix the rotation's errors first (Accept shows them).|r"
+        return
+    end
+    local summary = ns.Sim.Summarize(apl, { seconds = SIM_SECONDS, cooldowns = RH.db.profile.toggles.cooldowns },
+        SIM_RUNS)
+    self.simResults[specKey] = table.concat(ns.Sim.Format(summary), "\n"):gsub("|", "||")
+end
+
 function Options:RotationStatus(specKey)
     local source = ns.Recommender:GetSource(specKey)
     local treeName = ns.Spec.trees[specKey] or tostring(specKey)
@@ -331,6 +347,19 @@ function Options:BuildOptionsTable()
                     return not (Customs()[specKey] or Options.drafts[specKey])
                 end,
                 func = function() Options:RevertRotation(Options:EditSpec()) end },
+            simulate = { type = "execute", name = "Simulate", order = 6,
+                desc = "Play the rotation in the editor for 5 fights of 5 minutes with your talents and random "
+                    .. "procs, and show how well it uses its time and resources. No damage numbers: use it to "
+                    .. "compare versions of a rotation.",
+                disabled = function() return Options:EditSpec() ~= ns.Spec.key end,
+                func = function() Options:Simulate(Options:EditSpec()) end },
+            simResults = { type = "description", order = 7, fontSize = "medium", width = "full",
+                name = function()
+                    if Options:EditSpec() ~= ns.Spec.key then
+                        return "|cff999999Simulating needs this spec's talents: switch to it first.|r"
+                    end
+                    return Options.simResults[Options:EditSpec()] or ""
+                end },
             help = { type = "description", order = 10, name = "\n" .. SYNTAX_HELP },
         },
     }

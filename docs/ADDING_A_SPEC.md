@@ -103,6 +103,17 @@ Offline tests live in `tests/` and run with `lua tests/run.lua`.
 In game, check with `/rh snapshot` on a training dummy: that the new auras and cooldowns show up,
 that nothing important is under "Not in spellbook", and that the trace picks what you expect.
 
+### 4. Tune it with the simulator
+
+- If the spec has random procs its rotation reacts to, add them to the class data's `simProcs`:
+  `{ aura = "x", duration = 15, on = { ability = true }, chance = function(spec) ... end }` for a
+  chance when an ability is used, or `perMinute = function(spec) ... end` for random times.
+  `resetCooldown = "ability"` resets a cooldown when the proc happens.
+- Add a typical build for the spec to `BUILDS` in [tests/sim.lua](../tests/sim.lua).
+- Compare versions side by side: `lua tests/sim.lua unholy default my_version.apl`. Look for
+  higher time spent casting, less rune and runic power waste, diseases near 100%, and few wasted
+  procs. The class data's `reviewDebuffs` lists the debuffs whose uptime is reported.
+
 ## A new class
 
 ### Class data

@@ -1,0 +1,138 @@
+-- Offline rotation simulator: compares rotations side by side.
+--
+--   lua tests/sim.lua <frost|unholy> [options] [rotation files...]
+--
+-- Without files it simulates the spec's default rotation. With files, each
+-- file is simulated (add "default" to include the default for comparison).
+-- Options:
+--   --seconds N     fight length (300)
+--   --runs N        fights to average (20)
+--   --enemies N     targets for AoE lists (1)
+--   --seed N        first random seed (1)
+--   --no-cooldowns  as if cooldowns were toggled off
+--
+-- Uses a typical 3.3.5 build for the spec (below) and the mocked client
+-- from the test suite; the numbers are proxies, not damage.
+package.path = "./tests/?.lua;" .. package.path
+local Mock = require("wowmock")
+
+local BUILDS = {
+    frost = {
+        talents = {
+            { name = "Blood", talents = { { "Subversion", 3 }, { "Butchery", 2 } } },
+            { name = "Frost", talents = { { "Blood of the North", 3 }, { "Killing Machine", 5 },
+                { "Chill of the Grave", 2 }, { "Rime", 3 }, { "Unbreakable Armor", 1 }, { "Deathchill", 1 },
+                { "Howling Blast", 1 }, { "Frost Strike", 1 }, { "Icy Talons", 5 }, { "Merciless Combat", 2 } } },
+            { name = "Unholy", talents = { { "Epidemic", 2 } } },
+        },
+        spells = { "Icy Touch", "Plague Strike", "Obliterate", "Frost Strike", "Howling Blast", "Blood Strike",
+            "Pestilence", "Blood Boil", "Death and Decay", "Horn of Winter", "Blood Tap", "Unbreakable Armor",
+            "Empower Rune Weapon", "Deathchill", "Death Coil", "Mind Freeze" },
+    },
+    unholy = {
+        talents = {
+            { name = "Blood", talents = { { "Subversion", 3 } } },
+            { name = "Frost", talents = { { "Icy Talons", 5 } } },
+            { name = "Unholy", talents = { { "Reaping", 3 }, { "Desolation", 5 }, { "Dirge", 2 },
+                { "Master of Ghouls", 1 }, { "Epidemic", 2 }, { "Ghoul Frenzy", 1 }, { "Bone Shield", 1 },
+                { "Summon Gargoyle", 1 }, { "Morbidity", 3 } } },
+        },
+        spells = { "Icy Touch", "Plague Strike", "Scourge Strike", "Blood Strike", "Death Coil", "Pestilence",
+            "Blood Boil", "Death and Decay", "Horn of Winter", "Raise Dead", "Ghoul Frenzy", "Summon Gargoyle",
+            "Bone Shield", "Blood Tap", "Empower Rune Weapon", "Mind Freeze" },
+    },
+}
+
+local function Usage(message)
+    if message then print(message) end
+    print("usage: lua tests/sim.lua <frost|unholy> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+        .. "[--no-cooldowns] [default] [rotation files...]")
+    os.exit(1)
+end
+
+-- Arguments
+local specKey = arg[1]
+local build = BUILDS[specKey or ""]
+if not build then Usage(specKey and ("unknown spec '" .. specKey .. "'") or nil) end
+local opts, runs, files = { seconds = 300, seed = 1, enemies = 1 }, 20, {}
+local i = 2
+while arg[i] do
+    local a = arg[i]
+    if a == "--seconds" then opts.seconds = tonumber(arg[i + 1]); i = i + 1
+    elseif a == "--runs" then runs = tonumber(arg[i + 1]); i = i + 1
+    elseif a == "--enemies" then opts.enemies = tonumber(arg[i + 1]); i = i + 1
+    elseif a == "--seed" then opts.seed = tonumber(arg[i + 1]); i = i + 1
+    elseif a == "--no-cooldowns" then opts.cooldowns = false
+    elseif a:sub(1, 2) == "--" then Usage("unknown option " .. a)
+    else files[#files + 1] = a end
+    i = i + 1
+end
+if #files == 0 then files[1] = "default" end
+
+-- A mocked client with the build
+local s = Mock.NewSession()
+s.talentTabs = build.talents
+s:LoadAddon()
+s:Learn(unpack(build.spells))
+local ns = s.ns
+if ns.Spec.key ~= specKey then Usage("the build didn't come out as " .. specKey) end
+
+-- Compile each rotation
+local rotations = {}
+for _, file in ipairs(files) do
+    local text
+    if file == "default" then
+        text = ns.APLs.DEATHKNIGHT[specKey].text
+    else
+        local f = io.open(file, "r")
+        if not f then Usage("can't read " .. file) end
+        text = f:read("*a")
+        f:close()
+    end
+    local apl = ns.Recommender:Compile(text)
+    if #apl.errors > 0 then
+        print(file .. " has errors:")
+        for _, err in ipairs(apl.errors) do print("  " .. ns.APL.Compiler.FormatError(err)) end
+        os.exit(1)
+    end
+    rotations[#rotations + 1] = { name = file, summary = ns.Sim.Summarize(apl, opts, runs) }
+end
+
+-- Side-by-side table
+local rows = {
+    { "Time spent casting %", function(sm) return sm.gcdUsage end },
+    { "Rune pairs full s/min", function(sm) return sm.runeWaste end },
+    { "Runic power at cap s/min", function(sm) return sm.rpCapped end },
+    { "Runic power lost /min", function(sm) return sm.rpLost end },
+}
+local first = rotations[1].summary
+for d = 1, #first.debuffs do
+    rows[#rows + 1] = { first.debuffs[d].key .. " uptime %", function(sm) return sm.debuffs[d].uptime end }
+end
+for p = 1, #first.procs do
+    local aura = first.procs[p].aura
+    rows[#rows + 1] = { aura .. " wasted /fight", function(sm) return sm.procs[p].wasted end }
+end
+local abilities, seen = {}, {}
+for _, r in ipairs(rotations) do
+    for _, c in ipairs(r.summary.casts) do
+        if not seen[c.key] then seen[c.key] = true; abilities[#abilities + 1] = c.key end
+    end
+end
+for _, key in ipairs(abilities) do
+    rows[#rows + 1] = { key .. " /min", function(sm)
+        for _, c in ipairs(sm.casts) do if c.key == key then return c.perMinute end end
+        return 0
+    end }
+end
+
+print(("%s, %d fights of %ds, %d enemies%s"):format(specKey, runs, opts.seconds, opts.enemies,
+    opts.cooldowns == false and ", cooldowns off" or ""))
+local header = ("%-28s"):format("")
+for _, r in ipairs(rotations) do header = header .. ("%14s"):format(r.name:sub(-14)) end
+print(header)
+for _, row in ipairs(rows) do
+    local line = ("%-28s"):format(row[1])
+    for _, r in ipairs(rotations) do line = line .. ("%14.1f"):format(row[2](r.summary)) end
+    print(line)
+end

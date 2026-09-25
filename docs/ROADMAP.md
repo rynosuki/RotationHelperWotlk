@@ -185,30 +185,30 @@ offline tests and has been checked in game.
 
 ## Phase C — Rotation checker / simulator (M–L)
 
-- [ ] **C1 Simulation loop**
+- [ ] **C1 Simulation loop** — *implemented in 1.9.0*
   - *Play:* compare rotations with numbers before trusting them in raids. This gets built before
     more specs are added.
   - *How:* `Engine/Sim.lua`.
     - It loops `Recommender:Evaluate` and `Abilities.Apply` on a virtual state, moving time
       forward to each pick.
     - The target never dies, and the number of enemies is a parameter.
-- [ ] **C2 Random procs**
+- [ ] **C2 Random procs** — *implemented in 1.9.0*
   - *How:* class data `simProcs`.
     - Rime: on Obliterate, 5% per rank.
     - Killing Machine: a chance per second from its rank.
 
     A seeded random number generator makes runs repeatable.
-- [ ] **C3 Metrics** (there's no damage model, so these are proxies)
+- [ ] **C3 Metrics** (there's no damage model, so these are proxies) — *implemented in 1.9.0*
   - GCD usage %
   - rune waste seconds
   - runic power lost at the cap
   - casts per ability per minute
   - disease uptime
   - proc usage
-- [ ] **C4 Offline tool**
+- [ ] **C4 Offline tool** — *implemented in 1.9.0*
   - `lua tests/sim.lua <spec> [apl file] [seconds] [runs]` prints the metrics, so two
     rotations can be compared side by side.
-- [ ] **C5 In-game button**
+- [ ] **C5 In-game button** — *implemented in 1.9.0, waiting on the in-game check*
   - A "Simulate" button on the Rotation tab runs a short simulation and shows the results under
     the editor.
 - *Check:* the offline default rotations show realistic GCD usage and disease uptime near 100%.

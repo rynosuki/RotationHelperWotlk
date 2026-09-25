@@ -108,16 +108,24 @@ end
 function Abilities.ProcUsed(state, key, t)
     local procs = RH.classData.procs
     if not procs then return nil end
-    local ability = RH.classData.abilities[key]
     for _, proc in ipairs(procs) do
-        local rec = state.buffs[proc]
-        if rec and rec.expires > t then
-            if ability.freeWith == proc then return proc, rec.expires end
-            if ability.consumes then
-                for _, consumed in ipairs(ability.consumes) do
-                    if consumed == proc then return proc, rec.expires end
-                end
-            end
+        local expires = Abilities.SpendsProc(state, key, proc, t)
+        if expires then return proc, expires end
+    end
+    return nil
+end
+
+-- If using `key` at time `t` spends aura `proc` (it's up and the ability
+-- consumes it or is free with it), returns when the proc expires.
+-- An ability can spend several at once (Howling Blast: Rime and Killing Machine).
+function Abilities.SpendsProc(state, key, proc, t)
+    local rec = state.buffs[proc]
+    if not (rec and rec.expires > t) then return nil end
+    local ability = RH.classData.abilities[key]
+    if ability.freeWith == proc then return rec.expires end
+    if ability.consumes then
+        for _, consumed in ipairs(ability.consumes) do
+            if consumed == proc then return rec.expires end
         end
     end
     return nil

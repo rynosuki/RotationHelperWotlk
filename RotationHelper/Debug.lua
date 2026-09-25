@@ -215,6 +215,19 @@ function RH:PrintWhy(arg)
     end
 end
 
+-- /rh sim [seconds]: simulates the active rotation (Engine/Sim.lua).
+function RH:PrintSim(arg)
+    local apl = self.classSupported and ns.Recommender:GetAPL()
+    if not apl then
+        self:Print("No rotation to simulate for this spec.")
+        return
+    end
+    local seconds = math.max(30, math.min(tonumber(arg) or 300, 1200))
+    local summary = ns.Sim.Summarize(apl, { seconds = seconds, cooldowns = self.db.profile.toggles.cooldowns }, 5)
+    self:Print(apl.name .. ":")
+    for _, line in ipairs(ns.Sim.Format(summary)) do print(line) end
+end
+
 -- /rh errors: recorded errors with their stacks. "/rh errors clear" empties
 -- the list. Viewing them clears the "!" on the display.
 function RH:PrintErrors(arg)

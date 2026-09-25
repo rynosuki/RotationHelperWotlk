@@ -50,6 +50,19 @@ ns.RegisterClass("DEATHKNIGHT", {
     majorCooldowns = { "unbreakable_armor", "empower_rune_weapon", "summon_gargoyle", "deathchill" },
     reviewDebuffs = { "frost_fever", "blood_plague" },
 
+    -- Random procs for the simulator (Engine/Sim.lua). Either `on` (a chance
+    -- when one of those abilities is used) or `perMinute` (random times).
+    simProcs = {
+        -- Rime: Obliterate has a 5% chance per rank to make the next Howling
+        -- Blast free and reset its cooldown.
+        { aura = "freezing_fog", duration = 15, on = { obliterate = true },
+          chance = function(spec) return 0.05 * spec:TalentRank("rime") end,
+          resetCooldown = "howling_blast" },
+        -- Killing Machine: 1 proc per minute per rank from melee attacks.
+        { aura = "killing_machine", duration = 30,
+          perMinute = function(spec) return spec:TalentRank("killing_machine") end },
+    },
+
     specs = { blood = false, frost = true, unholy = true },
 
     abilities = {

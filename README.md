@@ -68,6 +68,7 @@ update as soon as one happens.
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
 | `/rh why <ability>` | Why an ability is or isn't recommended right now, e.g. `/rh why frost strike`. |
 | `/rh review [n]` | Show the last fight review, or saved fight n. |
+| `/rh sim [seconds]` | Simulate the active rotation (5 fights, 300s by default). |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
 | `/rh status` | Print the current settings. |
@@ -116,6 +117,17 @@ actions+=/frost_strike,if=buff.killing_machine.up||runic_power.deficit<25
   with line and column, and the previous rotation stays active.
 - WoW edit boxes show `|` as `||`. Type `||` for "or".
 - **Revert to default** discards your version. Custom rotations are stored per profile.
+
+## Simulating a rotation
+
+The **Simulate** button on the Rotation tab (or `/rh sim`) plays the rotation for 5 fights of
+5 minutes against a target that never dies, with your talents and glyphs and random Killing
+Machine and Rime procs. It reports time spent casting, rune pairs sitting full, runic power
+capped and lost, disease uptime, procs used and wasted, and casts per minute. There's no damage
+model: use it to compare versions of a rotation, e.g. before and after moving a line up.
+
+For developers, `lua tests/sim.lua frost [--runs N] [--seconds N] [--enemies N] default my.apl`
+compares rotations side by side outside the game.
 
 ## Something looks wrong?
 

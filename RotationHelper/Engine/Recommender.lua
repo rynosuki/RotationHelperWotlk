@@ -34,6 +34,8 @@ local rangedContext = {
 
 local alternativeEntry = {}
 
+Recommender.context = context -- for the simulator
+
 local MAX_PREDICTIONS = 5
 
 -- Reused so updates don't create garbage.
@@ -122,8 +124,9 @@ end
 -- Runs the APL against state `s`. Out of combat the precombat list goes
 -- first; the main list needs a living hostile target.
 -- Returns action, readyAt, limitedBy (or nil).
-function Recommender:Evaluate(s, trace, ctx)
-    local apl = self:GetAPL()
+-- `ctx` defaults to the normal context and `apl` to the current spec's.
+function Recommender:Evaluate(s, trace, ctx, apl)
+    apl = apl or self:GetAPL()
     if not apl then return nil end
     ctx = ctx or context
 
