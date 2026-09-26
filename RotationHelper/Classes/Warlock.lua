@@ -29,17 +29,26 @@ ns.RegisterClass("WARLOCK", {
     gcdSpell = 687, -- Demon Skin
     baseMana = 3856, -- level 80
     hasteProbe = "searing_pain", -- a 1.5s cast no talent changes: its cast time in game gives the spell haste
-    majorCooldowns = {},
+    procs = { "decimation", "molten_core" },
+    majorCooldowns = { "metamorphosis" },
+    prepullPet = true, -- the checklist wants your demon out
     reviewDebuffs = {
         affliction = { "haunt", "unstable_affliction", "corruption", "curse_of_agony" },
         destruction = { "immolate" },
+        demonology = { "corruption", "immolate" },
     },
 
     -- For the simulator: mana with ~120 per second of regen (Replenishment,
     -- Glyph of Life Tap); Life Tap in the rotation adds more.
     simPower = { type = "mana", max = 20000, start = 20000, regen = 120 },
+    -- Demonology: Molten Core (three charges) from Corruption ticks, about
+    -- one a minute per rank.
+    simProcs = {
+        { aura = "molten_core", duration = 15, stacks = 3,
+          perMinute = function(spec) return spec:TalentRank("molten_core") end },
+    },
 
-    specs = { affliction = true, demonology = false, destruction = true },
+    specs = { affliction = true, demonology = true, destruction = true },
 
     abilities = {
         -- Affliction
@@ -93,10 +102,34 @@ ns.RegisterClass("WARLOCK", {
             cooldownFn = function(spec) return spec:HasGlyph("chaos_bolt") and 10 or 12 end,
             castTimeFn = function(spec, s) return Backdraft(spec, s, 2.5 - 0.1 * spec:TalentRank("bane")) end,
             apply = UseBackdraft },
-        -- Emberstorm: -0.05 seconds per rank.
-        incinerate = { id = 47838, mana = 14, castTime = 2.5,
-            castTimeFn = function(spec, s) return Backdraft(spec, s, 2.5 - 0.05 * spec:TalentRank("emberstorm")) end,
+        -- Emberstorm: -0.05 seconds per rank; Molten Core: -10% per rank (and
+        -- one of its charges used).
+        incinerate = { id = 47838, mana = 14, castTime = 2.5, usesStack = "molten_core",
+            castTimeFn = function(spec, s)
+                local base = Backdraft(spec, s, 2.5 - 0.05 * spec:TalentRank("emberstorm"))
+                local rec = s and s.buffs.molten_core
+                if rec and rec.expires > s.now then base = base * (1 - 0.1 * spec:TalentRank("molten_core")) end
+                return base
+            end,
             apply = UseBackdraft },
+        -- Demonology
+        -- Nemesis: -10% cooldown per rank.
+        metamorphosis = { id = 47241, cooldown = 180,
+            cooldownFn = function(spec) return 180 * (1 - 0.1 * spec:TalentRank("nemesis")) end,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "metamorphosis", 30) end },
+        -- Only in Metamorphosis (the rotation checks).
+        immolation_aura = { id = 50589, mana = 64, cooldown = 30 },
+        -- A 6 second cast (Bane: -0.4 per rank); Decimation (target below 35%)
+        -- makes it 40% faster and free of a soul shard.
+        soul_fire = { id = 47825, mana = 9, castTime = 6,
+            castTimeFn = function(spec, s)
+                local base = 6 - 0.4 * spec:TalentRank("bane")
+                local rec = s and s.buffs.decimation
+                if rec and rec.expires > s.now then base = base * 0.6 end
+                return base
+            end },
+        -- Needs your demon.
+        demonic_empowerment = { id = 47193, mana = 6, cooldown = 60, offGcd = true, requiresPet = true },
         -- A minute long; only worth it on targets that live that long.
         curse_of_doom = { id = 47867, mana = 15, cooldown = 60,
             apply = function(s, spec, fx) fx.ApplyDebuff(s, "curse_of_doom", 60) end },
@@ -113,6 +146,9 @@ ns.RegisterClass("WARLOCK", {
         immolate = { id = 47811, debuff = true },
         curse_of_doom = { id = 47867, debuff = true },
         backdraft = { id = 54277 },
+        metamorphosis = { id = 47241 },
+        decimation = { id = 63167 },
+        molten_core = { id = 71165 },
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
     },
 })

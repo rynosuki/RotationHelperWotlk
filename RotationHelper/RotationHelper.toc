@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.34.0
+## Version: 1.35.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -67,6 +67,7 @@ APLs\Rogue_Subtlety.lua
 APLs\Shaman_Elemental.lua
 APLs\Shaman_Enhancement.lua
 APLs\Warlock_Affliction.lua
+APLs\Warlock_Demonology.lua
 APLs\Warlock_Destruction.lua
 APLs\Warrior_Arms.lua
 APLs\Warrior_Fury.lua

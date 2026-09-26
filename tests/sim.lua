@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage|demonology> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    demonology = {
+        class = "WARLOCK", power = { type = 0, current = 20000, max = 20000 },
+        talents = {
+            { name = "Affliction", talents = { { "Improved Corruption", 5 } } },
+            { name = "Demonology", talents = { { "Metamorphosis", 1 }, { "Decimation", 2 }, { "Molten Core", 3 },
+                { "Demonic Empowerment", 1 }, { "Nemesis", 3 }, { "Summon Felguard", 1 } } },
+            { name = "Destruction", talents = { { "Bane", 5 } } },
+        },
+        spells = { "Shadow Bolt", "Incinerate", "Soul Fire", "Immolate", "Corruption", "Curse of Doom", "Curse of Agony",
+            "Metamorphosis", "Immolation Aura", "Demonic Empowerment", "Life Tap", "Fel Armor", "Demon Skin", "Searing Pain" },
+    },
     frost_mage = {
         class = "MAGE", spec = "frost", power = { type = 0, current = 20000, max = 20000 },
         talents = {
@@ -274,7 +285,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage|demonology> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

@@ -73,7 +73,7 @@ Legend: role · power · engine features needed · notes.
 
 - [ ] **Affliction** (DPS) · E1, E2, E7 · implemented in 1.23.0, waiting on an in-game check · Haunt, Corruption, Unstable Affliction, Curse of Agony, Drain Soul execute.
 - [ ] **Destruction** (DPS) · E1, E2, E7 · implemented in 1.24.0 (Backdraft charges via `fx.ConsumeStack`), waiting on an in-game check · Immolate, Conflagrate, Chaos Bolt, Incinerate, Backdraft.
-- [ ] **Demonology** (DPS) · E1, E2, E7, E8 · Metamorphosis, Decimation (Soul Fire), Molten Core (Incinerate).
+- [ ] **Demonology** (DPS) · E1, E2, E7, E8 · implemented in 1.35.0, waiting on an in-game check · Metamorphosis, Decimation (Soul Fire), Molten Core (Incinerate).
 
 ### Priest — mana
 
@@ -89,7 +89,10 @@ Legend: role · power · engine features needed · notes.
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat** (done).
 7. **E9 Auto Shot timing** (done) → **Hunters** (done).
-8. Niche specs: Subtlety Rogue (done), Frost Mage (done), Demonology Warlock.
+8. Niche specs: Subtlety Rogue (done), Frost Mage (done), Demonology Warlock (done).
+
+Every DPS spec now has a default rotation (1.35.0). What's left is checking them in game: tick a
+spec off here once it has been played with and adjusted.
 
 ## Out of scope for now: tanks and healers
 

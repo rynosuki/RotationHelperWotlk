@@ -210,7 +210,9 @@ Warlock: `haunt`, `corruption`, `unstable_affliction`, `curse_of_agony`, `curse_
 `drain_soul` (treated one 3-second tick at a time), `seed_of_corruption`, `searing_pain`, `life_tap`,
 `fel_armor`, `immolate`, `conflagrate` (needs `dot.immolate.up`; uses it up without Glyph of
 Conflagrate), `chaos_bolt`, `incinerate`, `curse_of_doom`. `buff.backdraft.stack` counts the faster
-casts left.
+casts left. Demonology: `metamorphosis`, `immolation_aura` (use it with `buff.metamorphosis.up`),
+`soul_fire` (fast with `buff.decimation`), `demonic_empowerment` (needs your demon); Incinerate is
+faster with `buff.molten_core`, which it uses a charge of.
 
 Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfire`, `insect_swarm`,
 `faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`,

@@ -26,6 +26,7 @@ local SUITES = {
     "test_frost_mage",
     "test_affliction",
     "test_destruction",
+    "test_demonology",
     "test_balance",
     "test_feral",
     "test_marksmanship",
