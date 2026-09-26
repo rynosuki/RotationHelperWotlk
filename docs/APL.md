@@ -210,7 +210,9 @@ Conflagrate), `chaos_bolt`, `incinerate`, `curse_of_doom`. `buff.backdraft.stack
 casts left.
 
 Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfire`, `insect_swarm`,
-`faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`.
+`faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`,
+`cat_form`, `mangle_cat` (`debuff.mangle`: anyone's Mangle or Trauma), `shred`, `rake`, `rip`,
+`savage_roar`, `ferocious_bite`, `tigers_fury`, `berserk`, `faerie_fire_feral`.
 
 Rogue: `sinister_strike`, `slice_and_dice`, `rupture` (`dot.rupture`), `eviscerate` (finishers need
 at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`,

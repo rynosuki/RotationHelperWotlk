@@ -82,7 +82,9 @@ function Sim.NewState(opts)
     s.totemKey, s.totemExpires = {}, {} -- no totems down at the start
     s.comboPoints = 0
     if power and power.type == "energy" and classData.energyRegen then s.powerRegen = classData.energyRegen(ns.Spec) end
-    if classData.baseGcd then s.gcdDuration = classData.baseGcd end
+    local baseGcd = classData.baseGcd
+    if type(baseGcd) == "table" then baseGcd = baseGcd[ns.Spec.key] end
+    if baseGcd then s.gcdDuration = baseGcd end
     return s
 end
 

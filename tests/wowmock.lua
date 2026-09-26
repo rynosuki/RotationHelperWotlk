@@ -422,6 +422,10 @@ function Mock.NewSession(opts)
         [63848] = { "Hunger For Blood", "i" }, [14177] = { "Cold Blood", "i" }, [57970] = { "Deadly Poison", "i" },
         [43104] = { "Deep Wounds", "i" }, [48676] = { "Garrote", "i" }, [48574] = { "Rake", "i" }, [49800] = { "Rip", "i" },
         [48568] = { "Lacerate", "i" },
+        [768] = { "Cat Form", "i" }, [48566] = { "Mangle (Cat)", "i" }, [48564] = { "Mangle (Bear)", "i" },
+        [46857] = { "Trauma", "i" }, [48572] = { "Shred", "i" }, [52610] = { "Savage Roar", "i" },
+        [48577] = { "Ferocious Bite", "i" }, [50213] = { "Tiger's Fury", "i" }, [50334] = { "Berserk", "i" },
+        [16870] = { "Clearcasting", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },

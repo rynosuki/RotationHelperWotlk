@@ -65,7 +65,7 @@ end
 -- cost read from the client, `manaCost`, when there is one).
 -- `state` is optional: `manaFn(spec, state)` gives costs that depend on it
 -- (Arcane Blast: more per stack).
-function Abilities.PowerCost(ability, state)
+local function BaseCost(ability, state)
     if ability.manaFn and state then return ability.manaFn(ns.Spec, state, RH.classData.baseMana or 0) end
     if ability.rpCost then return ability.rpCost(ns.Spec) end
     if ability.rageCost then return ability.rageCost(ns.Spec) end
@@ -78,11 +78,30 @@ function Abilities.PowerCost(ability, state)
     return ability.rp and ability.rp > 0 and ability.rp or 0
 end
 
+local function AuraUp(state, key)
+    local rec = key and state.buffs[key]
+    return rec ~= nil and rec.expires > state.now
+end
+
+-- With a state, class-wide cost changes apply: a buff that makes the next
+-- ability free (classData.freeCostAura, Clearcasting) and one that scales
+-- costs (classData.costBuff = { aura, factor }, Berserk: half).
+function Abilities.PowerCost(ability, state)
+    local cost = BaseCost(ability, state)
+    if not state or cost <= 0 then return cost end
+    local classData = RH.classData
+    if AuraUp(state, classData.freeCostAura) then return 0 end
+    local costBuff = classData.costBuff
+    if costBuff and AuraUp(state, costBuff.aura) then cost = cost * costBuff.factor end
+    return cost
+end
+
 -- Power an ability generates (runic power).
 function Abilities.PowerGain(ability)
     local gain = ability.rp and ability.rp < 0 and -ability.rp or 0
     if ability.rpGain then gain = gain + ability.rpGain(ns.Spec) end
     if ability.rageGain then gain = gain + ability.rageGain(ns.Spec) end
+    if ability.energyGain then gain = gain + ability.energyGain(ns.Spec) end
     return gain
 end
 
@@ -189,6 +208,8 @@ function Abilities.SpendsProc(state, key, proc, t)
     if not (rec and rec.expires > t) then return nil end
     local ability = RH.classData.abilities[key]
     if ability.freeWith == proc or ability.instantWith == proc then return rec.expires end
+    -- Clearcasting (classData.freeCostAura): any ability that costs something uses it.
+    if proc == RH.classData.freeCostAura and BaseCost(ability, state) > 0 then return rec.expires end
     if ability.consumes then
         for _, consumed in ipairs(ability.consumes) do
             if consumed == proc then return rec.expires end
@@ -379,7 +400,13 @@ function Abilities.Apply(s, key, t)
     if ability.runes and not free then SpendRunes(s, ability) end
     if free then Effects.RemoveBuff(s, ability.freeWith) end
 
-    s.power = max(0, min(s.powerMax, PowerAt(s, t) - Abilities.PowerCost(ability, s) + Abilities.PowerGain(ability)))
+    local cost = Abilities.PowerCost(ability, s)
+    -- Clearcasting is used up by an ability that would have cost something.
+    local freeAura = RH.classData.freeCostAura
+    if freeAura and cost == 0 and BaseCost(ability, s) > 0 and AuraUp(s, freeAura) then
+        Effects.RemoveBuff(s, freeAura)
+    end
+    s.power = max(0, min(s.powerMax, PowerAt(s, t) - cost + Abilities.PowerGain(ability)))
     s.powerTime = t
     -- Combo points: builders add them, finishers use them all (their effects
     -- can read how many: s.comboPointsSpent).
