@@ -110,12 +110,19 @@ enemies the AoE priority takes over. `/rh aoe` can force single target or AoE in
 ```
 actions=icy_touch,if=dot.frost_fever.remains<2
 actions+=/obliterate
-actions+=/frost_strike,if=buff.killing_machine.up||runic_power.deficit<25
+actions+=/frost_strike,if=buff.killing_machine.up|runic_power.deficit<25
 ```
 
-- Press **Accept** to save. It's saved only if it compiles. Otherwise the errors are listed
-  with line and column, and the previous rotation stays active.
-- WoW edit boxes show `|` as `||`. Type `||` for "or".
+- The editor has line numbers and syntax colors, and checks the rotation shortly after you stop
+  typing: the line under it says "Compiles" or shows the first error, and lines with errors are
+  marked red.
+- Press **Accept** to save. It's saved only if it compiles; otherwise the previous rotation stays
+  active.
+- **Names** opens a searchable list of everything you can use (abilities, buffs, debuffs,
+  cooldowns, runes, your talents and glyphs); click one to insert it at the cursor.
+- **Export** gives a one-line `RH1:` string to copy; **Import** reads one (or plain rotation
+  text) back into the editor. **Share** sends the rotation to your party, raid or a player with
+  RotationHelper; they're asked before it opens, and it's never saved without their Accept.
 - **Revert to default** discards your version. Custom rotations are stored per profile.
 
 ## Simulating a rotation

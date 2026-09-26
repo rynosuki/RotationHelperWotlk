@@ -65,6 +65,9 @@ local defaults = {
             aoeMode = "auto", -- auto | single | aoe
         },
         customAPLs = {}, -- [class][spec] = APL text edited in the options
+        editor = {
+            syntaxColors = true,
+        },
         latency = {
             mode = "auto", -- auto (lag tolerance or latency) | fixed | off
             fixedMs = 100,

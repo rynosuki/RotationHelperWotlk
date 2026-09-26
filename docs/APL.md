@@ -76,7 +76,7 @@ Every value is a number; true is 1 and false is 0. So `buff.a.up+buff.b.up>=2` c
 
 Precedence, loosest first: `|` `^` > `&` > comparisons > `+ -` > `* % %%` > unary `! - @`.
 
-In the in-game editor, WoW shows `|` as `||`. Both mean "or".
+`||` works as "or" too.
 
 ## Names
 

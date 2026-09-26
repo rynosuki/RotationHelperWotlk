@@ -149,6 +149,7 @@ local function NewFrameFactory(session)
     function FrameMethods:SetFont(...) self.font = { ... } end
     function FrameMethods:GetFont() return unpack(self.font or DEFAULT_FONT) end
     function FrameMethods:GetFontObject() return self.fontObject end
+    function FrameMethods:SetTextColor(...) self.textColor = { ... } end
     function FrameMethods:SetFontObject(f) self.fontObject = f end
     -- Sliders and buttons.
     function FrameMethods:SetThumbTexture(path)
@@ -166,6 +167,39 @@ local function NewFrameFactory(session)
     function FrameMethods:SetPushedTexture() end
     function FrameMethods:GetFontString() return self.fontString end
     function FrameMethods:SetText(text) self.text = text end
+    -- Edit boxes. Text is kept raw; the cursor is a raw position.
+    function FrameMethods:GetText() return self.text or "" end
+    function FrameMethods:SetText(text)
+        self.text = text
+        self.cursor = math.min(self.cursor or 0, #text)
+        if self.scripts.OnTextChanged then self.scripts.OnTextChanged(self, false) end
+    end
+    function FrameMethods:SetMultiLine(m) self.multiLine = m end
+    function FrameMethods:SetAutoFocus() end
+    function FrameMethods:SetTextInsets() end
+    function FrameMethods:SetMaxLetters() end
+    function FrameMethods:GetCursorPosition() return self.cursor or 0 end
+    function FrameMethods:SetCursorPosition(pos) self.cursor = pos end
+    function FrameMethods:HighlightText() self.highlighted = true end
+    function FrameMethods:SetFocus() self.focused = true end
+    function FrameMethods:ClearFocus() self.focused = false end
+    function FrameMethods:HasFocus() return self.focused end
+    -- Typing: inserts at the cursor like the player would (user input).
+    function FrameMethods:Insert(text)
+        local current, pos = self.text or "", self.cursor or 0
+        self.text = current:sub(1, pos) .. text .. current:sub(pos + 1)
+        self.cursor = pos + #text
+        if self.scripts.OnTextChanged then self.scripts.OnTextChanged(self, true) end
+    end
+    function FrameMethods:EnableMouseWheel() end
+    function FrameMethods:SetScrollChild(child) self.scrollChild = child end
+    function FrameMethods:GetVerticalScroll() return self.verticalScroll or 0 end
+    function FrameMethods:SetVerticalScroll(v) self.verticalScroll = v end
+    -- Buttons.
+    function FrameMethods:Enable() self.disabled = false end
+    function FrameMethods:Disable() self.disabled = true end
+    function FrameMethods:IsEnabled() return not self.disabled end
+    function FrameMethods:Raise() end
     -- Window behavior.
     function FrameMethods:SetResizable(r) self.resizable = r end
     function FrameMethods:SetMinResize(w, h) self.minResize = { w, h } end
@@ -504,6 +538,18 @@ function Mock.NewSession(opts)
     env.CreateFrame = NewFrameFactory(session)
     env.UIParent = env.CreateFrame("Frame", "UIParent")
     env.UISpecialFrames = {}
+
+    -- Static popups and addon messages.
+    env.StaticPopupDialogs = {}
+    session.popups = {}
+    env.StaticPopup_Show = function(which, text1, text2, data)
+        session.popups[#session.popups + 1] = { which = which, text1 = text1, data = data }
+    end
+    session.addonMessages = {}
+    env.SendAddonMessage = function(prefix, text, channel, target)
+        session.addonMessages[#session.addonMessages + 1] = { prefix = prefix, text = text, channel = channel,
+            target = target }
+    end
 
     -- The minimap (centered at 500,500) and the cursor, for the minimap button.
     env.Minimap = env.CreateFrame("Frame", "Minimap")

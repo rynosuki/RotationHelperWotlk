@@ -216,20 +216,20 @@ offline tests and has been checked in game.
 
 ## Phase D — Rotation editor (M)
 
-- [ ] **D1 Custom editor control**
+- [ ] **D1 Custom editor control** — *implemented in 1.10.0, waiting on the in-game check*
   - The Rotation tab's text box becomes our own AceGUI widget (registered with AceGUI and used
     through `dialogControl`), which makes D2–D5 possible.
-- [ ] **D2 Validation while typing**
+- [ ] **D2 Validation while typing** — *implemented in 1.10.0, waiting on the in-game check*
   - Checked shortly after you stop typing (debounced), with line numbers and the line that has
     the error highlighted.
-- [ ] **D3 Name picker**
+- [ ] **D3 Name picker** — *implemented in 1.10.0, waiting on the in-game check*
   - A searchable list of abilities, auras, talents, glyphs and expression names (from
     `Engine/Expressions.lua`) that inserts at the cursor.
-- [ ] **D4 Import/export and sharing**
+- [ ] **D4 Import/export and sharing** — *implemented in 1.10.0, waiting on the in-game check*
   - Import/export strings: `RH1:` plus the text.
   - Sending to party, raid or a whisper with `SendAddonMessage`, in 250-byte chunks. The
     receiver confirms before anything is saved.
-- [ ] **D5 Syntax colouring**
+- [ ] **D5 Syntax colouring** — *implemented in 1.10.0, waiting on the in-game check*
   - Colour codes inside the edit box, stripped again when the text is read, with the cursor
     position kept.
   - The riskiest part, so it's done last.

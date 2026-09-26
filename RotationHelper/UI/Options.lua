@@ -114,6 +114,16 @@ function Options:Simulate(specKey)
     self.simResults[specKey] = table.concat(ns.Sim.Format(summary), "\n"):gsub("|", "||")
 end
 
+-- A rotation someone sent (UI/APLShare.lua), after the player said yes:
+-- shown in the editor for its spec, not saved.
+function Options:OpenReceived(specKey, text, sender)
+    if specKey and ns.Spec.trees[specKey] then self.editSpec = specKey end
+    local target = self:EditSpec()
+    self.drafts[target] = text
+    self.results[target] = ("|cffffd100From %s: check it, then press Accept to save it.|r"):format(sender or "?")
+    self:Open("rotation")
+end
+
 function Options:RotationStatus(specKey)
     local source = ns.Recommender:GetSource(specKey)
     local treeName = ns.Spec.trees[specKey] or tostring(specKey)
@@ -332,12 +342,17 @@ function Options:BuildOptionsTable()
                 set = function(_, value) Options.editSpec = value end },
             status = { type = "description", order = 2, fontSize = "medium", width = "full",
                 name = function() return Options:RotationStatus(Options:EditSpec()) end },
-            -- WoW edit boxes read '|' as an escape code (|r would vanish from
-            -- "a|runic_power"), so the editor shows it as '||'.
+            -- Our editor widget (UI/APLEditor.lua) works in plain text and
+            -- handles WoW's '|' escaping itself.
             text = { type = "input", name = "Action priority list", order = 3, multiline = 22, width = "full",
+                dialogControl = ns.APLEditor.TYPE,
                 desc = "Edit, then press Accept. It's saved only if it compiles.",
-                get = function() return (Options:RotationText(Options:EditSpec()):gsub("|", "||")) end,
-                set = function(_, value) Options:SaveRotation(Options:EditSpec(), (value:gsub("||", "|"))) end },
+                get = function() return Options:RotationText(Options:EditSpec()) end,
+                set = function(_, value) Options:SaveRotation(Options:EditSpec(), value) end },
+            syntaxColors = { type = "toggle", name = "Syntax colors", order = 8,
+                desc = "Color abilities, names, numbers and comments in the editor.",
+                get = function() return RH.db.profile.editor.syntaxColors end,
+                set = function(_, value) RH.db.profile.editor.syntaxColors = value end },
             result = { type = "description", order = 4, fontSize = "medium", width = "full",
                 name = function() return Options.results[Options:EditSpec()] or "" end },
             revert = { type = "execute", name = "Revert to default", order = 5,
