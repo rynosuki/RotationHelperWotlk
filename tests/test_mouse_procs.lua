@@ -91,7 +91,7 @@ test("Shift-click on the chips toggles cooldowns and the AoE mode", function()
     local D = s.ns.Display
     s.shift = true
     s:Tick(0.1)
-    eq(D:GetStatusText(), "CD  AUTO", "AUTO chip shown while Shift is held")
+    eq(D:GetStatusText(), "CD  POT  AUTO", "POT and AUTO chips shown while Shift is held")
     D.frame.cdChip.scripts.OnClick(D.frame.cdChip)
     eq(RH.db.profile.toggles.cooldowns, true, "cooldowns toggled on")
     D.frame.aoeChip.scripts.OnClick(D.frame.aoeChip)

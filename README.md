@@ -46,6 +46,7 @@ what's planned.
 | Red icon | Your target is out of range for it. |
 | Text in the corner | The key the ability is bound to. |
 | `CD` under the big icon | Green: cooldowns are recommended. Red: they're not. |
+| `POT` next to it (while you have a potion) | Green: potions can be suggested now. Yellow: on, but waiting for a boss. Red: off. |
 | `ST` / `AOE` / a number under the big icon | The AoE mode is forced to single target / AoE, or (auto mode) how many enemies are counted. |
 
 Colors can be changed under Display > Colors, including a color-blind friendly preset.
@@ -69,6 +70,7 @@ update as soon as one happens.
 | `/rh apl` | Open the rotation editor. |
 | `/rh lock` | Lock or unlock the display. |
 | `/rh cd` | Toggle cooldown recommendations. |
+| `/rh pots` | Toggle consumables (potions). |
 | `/rh aoe` | Cycle the AoE mode: auto > single > aoe. |
 | `/rh pause` | Pause or resume. |
 | `/rh test` | Show or hide sample icons. |
@@ -102,6 +104,10 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
   armor or health on-use are left to you. General > Trinkets can change that and shows how your
   trinkets were read. A potion is suggested once per combat,
   with Bloodlust or near the end of a fight.
+- **Consumables**: potions have their own toggle (the `POT` chip, `/rh pots`, a key binding). By
+  default they're only suggested against bosses: a boss targeted (skull level) or boss frames up,
+  so trash and add pulls don't use them. "Only against bosses" on the General tab turns that off.
+  For the pre-pull potion, have the boss targeted when the pull timer ends.
 - **Burst windows**: Summon Gargoyle keeps the stats you have when it's summoned, so it waits
   for a burst buff (Bloodlust, Hyperspeed Acceleration, trinket procs, ...), but no more than
   15 seconds. More buffs can be added by name or spell ID on the General tab.

@@ -423,8 +423,10 @@ function Mock.NewSession(opts)
     session.target = { name = "Training Dummy", guid = "0xF130000001", health = 100, healthMax = 100,
         level = -1, canAttack = true, dead = false, classification = "worldboss" }
     session.petAlive = false
+    session.bossFrames = false -- boss1 exists (boss unit frames up)
     env.UnitExists = function(unit)
         if unit == "pet" then return session.petAlive end
+        if unit == "boss1" then return session.bossFrames end
         return unit == "target" and session.hasTarget
     end
     env.IsSpellInRange = function(name) return session.range[name] or 1 end

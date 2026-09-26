@@ -219,6 +219,9 @@ function Display:CreateFrames()
     f.status = status
     f.cdChip = self:CreateChip(status, function() RH:ToggleCooldowns() end)
     f.cdChip:SetPoint("TOPLEFT", status, "TOPLEFT")
+    -- "POT": consumables, shown while you have one (anchored in UpdateStatus).
+    f.potChip = self:CreateChip(status, function() RH:ToggleConsumables() end)
+    f.potChip:SetPoint("LEFT", f.cdChip, "RIGHT", CHIP_GAP, 0)
     f.aoeChip = self:CreateChip(status, function() RH:CycleAoEMode() end)
     f.aoeChip:SetPoint("LEFT", f.cdChip, "RIGHT", CHIP_GAP, 0)
     f.wasteText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -506,6 +509,26 @@ function Display:UpdateStatus()
     local toggles = RH.db.profile.toggles
     SetChipText(f.cdChip, toggles.cooldowns and "|cff40ff40CD|r" or "|cffff4040CD|r")
 
+    -- POT: green when consumables would be suggested now, yellow when on but
+    -- waiting for a boss, red when off. Only while you have a consumable.
+    local potText = ""
+    if ns.Spec.known.potion or self.mouseMode then
+        if not toggles.consumables then
+            potText = "|cffff4040POT|r"
+        elseif ns.State.real.consumablesAllowed then
+            potText = "|cff40ff40POT|r"
+        else
+            potText = "|cffffd100POT|r"
+        end
+    end
+    SetChipText(f.potChip, potText)
+    local aoeAnchor = f.potChip:IsShown() and f.potChip or f.cdChip
+    if f.aoeChip.anchor ~= aoeAnchor then
+        f.aoeChip.anchor = aoeAnchor
+        f.aoeChip:ClearAllPoints()
+        f.aoeChip:SetPoint("LEFT", aoeAnchor, "RIGHT", CHIP_GAP, 0)
+    end
+
     local mode = AOE_LABELS[toggles.aoeMode]
     local enemies = ns.State.real.activeEnemies or 1
     local aoeText = ""
@@ -534,7 +557,7 @@ function Display:UpdateStatus()
     end
     -- Waste labels move left when the AoE chip is empty (re-anchored only
     -- when that changes; this runs 20 times a second).
-    local anchor = f.aoeChip:IsShown() and f.aoeChip or f.cdChip
+    local anchor = f.aoeChip:IsShown() and f.aoeChip or (f.potChip:IsShown() and f.potChip or f.cdChip)
     if f.wasteText.anchor ~= anchor then
         f.wasteText.anchor = anchor
         f.wasteText:ClearAllPoints()
@@ -565,7 +588,7 @@ function Display:UpdateDotText(enemies)
     end
     -- Moves left when there are no waste labels.
     local anchor = f.wasteText.lastText ~= "" and f.wasteText
-        or (f.aoeChip:IsShown() and f.aoeChip or f.cdChip)
+        or (f.aoeChip:IsShown() and f.aoeChip or (f.potChip:IsShown() and f.potChip or f.cdChip))
     if f.dotText.anchor ~= anchor then
         f.dotText.anchor = anchor
         f.dotText:ClearAllPoints()
@@ -593,7 +616,8 @@ end
 function Display:GetStatusText()
     local f, parts = self.frame, {}
     if not f.status:IsShown() then return "" end
-    for _, fs in ipairs({ f.cdChip:IsShown() and f.cdChip.text, f.aoeChip:IsShown() and f.aoeChip.text, f.wasteText,
+    for _, fs in ipairs({ f.cdChip:IsShown() and f.cdChip.text, f.potChip:IsShown() and f.potChip.text,
+        f.aoeChip:IsShown() and f.aoeChip.text, f.wasteText,
         f.dotText }) do
         local text = fs and fs:GetText()
         if text and text ~= "" then parts[#parts + 1] = (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end

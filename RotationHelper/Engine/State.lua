@@ -87,6 +87,11 @@ function State:Reset(now)
     ns.Auras.Read(s, classData)
     ns.Cooldowns.Read(s, classData, now)
     ReadTarget(s.target)
+    -- Consumables (potions): toggled on, and by default only in boss fights:
+    -- a boss targeted (skull level or "worldboss"), or boss frames up.
+    local t0 = s.target
+    s.bossFight = (t0.exists and (t0.level == -1 or t0.classification == "worldboss")) or UnitExists("boss1") and true or false
+    s.consumablesAllowed = toggles.consumables and (s.bossFight or not RH.db.profile.items.consumablesBossOnly) or false
     ReadCast(s, now)
 
     self:ApplyLookahead(s, now)

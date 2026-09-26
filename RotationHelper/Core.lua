@@ -72,6 +72,7 @@ local defaults = {
         updateInterval = 0.1, -- seconds between recommendation refreshes
         toggles = {
             cooldowns = true,
+            consumables = true, -- potions (see items.consumablesBossOnly)
             aoeMode = "auto", -- auto | single | aoe
         },
         customAPLs = {}, -- [class][spec] = APL text edited in the options
@@ -93,6 +94,7 @@ local defaults = {
         },
         items = {
             trinkets = "offensive", -- suggest trinkets: offensive (use effects only) | all | none
+            consumablesBossOnly = true, -- consumables only while targeting a boss or with boss frames up
         },
         review = {
             enabled = true,
@@ -365,6 +367,14 @@ function RH:ToggleCooldowns()
     self:SettingChangedOutsideOptions()
 end
 
+function RH:ToggleConsumables()
+    local t = self.db.profile.toggles
+    t.consumables = not t.consumables
+    local note = t.consumables and self.db.profile.items.consumablesBossOnly and " (bosses only)" or ""
+    self:Print("Consumables: " .. Utils.OnOff(t.consumables) .. note)
+    self:SettingChangedOutsideOptions()
+end
+
 function RH:CycleAoEMode()
     local t = self.db.profile.toggles
     local nextIndex = 1
@@ -498,6 +508,8 @@ function RH:PrintStatus()
         self.classSupported and "supported" or "not supported"))
     print("  Enabled: " .. Utils.OnOff(p.enabled) .. "  Paused: " .. Utils.OnOff(p.paused))
     print("  Cooldowns: " .. Utils.OnOff(p.toggles.cooldowns) .. "  AoE mode: " .. p.toggles.aoeMode)
+    print("  Consumables: " .. Utils.OnOff(p.toggles.consumables)
+        .. (p.items.consumablesBossOnly and " (bosses only)" or ""))
     print("  Display locked: " .. Utils.OnOff(p.display.locked) .. "  Debug: " .. Utils.OnOff(p.debug))
     print("  Profile: " .. self.db:GetCurrentProfile())
 end
@@ -508,6 +520,8 @@ local commands = {
     unlock = "ToggleLock",
     cd = "ToggleCooldowns",
     cooldowns = "ToggleCooldowns",
+    pots = "ToggleConsumables",
+    consumables = "ToggleConsumables",
     aoe = "CycleAoEMode",
     pause = "TogglePause",
     debug = "ToggleDebug",
@@ -552,5 +566,6 @@ end
 ---------------------------------------------------------------------------
 BINDING_HEADER_ROTATIONHELPER = "RotationHelper"
 BINDING_NAME_ROTATIONHELPER_TOGGLE_COOLDOWNS = "Toggle Cooldowns"
+BINDING_NAME_ROTATIONHELPER_TOGGLE_CONSUMABLES = "Toggle Consumables"
 BINDING_NAME_ROTATIONHELPER_CYCLE_AOE = "Cycle AoE Mode"
 BINDING_NAME_ROTATIONHELPER_TOGGLE_PAUSE = "Pause / Resume"

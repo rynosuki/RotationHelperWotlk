@@ -34,6 +34,7 @@ local SUITES = {
     "test_phase_e",
     "test_phase_f",
     "test_phase_g",
+    "test_consumables",
 }
 
 for _, suite in ipairs(SUITES) do

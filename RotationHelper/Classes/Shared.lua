@@ -10,7 +10,8 @@ ns.SharedAbilities = {
     trinket1 = { itemSlot = 13, cooldown = 120, offGcd = true },
     trinket2 = { itemSlot = 14, cooldown = 120, offGcd = true },
     -- Potion of Speed, Indestructible Potion. Once per combat.
-    potion = { potionItems = { 40211, 40093 }, cooldown = 60, offGcd = true, oncePerCombat = true },
+    -- consumable: only while consumables are allowed (the POT toggle, bosses only by default).
+    potion = { potionItems = { 40211, 40093 }, cooldown = 60, offGcd = true, oncePerCombat = true, consumable = true },
     -- Racials (known only to that race, so skipped for everyone else).
     blood_fury = { id = 20572, cooldown = 120, offGcd = true },     -- Orc (attack power)
     berserking = { id = 26297, cooldown = 180, offGcd = true },     -- Troll

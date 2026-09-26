@@ -80,6 +80,7 @@ function Abilities.ReadyAt(state, key)
     if not ability then return nil, "unknown ability" end
     if not ns.Spec.known[key] then return nil, "not in spellbook" end
     if ability.requiresPet and not state.petAlive then return nil, "no pet" end
+    if ability.consumable and state.consumablesAllowed == false then return nil, "consumables off" end
     -- Reactive abilities (Rune Strike after a dodge or parry) only while the game allows them.
     if ability.reactive and not (state.usable and state.usable[key]) then return nil, "not usable" end
 

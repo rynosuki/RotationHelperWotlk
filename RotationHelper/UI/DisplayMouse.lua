@@ -17,6 +17,7 @@ function Display:SetMouseMode(on)
     for _, b in ipairs(self.buttons) do b:EnableMouse(on) end
     self.frame.cdChip:EnableMouse(on)
     self.frame.aoeChip:EnableMouse(on)
+    self.frame.potChip:EnableMouse(on)
     if not on then
         for _, b in ipairs(self.buttons) do
             if GameTooltip:IsOwned(b) then GameTooltip:Hide() end

@@ -162,6 +162,14 @@ function Options:BuildOptionsTable()
         args = {
             cooldowns = { type = "toggle", name = "Cooldowns", order = 1,
                 desc = "Recommend major cooldowns (Unbreakable Armor, Empower Rune Weapon, ...)." },
+            consumables = { type = "toggle", name = "Consumables", order = 1.1,
+                desc = "Suggest potions (the POT chip under the icons)." },
+            consumablesBossOnly = { type = "toggle", name = "Only against bosses", order = 1.2,
+                desc = "Consumables only while you target a boss or boss frames are up, so trash and add "
+                    .. "pulls don't use them.",
+                disabled = function() return not RH.db.profile.toggles.consumables end,
+                get = function() return RH.db.profile.items.consumablesBossOnly end,
+                set = function(_, value) RH.db.profile.items.consumablesBossOnly = value; Changed() end },
             aoeMode = { type = "select", name = "AoE mode", order = 2, values = AOE_MODES,
                 desc = "Auto counts enemies from the combat log; the others force a mode." },
             bindings = { type = "description", order = 3, fontSize = "medium",

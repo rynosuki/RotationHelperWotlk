@@ -135,6 +135,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
 | `glyph.NAME.enabled` | glyph by name without "Glyph of", e.g. `glyph.disease.enabled` |
 | `toggle.cooldowns` | 1 when cooldowns are toggled on |
+| `toggle.consumables` | 1 when consumables may be used now: toggled on and (by default) in a boss fight. `potion` checks this by itself. |
 | `pull.active` | 1 while a pull timer runs (DBM, BigWigs or `/rh pull N`), and for 2 seconds after it reaches 0 |
 | `pull.remains` | seconds until the pull (0 without a timer) |
 | `burst.active` | 1 while a burst buff is on you: Bloodlust/Heroism, Hyperspeed Acceleration, racials, Potion of Speed, common trinket procs, plus any added in the options |

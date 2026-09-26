@@ -2,6 +2,9 @@
     <Binding name="ROTATIONHELPER_TOGGLE_COOLDOWNS" header="ROTATIONHELPER">
         RotationHelper:ToggleCooldowns()
     </Binding>
+    <Binding name="ROTATIONHELPER_TOGGLE_CONSUMABLES">
+        RotationHelper:ToggleConsumables()
+    </Binding>
     <Binding name="ROTATIONHELPER_CYCLE_AOE">
         RotationHelper:CycleAoEMode()
     </Binding>
