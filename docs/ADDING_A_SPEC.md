@@ -51,6 +51,11 @@ Ability fields (all optional except `id`):
 | `requiresPet` | `true` if it needs a living pet, like Ghoul Frenzy |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
+Trinkets (`trinket1`, `trinket2`), `potion` and the DPS racials (`blood_fury`, `berserking`,
+`arcane_torrent`) come from [Classes/Shared.lua](../RotationHelper/Classes/Shared.lua) and are
+added to every class, so don't repeat them. Put them in the spec's cooldowns list; lines for
+things the player doesn't have are skipped.
+
 `apply` gets the virtual state and helpers from `Abilities.Effects`:
 `fx.ApplyBuff(s, key, duration)`, `fx.ApplyDebuff(s, key, duration)`, `fx.RemoveBuff(s, key)`,
 `fx.DebuffUp(s, key)`, `fx.ActivateAllRunes(s)`, `fx.BloodTap(s)`, `fx.SummonPet(s)`. Add a helper there if a new

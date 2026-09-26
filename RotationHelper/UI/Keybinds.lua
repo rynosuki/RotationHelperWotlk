@@ -65,6 +65,8 @@ local function SlotSpellName(slot)
     if actionType == "spell" then
         if spellId then return (GetSpellInfo(spellId)) end
         return GetSpellName and (GetSpellName(id, subType or "spell"))
+    elseif actionType == "item" then
+        return (GetItemInfo(id)) -- trinkets and potions, looked up by item name
     elseif actionType == "macro" and GetMacroSpell then
         return (GetMacroSpell(id))
     end

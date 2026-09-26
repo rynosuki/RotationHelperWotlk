@@ -115,6 +115,7 @@ Parser.KNOWN_OPTIONS = {
     op = true,           -- variable operation
     sec = true,          -- wait duration
     line_cd = true,      -- minimum seconds between uses of this line
+    slot = true,         -- use_item: 13 or 14 (trinket1 / trinket2)
 }
 
 -- Splits `text` on `sep`, returning pieces with their start offsets.

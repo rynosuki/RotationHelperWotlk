@@ -37,17 +37,18 @@ what's planned.
 | `RUNES` / `COOLDOWN` / `CAST` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
 | Small icon below the status line | The big icon's ability is out of range; this is the best thing you can do from where you are. |
 | Steady red border, `THREAT` on the status line | In a group: you're close to pulling aggro (default 90%). |
+| `Missing: ...` under the icons | Out of combat with a boss or elite targeted: what you still need before the pull (flask, food, Horn of Winter, presence, ghoul). |
+| Blue icon | Waiting on runes. |
+| Red icon | Your target is out of range for it. |
+| Text in the corner | The key the ability is bound to. |
+| `CD` under the big icon | Green: cooldowns are recommended. Red: they're not. |
+| `ST` / `AOE` / a number under the big icon | The AoE mode is forced to single target / AoE, or (auto mode) how many enemies are counted. |
 
 Colors can be changed under Display > Colors, including a color-blind friendly preset.
 
 Hold **Shift** over the (locked) display to hover an icon for a tooltip explaining why it's
 recommended (which rotation line, what it's waiting on), and to click `CD` or the AoE mode to
 toggle them. Without Shift, clicks pass through as usual.
-| Blue icon | Waiting on runes. |
-| Red icon | Your target is out of range for it. |
-| Text in the corner | The key the ability is bound to. |
-| `CD` under the big icon | Green: cooldowns are recommended. Red: they're not. |
-| `ST` / `AOE` / a number under the big icon | The AoE mode is forced to single target / AoE, or (auto mode) how many enemies are counted. |
 
 Procs like Killing Machine and Rime are random, so the prediction never assumes them. The icons
 update as soon as one happens.
@@ -68,6 +69,7 @@ update as soon as one happens.
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
 | `/rh why <ability>` | Why an ability is or isn't recommended right now, e.g. `/rh why frost strike`. |
 | `/rh review [n]` | Show the last fight review, or saved fight n. |
+| `/rh pull <seconds>` | Start a pull timer for the rotation (0 cancels). DBM and BigWigs pull timers work too. |
 | `/rh sim [seconds]` | Simulate the active rotation (5 fights, 300s by default). |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
@@ -76,6 +78,21 @@ update as soon as one happens.
 
 Toggles can also be bound to keys (Escape > Key Bindings > RotationHelper), or used from the minimap
 button: left click opens the options, right click toggles cooldowns, drag moves it.
+
+## Before the pull, trinkets and burst
+
+- **Checklist**: with a boss or elite targeted out of combat, the display lists what's missing:
+  a flask or elixir, Well Fed, Horn of Winter (or Strength of Earth), your presence (Blood
+  Presence by default; set per spec on the General tab) and, for Unholy, your ghoul.
+- **Pull timer**: while a DBM or BigWigs pull timer runs (or one from `/rh pull 10`), the
+  rotation suggests Army of the Dead about 10 seconds out and a potion right at the pull.
+- **Trinkets, racials, potions**: trinkets with a use effect, Blood Fury, Berserking, Arcane
+  Torrent and Potion of Speed (or Indestructible Potion) from your bags are part of the
+  cooldowns list, so they only show with cooldowns on. A potion is suggested once per combat,
+  with Bloodlust or near the end of a fight.
+- **Burst windows**: Summon Gargoyle keeps the stats you have when it's summoned, so it waits
+  for a burst buff (Bloodlust, Hyperspeed Acceleration, trinket procs, ...), but no more than
+  15 seconds. More buffs can be added by name or spell ID on the General tab.
 
 ## Fight review
 

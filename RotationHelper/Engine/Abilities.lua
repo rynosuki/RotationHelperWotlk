@@ -247,7 +247,11 @@ function Abilities.Apply(s, key, t)
     if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
 
     local cd = s.cooldowns[key]
-    if cd then cd.readyAt = t + (cd.duration or ability.cooldown) end
+    if cd then
+        -- A potion can't be used again in the same combat.
+        cd.readyAt = ability.oncePerCombat and math.huge or t + (cd.duration or ability.cooldown)
+        if s.readySince then s.readySince[key] = nil end
+    end
 
     local free = ability.freeWith and BuffUpAt(s, ability.freeWith, t)
     if ability.runes and not free then SpendRunes(s, ability) end

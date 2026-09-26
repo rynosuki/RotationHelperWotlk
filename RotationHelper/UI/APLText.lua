@@ -206,10 +206,11 @@ local SIMPLE_NAMES = {
     "runic_power", "runic_power.deficit", "runic_power.max", "runic_power.pct",
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
     "target.health.pct", "target.time_to_die", "toggle.cooldowns",
+    "pull.active", "pull.remains", "burst.active", "burst.remains",
 }
 local ACTION_TEMPLATES = {
     "call_action_list,name=", "run_action_list,name=", "variable,name=,value=", "wait,sec=",
-    "if=", "line_cd=",
+    "use_item,slot=13", "if=", "line_cd=",
 }
 
 -- Every name the language knows for this class and your current talents
@@ -227,6 +228,7 @@ function APLText.Names(classData)
         if classData.abilities[key].cooldown then
             add("cooldown." .. key .. ".ready", "name")
             add("cooldown." .. key .. ".remains", "name")
+            add("cooldown." .. key .. ".ready_for", "name")
         end
     end
     for key, def in pairs(classData.auras) do

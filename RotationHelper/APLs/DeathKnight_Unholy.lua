@@ -10,7 +10,10 @@ local ADDON_NAME, ns = ...
 -- line only matters if you have it.
 ns.RegisterAPL("DEATHKNIGHT", "unholy", "Unholy (default)", [[
 ## Out of combat
-actions.precombat=horn_of_winter,if=!buff.horn_of_winter.up
+# With a pull timer (DBM/BigWigs or /rh pull): Army of the Dead about 10s out, a potion at the pull.
+actions.precombat=army_of_the_dead,if=toggle.cooldowns&pull.active&pull.remains<=10&pull.remains>=5
+actions.precombat+=/potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
+actions.precombat+=/horn_of_winter,if=!buff.horn_of_winter.up
 actions.precombat+=/raise_dead,if=!pet.alive
 actions.precombat+=/bone_shield,if=!buff.bone_shield.up
 
@@ -35,10 +38,18 @@ actions+=/raise_dead,if=!pet.alive
 
 ## Cooldowns
 # The Gargoyle keeps the attack power and haste you had when it was summoned.
-actions.cooldowns=summon_gargoyle,if=dot.frost_fever.up&dot.blood_plague.up
+# Hold it for a burst window (Bloodlust, trinket procs, ...), but no more than 15s.
+actions.cooldowns=summon_gargoyle,if=dot.frost_fever.up&dot.blood_plague.up&(burst.active|cooldown.summon_gargoyle.ready_for>=15|target.time_to_die<40)
 # Blood Tap a death rune for Bone Shield when no unholy rune is ready.
 actions.cooldowns+=/blood_tap,if=talent.bone_shield.enabled&!buff.bone_shield.up&cooldown.bone_shield.ready&runes.unholy+runes.death=0
 actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
+# Racials right after the Gargoyle, or when it's more than 45s away (or not talented).
+actions.cooldowns+=/blood_fury,if=cooldown.summon_gargoyle.remains>45|!talent.summon_gargoyle.enabled
+actions.cooldowns+=/berserking,if=cooldown.summon_gargoyle.remains>45|!talent.summon_gargoyle.enabled
+actions.cooldowns+=/trinket1
+actions.cooldowns+=/trinket2
+actions.cooldowns+=/potion,if=buff.bloodlust.up|cooldown.summon_gargoyle.remains>150|target.time_to_die<30
+actions.cooldowns+=/arcane_torrent,if=runic_power.deficit>=20
 
 ## 2+ targets
 actions.aoe=plague_strike,if=!dot.blood_plague.up

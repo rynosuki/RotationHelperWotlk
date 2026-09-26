@@ -196,15 +196,28 @@ end)
 ---------------------------------------------------------------------------
 -- Cooldowns
 ---------------------------------------------------------------------------
-test("Summon Gargoyle with diseases up and 60 runic power", function()
+test("Summon Gargoyle waits for a burst window, 15s at most", function()
     local s = Fight({ cooldowns = true })
     Diseases(s)
     Desolation(s)
     GhoulFrenzyUsed(s)
     s.power.current = 60
-    eq(Recommend(s), "summon_gargoyle", "gargoyle")
+    eq(Recommend(s), "scourge_strike", "held right after it became ready")
+    s:AddAura("player", { name = "Bloodlust", spellId = 2825, duration = 40, expires = s.time + 40 })
+    eq(Recommend(s), "summon_gargoyle", "Bloodlust")
     s.power.current = 50
     eq(Recommend(s), "scourge_strike", "not enough runic power")
+
+    s = Fight({ cooldowns = true })
+    Diseases(s)
+    Desolation(s)
+    s.power.current = 60
+    Recommend(s)
+    s.time = s.time + 16
+    Diseases(s)
+    Desolation(s)
+    GhoulFrenzyUsed(s)
+    eq(Recommend(s), "summon_gargoyle", "ready for more than 15s")
 end)
 
 test("Blood Tap for Bone Shield when no unholy rune is ready", function()

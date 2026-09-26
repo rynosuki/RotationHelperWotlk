@@ -7,7 +7,8 @@ local ADDON_NAME, ns = ...
 -- Supported names:
 --   buff.KEY.up|down|react|remains|stack       (player buffs)
 --   debuff.KEY.* / dot.KEY.*  (+ .ticking)     (our debuffs on the target)
---   cooldown.KEY.ready|up|remains|duration
+--   cooldown.KEY.ready|up|remains|ready_for|duration
+--   pull.active|remains, burst.active|remains
 --   runic_power, runic_power.deficit|max|pct
 --   runes.blood|unholy|frost|death|total        (ready runes; "rune" works too)
 --   runes.TYPE.time_to_N                        (seconds until N of that type are ready)
@@ -114,6 +115,14 @@ local SIMPLE = {
     active_enemies = function(s) return s.activeEnemies end,
     moving = function(s) return B(s.moving) end,
     ["pet.alive"] = function(s) return B(s.petAlive) end,
+    -- Pull timer (DBM/BigWigs or /rh pull): active while counting down.
+    -- Times are absolute, so conditions checked at a future moment see the
+    -- countdown as it will be then.
+    ["pull.active"] = function(s) return B(s.pullAt ~= nil) end,
+    ["pull.remains"] = function(s) return s.pullAt and max(0, s.pullAt - s.now) or 0 end,
+    -- Burst window: a notable damage buff is up (Engine/Burst.lua).
+    ["burst.active"] = function(s) return B((s.burstUntil or 0) > s.now) end,
+    ["burst.remains"] = function(s) return max(0, (s.burstUntil or 0) - s.now) end,
     ["target.health.pct"] = function(s) return s.target.healthPct end,
     -- 3600 when unknown or the target isn't losing health.
     ["target.time_to_die"] = function(s) return s.target.timeToDie end,
@@ -136,6 +145,12 @@ local function CooldownGetter(parts, classData)
             local cd = s.cooldowns[key]
             return cd and max(0, cd.readyAt - s.now) or 0
         end
+    elseif field == "ready_for" then
+        -- Seconds it has been ready (0 while on cooldown).
+        return function(s)
+            local since = s.readySince and s.readySince[key]
+            return since and max(0, s.now - since) or 0
+        end
     elseif field == "duration" then
         local base = classData.abilities[key].cooldown or 0
         return function(s)
@@ -143,7 +158,7 @@ local function CooldownGetter(parts, classData)
             return cd and cd.duration or base
         end
     end
-    return nil, "unknown cooldown field '" .. tostring(field) .. "' (use ready, remains or duration)"
+    return nil, "unknown cooldown field '" .. tostring(field) .. "' (use ready, remains, ready_for or duration)"
 end
 
 -- Talents and glyphs come from the Spec module, not the state; they can't

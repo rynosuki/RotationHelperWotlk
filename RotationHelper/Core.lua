@@ -20,14 +20,23 @@ function ns.RegisterClass(classToken, data)
     data.classToken = classToken
     data.badSpellIds = {}
     data.abilityByName = {}
+    for key, ability in pairs(ns.SharedAbilities or {}) do
+        if data.abilities[key] == nil then data.abilities[key] = ability end
+    end
+    for key, aura in pairs(ns.SharedAuras or {}) do
+        if data.auras[key] == nil then data.auras[key] = aura end
+    end
     for key, ability in pairs(data.abilities) do
         ability.key = key
-        ability.name = GetSpellInfo(ability.id)
-        if ability.name then
-            data.abilityByName[ability.name] = key
-        else
-            tinsert(data.badSpellIds, key .. " (" .. ability.id .. ")")
+        if ability.id then
+            ability.name = GetSpellInfo(ability.id)
+            if ability.name then
+                data.abilityByName[ability.name] = key
+            else
+                tinsert(data.badSpellIds, key .. " (" .. ability.id .. ")")
+            end
         end
+        -- Item abilities (no id) get their name from Engine/Items.lua.
     end
     for key, aura in pairs(data.auras) do
         aura.key = key
@@ -71,6 +80,15 @@ local defaults = {
         latency = {
             mode = "auto", -- auto (lag tolerance or latency) | fixed | off
             fixedMs = 100,
+        },
+        prepull = {
+            enabled = true,
+            -- Presence expected before a pull, per spec ("any" = don't check).
+            -- 3.3.5 guides use Blood Presence for Frost and Unholy DPS.
+            presence = { blood = "any", frost = "blood", unholy = "blood" },
+        },
+        burst = {
+            extra = "", -- more burst buffs, names or spell IDs separated by commas
         },
         review = {
             enabled = true,
@@ -173,8 +191,8 @@ end
 -- Each updater runs protected: an error is recorded (see Errors below),
 -- `onError` gets a chance to clean up, and the other updaters still run.
 ---------------------------------------------------------------------------
-RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, THREAT = 22, REVIEW = 25, DEFAULT = 50,
-    DISPLAY = 100, INTERRUPT = 110 }
+RH.UPDATE_ORDER = { TARGETS = 5, RECOMMEND = 10, WASTE = 20, THREAT = 22, PREPULL = 24, REVIEW = 25,
+    DEFAULT = 50, DISPLAY = 100, INTERRUPT = 110 }
 
 local updaters = {}
 local updateFrame = CreateFrame("Frame")
@@ -317,6 +335,7 @@ function RH:OnTalentsChanged()
 end
 
 function RH:OnConfigChanged()
+    if ns.Burst then ns.Burst.built = false end -- the burst list may have changed
     self:SendMessage("ROTATIONHELPER_CONFIG_CHANGED")
     self:Invalidate()
 end
@@ -408,6 +427,17 @@ function RH:SetIconCount(arg)
     SetDisplayNumber(self, "numIcons", "icons", arg, 1, 5, true)
 end
 
+-- /rh pull N: a local pull timer (0 cancels).
+function RH:StartPullTimer(arg)
+    local seconds = tonumber(arg)
+    if not seconds or seconds < 0 or seconds > 60 then
+        self:Print("Usage: /rh pull <0-60> (0 cancels)")
+        return
+    end
+    ns.PullTimer:Start(seconds, "you")
+    self:Print(seconds > 0 and ("Pull timer: " .. seconds .. "s.") or "Pull timer cancelled.")
+end
+
 function RH:ShowReview(arg)
     ns.ReviewWindow:Show(tonumber(arg))
 end
@@ -434,6 +464,7 @@ local HELP = {
     { "why <ability>", "why an ability is or isn't recommended right now" },
     { "review [n]", "show the last fight review (or saved fight n)" },
     { "sim [seconds]", "simulate the active rotation (5 fights, 300s by default)" },
+    { "pull <seconds>", "start a pull timer for the rotation (DBM/BigWigs timers work too; 0 cancels)" },
     { "perf", "show CPU and memory use (/rh perf reset to start over)" },
     { "errors", "show recorded errors (/rh errors clear to empty the list)" },
     { "scale <n>", "display scale (0.5-3)" },
@@ -480,6 +511,7 @@ local commands = {
     why = "PrintWhy",
     review = "ShowReview",
     sim = "PrintSim",
+    pull = "StartPullTimer",
     scale = "SetScale",
     icons = "SetIconCount",
     help = "PrintHelp",

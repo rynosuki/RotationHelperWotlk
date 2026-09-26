@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.10.0
+## Version: 1.11.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -11,6 +11,7 @@ Utils.lua
 Core.lua
 SpecProfiles.lua
 
+Classes\Shared.lua
 Classes\DeathKnight.lua
 
 Engine\Spec.lua
@@ -20,10 +21,14 @@ Engine\Cooldowns.lua
 Engine\Abilities.lua
 Engine\Expressions.lua
 Engine\Targets.lua
+Engine\Items.lua
+Engine\PullTimer.lua
+Engine\Burst.lua
 Engine\State.lua
 Engine\Waste.lua
 Engine\Threat.lua
 Engine\Review.lua
+Engine\PrePull.lua
 
 APL\Lexer.lua
 APL\Parser.lua

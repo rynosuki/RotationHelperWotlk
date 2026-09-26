@@ -238,32 +238,34 @@ offline tests and has been checked in game.
 
 ## Phase E — Pre-pull, items and burst (M)
 
-- [ ] **E1 Pre-pull checklist**
-  - Shown out of combat with a boss or elite targeted. It checks:
-    - flask and food buffs (ID lists),
-    - the wrong presence for the spec (a setting per spec),
+- [ ] **E1 Pre-pull checklist** — *implemented in 1.11.0, waiting on the in-game check*
+  - Shown under the icons out of combat with a boss or elite targeted ("Missing: Flask, Food").
+    It checks:
+    - a flask or elixir and Well Fed (matched by buff name, so every flask and food counts),
+    - the wrong presence for the spec (a setting per spec; Blood Presence by default),
     - no ghoul for Unholy,
-    - Horn of Winter missing.
-- [ ] **E2 Pull timer**
-  - Listen to DBM and BigWigs pull-timer addon messages. The exact prefixes need checking
-    against the DBM and BigWigs versions used on Whitemane.
-  - Exposed as `pull.remains`, for precombat lines like
-    `army_of_the_dead,if=pull.remains<10`.
-- [ ] **E3 Trinkets, racials, potions**
-  - `Engine/Items.lua`:
-    - `use_item,slot=13/14` via `GetInventoryItemID`, `GetItemSpell`,
-      `GetInventoryItemCooldown`,
-    - racials by race: Blood Fury, Berserking, Arcane Torrent, and so on,
-    - `potion` becomes a real action (e.g. Potion of Speed) instead of an ignored one.
-
-    This adds a new Runner action kind, `item`.
-- [ ] **E4 Burst window**
-  - A configurable aura list (Bloodlust/Heroism, trinket procs, Hyperspeed Acceleration,
-    Berserking) provides `burst.active` and `burst.remains`.
-  - Cooldown lines can then hold for a window, up to a set maximum wait. Summon Gargoyle is the
-    main use.
+    - Horn of Winter missing (a shaman's Strength of Earth counts).
+- [ ] **E2 Pull timer** — *implemented in 1.11.0, waiting on the in-game check*
+  - Any addon message whose prefix contains "DBM" or "BigWigs" and whose text mentions "pull"
+    with a number (≤ 60) starts it; `/rh pull N` starts one locally. 0 cancels, combat ends it.
+    The exact messages of Whitemane's DBM/BigWigs versions still need checking in game.
+  - `pull.active` and `pull.remains` for precombat lines. The default rotations use Army of the
+    Dead between 10 and 5 seconds out and a potion at 1.5 seconds.
+- [ ] **E3 Trinkets, racials, potions** — *implemented in 1.11.0, waiting on the in-game check*
+  - `Classes/Shared.lua` adds abilities every class gets: `trinket1` / `trinket2` (slots 13/14,
+    only with a use effect), `potion` (Potion of Speed, else Indestructible Potion, from the
+    bags, once per combat), `blood_fury`, `berserking`, `arcane_torrent`.
+  - `Engine/Items.lua` keeps item names, icons and availability current; cooldowns come from
+    `GetInventoryItemCooldown` / `GetItemCooldown`. `use_item,slot=13/14` compiles to
+    `trinket1` / `trinket2`, so no new Runner action kind was needed.
+- [ ] **E4 Burst window** — *implemented in 1.11.0, waiting on the in-game check*
+  - Built-in buff names (Bloodlust/Heroism, Hyperspeed Acceleration, racials, Speed, common
+    trinket procs) plus extra names or spell IDs from the options give `burst.active` and
+    `burst.remains`.
+  - `cooldown.NAME.ready_for` (seconds since a cooldown came back) caps the hold: Summon
+    Gargoyle waits for a burst, but at most 15 seconds.
 - *Check in game:* with a pull timer running, Army of the Dead is suggested at about −10s. With a
-  trinket equipped, `use_item` appears when it's off cooldown.
+  trinket equipped, it appears when it's off cooldown. The checklist shows on a boss dummy.
 
 ## Phase F — Display extras (S–M)
 

@@ -58,11 +58,14 @@ function Sim.NewState(opts)
     if classData.usesRunes then
         for i = 1, 6 do s.runes[i] = { type = SLOT_BASE[i], base = SLOT_BASE[i], readyAt = 0 } end
     end
+    s.readySince = {}
     for key, ability in pairs(classData.abilities) do
         if ability.cooldown and ability.cooldown > 0 then
             s.cooldowns[key] = { readyAt = 0, duration = ability.cooldown }
+            s.readySince[key] = 0
         end
     end
+    s.burstUntil = 0 -- no burst buffs (and no pull timer) in a simulation
     return s
 end
 

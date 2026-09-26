@@ -58,7 +58,8 @@ Each action is `name,option=value,option=value`.
 | `variable,name=X,op=OP,value=EXPR` | OP is `set`, `add`, `sub`, `mul`, `div`, `min`, `max` or `reset` (no value). |
 | `variable,name=X,op=setif,condition=C,value=A,value_else=B` | X = C ? A : B. |
 | `wait,sec=EXPR` | Nothing below this line may be recommended for EXPR seconds. Useful for pooling. |
-| `auto_attack`, `snapshot_stats`, `flask`, `food`, `potion`, ... | Accepted and ignored, so SimC exports load. |
+| `use_item,slot=13` / `slot=14` | The same as `trinket1` / `trinket2`. Other slots are an error. |
+| `auto_attack`, `snapshot_stats`, `flask`, `food`, `augmentation`, `use_items` | Accepted and ignored, so SimC exports load. |
 
 ## Expressions
 
@@ -101,6 +102,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `cooldown.NAME.ready` / `.up` | 1 if off cooldown (always 1 for abilities without one) |
 | `cooldown.NAME.remains` | seconds until ready |
 | `cooldown.NAME.duration` | the cooldown's length |
+| `cooldown.NAME.ready_for` | seconds since it came off cooldown (0 while on cooldown). Use it to hold a cooldown for a burst window, but not forever. |
 
 ### Runes and runic power
 
@@ -130,6 +132,10 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
 | `glyph.NAME.enabled` | glyph by name without "Glyph of", e.g. `glyph.disease.enabled` |
 | `toggle.cooldowns` | 1 when cooldowns are toggled on |
+| `pull.active` | 1 while a pull timer runs (DBM, BigWigs or `/rh pull N`), and for 2 seconds after it reaches 0 |
+| `pull.remains` | seconds until the pull (0 without a timer) |
+| `burst.active` | 1 while a burst buff is on you: Bloodlust/Heroism, Hyperspeed Acceleration, racials, Potion of Speed, common trinket procs, plus any added in the options |
+| `burst.remains` | seconds left on the longest burst buff |
 | `variable.NAME` | a variable set by a `variable` action (0 if unset) |
 
 Talent and glyph names are the in-game names in lowercase, with spaces and punctuation replaced
@@ -142,6 +148,11 @@ Death Knight: `icy_touch`, `plague_strike`, `obliterate`, `frost_strike`, `howli
 `death_strike`, `horn_of_winter`, `blood_tap`, `unbreakable_armor`, `empower_rune_weapon`,
 `deathchill`, `ghoul_frenzy`, `summon_gargoyle`, `bone_shield`, `army_of_the_dead`, `raise_dead`,
 `mind_freeze`.
+
+Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if it has a use effect),
+`potion` (Potion of Speed, or Indestructible Potion, from your bags; once per combat),
+`blood_fury`, `berserking`, `arcane_torrent` (only if your race has it). Lines for things you
+don't have are skipped.
 
 Abilities you don't have (talents you didn't take) are skipped automatically, and so are
 abilities that need a pet (Ghoul Frenzy) while you have none.

@@ -30,6 +30,7 @@ local SUITES = {
     "test_sim",
     "test_apltext",
     "test_apleditor",
+    "test_phase_e",
 }
 
 for _, suite in ipairs(SUITES) do

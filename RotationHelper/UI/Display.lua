@@ -71,6 +71,17 @@ local PREVIEW = {
 
 local spellCache = {}
 
+-- Item abilities (trinkets, potions): name and icon from the entry.
+local itemCache = {}
+local function ItemInfo(entry)
+    local info = itemCache[entry.itemID]
+    if not info then
+        info = { name = entry.itemName, icon = entry.icon or "Interface\\Icons\\INV_Misc_QuestionMark" }
+        itemCache[entry.itemID] = info
+    end
+    return info
+end
+
 local function SpellInfo(spellId)
     local info = spellCache[spellId]
     if not info then
@@ -213,6 +224,14 @@ function Display:CreateFrames()
     f.wasteText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     f.wasteText:SetPoint("LEFT", f.aoeChip, "RIGHT", CHIP_GAP, 0)
 
+    -- Pre-pull checklist, e.g. "Missing: Flask, Food" (out of combat only,
+    -- so it can share the space of the in-range alternative icon).
+    f.checklist = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    f.checklist:SetPoint("TOPLEFT", self.buttons[1], "BOTTOMLEFT", 0, -(STATUS_HEIGHT + 4))
+    f.checklist:SetTextColor(1, 0.6, 0.2)
+    f.checklist:SetJustifyH("LEFT")
+    f.checklist:Hide()
+
     -- Shown after an error until /rh errors has been used.
     f.errorMark = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     f.errorMark:SetPoint("RIGHT", self.buttons[1], "LEFT", -4, 0)
@@ -347,7 +366,7 @@ local function SetKeyText(b, text)
 end
 
 function Display:UpdateButton(b, entry, isMain, now)
-    local info = SpellInfo(entry.spellId)
+    local info = entry.itemID and ItemInfo(entry) or SpellInfo(entry.spellId)
     SetIcon(b, info.icon)
     SetKeyText(b, ns.Keybinds:Get(info.name) or "")
 
@@ -401,8 +420,12 @@ function Display:Refresh()
     -- An unseen error keeps the display (and its "!") visible even when the
     -- error left nothing to recommend.
     local showError = RH.unseenErrors > 0 and RH:IsActive()
-    if not entries and not showError then
+    -- The checklist also keeps it visible: before a pull there's often
+    -- nothing to press yet.
+    local checklist = RH:IsActive() and RH.checklist
+    if not entries and not showError and not checklist then
         self.frame.errorMark:Hide()
+        self.frame.checklist:Hide()
         self.frame:Hide()
         return
     end
@@ -421,6 +444,7 @@ function Display:Refresh()
     local showLabel = not self.db.locked
     if showLabel then self.frame.label:Show() else self.frame.label:Hide() end
     if showError then self.frame.errorMark:Show() else self.frame.errorMark:Hide() end
+    self:UpdateChecklist(checklist)
     local main = self.buttons[1]
     local waste = RH.waste
     if waste and waste.any and entries then main.warn:Show() else main.warn:Hide() end
@@ -510,6 +534,22 @@ function Display:UpdateStatus()
         f.wasteText:SetPoint("LEFT", anchor, "RIGHT", CHIP_GAP, 0)
     end
     f.status:Show()
+end
+
+-- "Missing: Flask, Food"; the text is only rebuilt when the list changes.
+function Display:UpdateChecklist(checklist)
+    local fs = self.frame.checklist
+    if not checklist then
+        fs:Hide()
+        fs.key = nil
+        return
+    end
+    local key = table.concat(checklist, ", ")
+    if fs.key ~= key then
+        fs.key = key
+        fs:SetText("Missing: " .. key)
+    end
+    fs:Show()
 end
 
 -- The status line as plain text, e.g. "CD  3  RP" (for tests and debugging).

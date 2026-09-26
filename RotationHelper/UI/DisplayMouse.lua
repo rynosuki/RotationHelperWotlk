@@ -49,7 +49,7 @@ function Display:ShowTooltip(b, index)
     local entry = entries and entries[index]
     if not entry then return end
     GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("spell:" .. entry.spellId)
+    GameTooltip:SetHyperlink(entry.itemID and ("item:" .. entry.itemID) or ("spell:" .. entry.spellId))
     GameTooltip:AddLine(" ")
 
     local action = entry.action

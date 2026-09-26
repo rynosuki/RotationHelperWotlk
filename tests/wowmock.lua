@@ -357,6 +357,8 @@ function Mock.NewSession(opts)
         [48265] = { "Unholy Presence", "i" }, [2825] = { "Bloodlust", "i" }, [32182] = { "Heroism", "i" },
         [55271] = { "Scourge Strike", "i" }, [63560] = { "Ghoul Frenzy", "i" },
         [49206] = { "Summon Gargoyle", "i" }, [49222] = { "Bone Shield", "i" }, [66803] = { "Desolation", "i" },
+        [20572] = { "Blood Fury", "i" }, [26297] = { "Berserking", "i" }, [50613] = { "Arcane Torrent", "i" },
+        [53908] = { "Speed", "i" },
         -- glyph spells
         [58647] = { "Glyph of Frost Strike", "i" }, [58671] = { "Glyph of Obliterate", "i" },
     }
@@ -489,6 +491,43 @@ function Mock.NewSession(opts)
         return 0, 0, 1
     end
 
+
+    -- Items: session.items[itemID] = { name, icon, useSpell }; session.equipped[slot] = itemID;
+    -- session.bags[itemID] = count; session.itemCooldowns[itemID] = { start, duration, enabled }.
+    session.items = {
+        [40211] = { "Potion of Speed", "Interface\Icons\INV_Alchemy_Elixir_04", "Speed" },
+        [40093] = { "Indestructible Potion", "i", "Indestructible" },
+    }
+    session.equipped, session.bags, session.itemCooldowns = {}, {}, {}
+    env.GetInventoryItemID = function(unit, slot) return unit == "player" and session.equipped[slot] or nil end
+    env.GetInventoryItemTexture = function(unit, slot)
+        local item = session.items[env.GetInventoryItemID(unit, slot) or 0]
+        return item and item[2] or nil
+    end
+    env.GetItemSpell = function(id)
+        local item = session.items[id]
+        if item and item[3] then return item[3], id end
+    end
+    env.GetItemInfo = function(id)
+        if type(id) == "string" then
+            for itemID, item in pairs(session.items) do if item[1] == id then id = itemID end end
+        end
+        local item = session.items[id]
+        if item then return item[1], "item:" .. id, 4, 80, 80, "Miscellaneous", "Junk", 1, "", item[2] end
+    end
+    env.GetItemIcon = function(id) local item = session.items[id] return item and item[2] end
+    env.GetItemCount = function(id) return session.bags[id] or 0 end
+    env.GetItemCooldown = function(id)
+        local c = session.itemCooldowns[id]
+        if c then return c[1], c[2], c[3] or 1 end
+        return 0, 0, 1
+    end
+    env.GetInventoryItemCooldown = function(unit, slot)
+        local id = env.GetInventoryItemID(unit, slot)
+        if not id then return 0, 0, 0 end
+        if not env.GetItemSpell(id) then return 0, 0, 0 end
+        return env.GetItemCooldown(id)
+    end
     -- Talents: session.talentTabs = { { name = "Frost", talents = { { "Name", rank }, ... } }, ... }
     session.talentTabs = {
         { name = "Blood", talents = { { "Butchery", 0 }, { "Subversion", 3 } } },

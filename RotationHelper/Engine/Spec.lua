@@ -78,8 +78,12 @@ function Spec:Update()
     local classData = RH.classData
     if classData then
         for key, ability in pairs(classData.abilities) do
-            self.known[key] = ability.name ~= nil and GetSpellInfo(ability.name) ~= nil
+            if not (ability.itemSlot or ability.potionItems) then
+                self.known[key] = ability.name ~= nil and GetSpellInfo(ability.name) ~= nil
+            end
         end
+        -- Item abilities (trinkets, potions) are decided by what you carry.
+        if ns.Items and ns.Items.Update then ns.Items:Update() end
     end
 
     self.supported = classData and classData.specs[self.key] or false

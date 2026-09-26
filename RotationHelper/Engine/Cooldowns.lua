@@ -8,7 +8,8 @@ local ADDON_NAME, ns = ...
 local Cooldowns = {}
 ns.Cooldowns = Cooldowns
 
-local GetSpellCooldown = GetSpellCooldown
+local GetSpellCooldown, GetInventoryItemCooldown, GetItemCooldown =
+    GetSpellCooldown, GetInventoryItemCooldown, GetItemCooldown
 local abs, pairs = math.abs, pairs
 
 local BASE_GCD = 1.5
@@ -41,8 +42,19 @@ function Cooldowns.Read(state, classData, now)
                 rec = {}
                 list[key] = rec
             end
-            local s, d = GetSpellCooldown(ability.name)
-            if s and s > 0 and d and d > MAX_GCD and not IsRuneCooldown(ability, d, state) then
+            local s, d, enabled
+            if ability.itemSlot then
+                s, d, enabled = GetInventoryItemCooldown("player", ability.itemSlot)
+            elseif ability.potionItems then
+                if ability.itemID then s, d, enabled = GetItemCooldown(ability.itemID) end
+            elseif ability.name then
+                s, d = GetSpellCooldown(ability.name)
+            end
+            if enabled == 0 then
+                -- A used potion stays locked until combat ends.
+                rec.readyAt = math.huge
+                rec.duration = ability.cooldown
+            elseif s and s > 0 and d and d > MAX_GCD and not IsRuneCooldown(ability, d, state) then
                 rec.readyAt = s + d
                 rec.duration = d
             else

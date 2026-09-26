@@ -105,8 +105,11 @@ local LIST_ACTIONS = { call_action_list = true, run_action_list = true }
 -- SimC boilerplate that has no meaning here; kept in the list but skipped.
 Compiler.IGNORED_ACTIONS = {
     auto_attack = true, snapshot_stats = true, flask = true, food = true,
-    augmentation = true, potion = true, use_items = true,
+    augmentation = true, use_items = true,
 }
+
+-- SimC's use_item,slot=N as our trinket abilities.
+local ITEM_SLOTS = { ["13"] = "trinket1", ["14"] = "trinket2" }
 
 local VARIABLE_OPS = { set = true, add = true, sub = true, mul = true, div = true,
     min = true, max = true, reset = true, setif = true }
@@ -133,6 +136,15 @@ end
 local function CompileAction(action, apl, resolve, isAction, errors)
     local before = #errors
     local p = action.params
+    if action.name == "use_item" then
+        local key = ITEM_SLOTS[p.slot or ""]
+        if not key then
+            errors[#errors + 1] = { line = action.line, col = action.col,
+                message = "use_item needs slot=13 or slot=14 (or write trinket1 / trinket2)" }
+            return false
+        end
+        action.name = key
+    end
     local name = action.name
 
     if p["if"] then action.condition = CompileParam(action, "if", resolve, errors) end

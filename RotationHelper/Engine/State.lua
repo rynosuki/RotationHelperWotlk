@@ -24,6 +24,7 @@ State.real = {
     target = {},
     variables = {}, -- APL variables, reset for every evaluation
     lastCast = {},  -- ability key -> GetTime() of our last successful cast
+    readySince = {}, -- ability key -> when its cooldown last became ready
 }
 
 local function ReadTarget(t)
@@ -80,6 +81,18 @@ function State:Reset(now)
     local Targets = ns.Targets
     s.activeEnemies = Targets:ActiveEnemies(now, toggles.aoeMode, t.exists and t.canAttack and not t.dead)
     t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
+
+    local pullRemains = ns.PullTimer:Remains(now)
+    s.pullAt = pullRemains and (now + pullRemains) or nil
+    s.burstUntil = now + ns.Burst:Remains(now)
+    -- When each cooldown came off cooldown (cooldown.X.ready_for).
+    for key, cd in pairs(s.cooldowns) do
+        if cd.readyAt <= now then
+            s.readySince[key] = s.readySince[key] or now
+        else
+            s.readySince[key] = nil
+        end
+    end
     return s
 end
 
@@ -136,6 +149,7 @@ State.virtual = {
     cooldowns = {},
     variables = {},
     lastCast = {},
+    readySince = {},
 }
 
 local function CopyAuras(dst, src)
@@ -183,6 +197,7 @@ function State.CopyInto(dst, src)
     end
 
     CopyMap(dst.lastCast, src.lastCast)
+    CopyMap(dst.readySince, src.readySince)
     wipe(dst.variables)
     dst.target = src.target
     return dst

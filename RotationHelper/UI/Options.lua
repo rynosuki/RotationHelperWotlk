@@ -202,6 +202,36 @@ function Options:BuildOptionsTable()
     general.args.openReview = { type = "execute", name = "Show the last review", order = 35,
         func = function() ns.ReviewWindow:Show() end }
 
+    general.args.prepullHeader = { type = "header", name = "Pre-pull checklist", order = 40 }
+    general.args.prepullInfo = { type = "description", order = 41, fontSize = "medium",
+        name = "Out of combat with a boss or elite targeted, the display lists what's missing: flask, food, "
+            .. "Horn of Winter, presence, ghoul." }
+    general.args.prepullEnabled = { type = "toggle", name = "Show the checklist", order = 42,
+        get = function() return RH.db.profile.prepull.enabled end,
+        set = function(_, value) RH.db.profile.prepull.enabled = value; Changed() end }
+    local presenceValues = { any = "Don't check" }
+    for key, presence in pairs(ns.PrePull.PRESENCES) do presenceValues[key] = presence.label end
+    local specOrder = 43
+    for _, spec in ipairs({ "blood", "frost", "unholy" }) do
+        if RH.classData and RH.classData.auras.blood_presence then
+            general.args["presence_" .. spec] = { type = "select", order = specOrder, values = presenceValues,
+                name = ("Presence for %s%s"):format(spec:sub(1, 1):upper(), spec:sub(2)),
+                disabled = function() return not RH.db.profile.prepull.enabled end,
+                get = function() return RH.db.profile.prepull.presence[spec] or "any" end,
+                set = function(_, value) RH.db.profile.prepull.presence[spec] = value; Changed() end }
+            specOrder = specOrder + 1
+        end
+    end
+
+    general.args.burstHeader = { type = "header", name = "Burst windows", order = 50 }
+    general.args.burstInfo = { type = "description", order = 51, fontSize = "medium",
+        name = "Rotations can hold cooldowns for burst.active: Bloodlust/Heroism, Hyperspeed Acceleration, "
+            .. "racials, Potion of Speed and common trinket procs are built in." }
+    general.args.burstExtra = { type = "input", name = "More burst buffs", order = 52, width = "full",
+        desc = "Buff names or spell IDs, separated by commas.",
+        get = function() return RH.db.profile.burst.extra end,
+        set = function(_, value) RH.db.profile.burst.extra = value; Changed() end }
+
     general.args.threatHeader = { type = "header", name = "Threat warning", order = 20 }
     general.args.threatEnabled = { type = "toggle", name = "Warn about threat", order = 21,
         desc = "In a group: a red border and THREAT under the icons when you're close to pulling aggro.",

@@ -10,7 +10,10 @@ local ADDON_NAME, ns = ...
 --     power costs are checked automatically (death runes pay for anything).
 ns.RegisterAPL("DEATHKNIGHT", "frost", "Frost (default)", [[
 ## Out of combat
-actions.precombat=horn_of_winter,if=!buff.horn_of_winter.up
+# With a pull timer (DBM/BigWigs or /rh pull): Army of the Dead about 10s out, a potion at the pull.
+actions.precombat=army_of_the_dead,if=toggle.cooldowns&pull.active&pull.remains<=10&pull.remains>=5
+actions.precombat+=/potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
+actions.precombat+=/horn_of_winter,if=!buff.horn_of_winter.up
 
 ## Main priority
 actions=call_action_list,name=cooldowns,if=toggle.cooldowns
@@ -38,6 +41,13 @@ actions.cooldowns+=/unbreakable_armor
 actions.cooldowns+=/deathchill,if=runes.frost+runes.death>=1&runes.unholy+runes.death>=1&runes.frost+runes.unholy+runes.death>=2
 # 5 minute cooldown: don't spend it on something that's about to die.
 actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
+# Racials and trinkets with Unbreakable Armor (or when it's far away), a potion with Bloodlust or at the end.
+actions.cooldowns+=/blood_fury,if=buff.unbreakable_armor.up|cooldown.unbreakable_armor.remains>20|!talent.unbreakable_armor.enabled
+actions.cooldowns+=/berserking,if=buff.unbreakable_armor.up|cooldown.unbreakable_armor.remains>20|!talent.unbreakable_armor.enabled
+actions.cooldowns+=/trinket1
+actions.cooldowns+=/trinket2
+actions.cooldowns+=/potion,if=buff.bloodlust.up|target.time_to_die<30
+actions.cooldowns+=/arcane_torrent,if=runic_power.deficit>=20
 
 ## 3+ targets
 actions.aoe=icy_touch,if=!dot.frost_fever.up

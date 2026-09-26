@@ -34,6 +34,15 @@ local rangedContext = {
 
 local alternativeEntry = {}
 
+-- What the display needs to show an ability: a spell ID, or for item
+-- abilities (trinkets, potions) the item ID, name and icon.
+local function SetAbility(entry, ability)
+    entry.spellId = ability.id
+    entry.itemID = ability.itemID
+    entry.itemName = ability.itemID and ability.name or nil
+    entry.icon = ability.icon
+end
+
 Recommender.context = context -- for the simulator
 
 local MAX_PREDICTIONS = 5
@@ -152,7 +161,7 @@ function Recommender:Alternative(recs, n)
     if not action or action.name == recs[1].name then return nil end
     local e = alternativeEntry
     e.name = action.name
-    e.spellId = RH.classData.abilities[action.name].id
+    SetAbility(e, RH.classData.abilities[action.name])
     e.wait = readyAt - s.now
     e.lacksResources = limitedBy == "runes"
     e.action, e.limitedBy = action, limitedBy
@@ -194,7 +203,7 @@ function Recommender:Predict(count, trace)
         n = i
         local entry = entries[i]
         entry.name = action.name
-        entry.spellId = RH.classData.abilities[action.name].id
+        SetAbility(entry, RH.classData.abilities[action.name])
         entry.wait = readyAt - now
         entry.lacksResources = limitedBy == "runes"
         -- For the tooltip (A6) and the proc glow (A7).
