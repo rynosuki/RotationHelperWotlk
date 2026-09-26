@@ -233,7 +233,28 @@ function Options:BuildOptionsTable()
         confirm = true, confirmText = "Forget all recorded damage for this character?",
         func = function() RH:PrintDamage("reset") end }
 
-    general.args.burstHeader ={ type = "header", name = "Burst windows", order = 50 }
+    general.args.trinketsHeader = { type = "header", name = "Trinkets", order = 55 }
+    general.args.trinkets = { type = "select", name = "Suggest trinkets", order = 56,
+        values = { offensive = "Damage on-use effects only", all = "Every on-use trinket", none = "Never" },
+        desc = "By default only trinkets whose use effect helps damage (attack power, haste, crit, armor "
+            .. "penetration, ...) are suggested; tank trinkets like armor or health on-use are left to you.",
+        get = function() return RH.db.profile.items.trinkets end,
+        set = function(_, value) RH.db.profile.items.trinkets = value; Changed() end }
+    general.args.trinketsCurrent = { type = "description", order = 57, fontSize = "medium",
+        name = function()
+            local parts = {}
+            for _, key in ipairs({ "trinket1", "trinket2" }) do
+                local ability = RH.classData and RH.classData.abilities[key]
+                if ability and ability.name then
+                    local state = ns.Spec.known[key] and "suggested" or "not suggested"
+                    local kind = ability.useKind == "offensive" and "damage" or (ability.useKind and "other" or "unknown")
+                    parts[#parts + 1] = ("%s (%s effect): %s"):format(ability.name, kind, state)
+                end
+            end
+            return #parts > 0 and table.concat(parts, "\n") or "No trinkets with a use effect equipped."
+        end }
+
+    general.args.burstHeader = { type = "header", name = "Burst windows", order = 50 }
     general.args.burstInfo = { type = "description", order = 51, fontSize = "medium",
         name = "Rotations can hold cooldowns for burst.active: Bloodlust/Heroism, Hyperspeed Acceleration, "
             .. "racials, Potion of Speed and common trinket procs are built in." }

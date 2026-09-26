@@ -223,6 +223,20 @@ local function NewFrameFactory(session)
     function FrameMethods:StopMovingOrSizing() self.moving = false end
     function FrameMethods:SetFrameLevel(l) self.frameLevel = l end
     function FrameMethods:GetFrameLevel() return self.frameLevel or 1 end
+    -- Scanning tooltips (GameTooltipTemplate): lines come from
+    -- session.items[id].tooltip and are readable as <name>TextLeft<i>.
+    function FrameMethods:SetOwner(owner, anchor) self.owner = owner end
+    function FrameMethods:ClearLines() self.numLines = 0 end
+    function FrameMethods:NumLines() return self.numLines or 0 end
+    function FrameMethods:SetInventoryItem(unit, slot)
+        local id = session.env.GetInventoryItemID(unit, slot)
+        local item = id and session.items[id]
+        local lines = item and (item.tooltip or { item[1] }) or {}
+        self.numLines = #lines
+        for i, line in ipairs(lines) do
+            session.env[self.name .. "TextLeft" .. i] = { GetText = function() return line end }
+        end
+    end
     -- Cooldown frames
     function FrameMethods:SetCooldown(start, duration) self.cooldownStart, self.cooldownDuration = start, duration end
 

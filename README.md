@@ -97,7 +97,10 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
   rotation suggests Army of the Dead about 10 seconds out and a potion right at the pull.
 - **Trinkets, racials, potions**: trinkets with a use effect, Blood Fury, Berserking, Arcane
   Torrent and Potion of Speed (or Indestructible Potion) from your bags are part of the
-  cooldowns list, so they only show with cooldowns on. A potion is suggested once per combat,
+  cooldowns list, so they only show with cooldowns on. Only trinkets whose use effect helps
+  damage (attack power, haste, crit, armor penetration, ...) are suggested; tank trinkets like an
+  armor or health on-use are left to you. General > Trinkets can change that and shows how your
+  trinkets were read. A potion is suggested once per combat,
   with Bloodlust or near the end of a fight.
 - **Burst windows**: Summon Gargoyle keeps the stats you have when it's summoned, so it waits
   for a burst buff (Bloodlust, Hyperspeed Acceleration, trinket procs, ...), but no more than

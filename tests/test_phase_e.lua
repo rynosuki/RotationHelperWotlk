@@ -160,7 +160,8 @@ end)
 ---------------------------------------------------------------------------
 test("items: trinkets with a use effect, the best potion in the bags", function()
     local s, RH = newAddon()
-    s.items[50000] = { "Some Trinket", "Interface\\Icons\\Trinket", "Some Use" }
+    s.items[50000] = { "Some Trinket", "Interface\\Icons\\Trinket", "Some Use",
+        tooltip = { "Some Trinket", "Use: Increases attack power by 1024 for 20 sec. (2 Min Cooldown)" } }
     s.items[50001] = { "Passive Trinket", "i" }
     s.equipped[13], s.equipped[14] = 50000, 50001
     s:FireEvent("PLAYER_EQUIPMENT_CHANGED")
@@ -184,7 +185,8 @@ end)
 
 test("items: trinket and potion cooldowns come from the client", function()
     local s, RH = newAddon()
-    s.items[50000] = { "Some Trinket", "i", "Some Use" }
+    s.items[50000] = { "Some Trinket", "i", "Some Use",
+        tooltip = { "Some Trinket", "Use: Increases attack power by 1024 for 20 sec. (2 Min Cooldown)" } }
     s.equipped[13] = 50000
     s.bags[40211] = 1
     s:FireEvent("PLAYER_EQUIPMENT_CHANGED")
@@ -199,7 +201,8 @@ end)
 
 test("items: used in the rotation when cooldowns are on", function()
     local s, RH = Fight()
-    s.items[50000] = { "Some Trinket", "i", "Some Use" }
+    s.items[50000] = { "Some Trinket", "i", "Some Use",
+        tooltip = { "Some Trinket", "Use: Increases attack power by 1024 for 20 sec. (2 Min Cooldown)" } }
     s.equipped[13] = 50000
     s:FireEvent("PLAYER_EQUIPMENT_CHANGED")
     eq(Recommend(s), "trinket1", "trinket")
@@ -289,4 +292,47 @@ test("options: pre-pull and burst settings", function()
     args.presence_frost.set(nil, "any")
     eq(RH.db.profile.prepull.presence.frost, "any", "set")
     truthy(args.presence_frost.values.unholy, "choices")
+end)
+
+---------------------------------------------------------------------------
+-- Tank trinkets stay out of the rotation
+---------------------------------------------------------------------------
+local ARMOR_TRINKET = { "Glyph of Indomitability", "i", "Indomitable",
+    tooltip = { "Glyph of Indomitability", "Equip: Increases your dodge rating by 125.",
+        "Use: Increases your armor by 6,400 for 10 sec. (1 Min Cooldown)" } }
+local AP_TRINKET = { "Wrathstone", "i", "Wrath",
+    tooltip = { "Wrathstone", "Equip: Increases your critical strike rating by 84.",
+        "Use: Increases attack power by 856 for 20 sec. (2 Min Cooldown)" } }
+
+test("trinkets: use effects are classified from the tooltip", function()
+    local s = newAddon()
+    local Items = s.ns.Items
+    eq(Items.Classify("Use: Increases attack power by 856 for 20 sec."), "offensive", "attack power")
+    eq(Items.Classify("Use: Increases your haste rating by 491 for 20 sec."), "offensive", "haste")
+    eq(Items.Classify("Use: Increases armor penetration rating by 612 for 10 sec."), "offensive", "armor pen")
+    eq(Items.Classify("Use: Increases your armor by 6,400 for 10 sec."), "other", "armor")
+    eq(Items.Classify("Use: Increases maximum health by 4,104 for 15 sec."), "other", "health")
+    eq(Items.Classify("Use: Absorbs 6,400 damage. Lasts 10 sec."), "other", "absorb")
+    eq(Items.Classify(nil), nil, "no use line")
+end)
+
+test("trinkets: only damage on-use trinkets are suggested by default", function()
+    local s, RH = Fight()
+    s.items[50010], s.items[50011] = ARMOR_TRINKET, AP_TRINKET
+    s.equipped[13], s.equipped[14] = 50010, 50011
+    s:FireEvent("PLAYER_EQUIPMENT_CHANGED")
+    local known = s.ns.Spec.known
+    falsy(known.trinket1, "armor trinket not suggested")
+    truthy(known.trinket2, "attack power trinket suggested")
+    eq(RH.classData.abilities.trinket1.useKind, "other", "classified")
+    eq(Recommend(s), "trinket2", "the damage trinket in the rotation")
+
+    local args = s.ns.Options:GetOptionsTable().args.general.args
+    truthy(args.trinketsCurrent.name():find("Glyph of Indomitability (other effect): not suggested", 1, true),
+        "the options say why")
+    args.trinkets.set(nil, "all")
+    truthy(known.trinket1, "all: the armor trinket too")
+    args.trinkets.set(nil, "none")
+    falsy(known.trinket1, "none")
+    falsy(known.trinket2, "none")
 end)

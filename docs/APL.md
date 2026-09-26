@@ -156,7 +156,8 @@ Death Knight: `icy_touch`, `plague_strike`, `obliterate`, `frost_strike`, `howli
 `rune_strike` is only considered while the game allows it (after you dodge or parry) and it isn't
 already queued for your next swing.
 
-Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if it has a use effect),
+Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
+damage, unless changed under General > Trinkets),
 `potion` (Potion of Speed, or Indestructible Potion, from your bags; once per combat),
 `blood_fury`, `berserking`, `arcane_torrent` (only if your race has it). Lines for things you
 don't have are skipped.

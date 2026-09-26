@@ -89,7 +89,8 @@ end)
 test("cooldown strip: major cooldowns and trinkets with the time left", function()
     local s, RH = Fight()
     local strip = s.ns.Display.frame.cooldownStrip
-    s.items[50000] = { "Some Trinket", "Interface\\Icons\\Trinket", "Some Use" }
+    s.items[50000] = { "Some Trinket", "Interface\\Icons\\Trinket", "Some Use",
+        tooltip = { "Some Trinket", "Use: Increases attack power by 1024 for 20 sec. (2 Min Cooldown)" } }
     s.equipped[13] = 50000
     s:FireEvent("PLAYER_EQUIPMENT_CHANGED")
     s.cooldowns["Unbreakable Armor"] = { s.time - 10, 60 }

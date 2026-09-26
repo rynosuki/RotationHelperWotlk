@@ -91,6 +91,9 @@ local defaults = {
         burst = {
             extra = "", -- more burst buffs, names or spell IDs separated by commas
         },
+        items = {
+            trinkets = "offensive", -- suggest trinkets: offensive (use effects only) | all | none
+        },
         review = {
             enabled = true,
             autoShow = false,  -- open the review window after a fight (off: /rh review)
