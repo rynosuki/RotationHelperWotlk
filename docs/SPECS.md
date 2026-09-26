@@ -16,7 +16,7 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 | E2 | **Cast times and channels** (done: `castTime`/`channel`, haste from `hasteProbe`, instants only while moving; channels aren't clipped) | all casters | A cast delays the next action by its cast time (hasted), not the GCD. Channels (Mind Flay, Arcane Missiles) likewise. |
 | E3 | **Rage** (done) | Warrior | Costs like runic power; rage income can't be predicted, so no regen. |
 | E4 | **"On next swing" abilities** (done) | Warrior | Heroic Strike and Cleave are off-GCD queued attacks; recommend them alongside the GCD ability. |
-| E5 | **Energy regen + combo points** | Rogue, Cat | Energy comes back at 10/s: `ReadyAt` must predict when there's enough. Finishers use combo points. |
+| E5 | **Energy regen + combo points** (done: `energyRegen`, `energyBoost`, `comboGain` / `finisher`) | Rogue, Cat | Energy comes back at 10/s: `ReadyAt` must predict when there's enough. Finishers use combo points. |
 | E6 | **Buff stacks as a resource** (done: `buff.X.stack`, stacking procs in the simulator) | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
 | E7 | **DoT refresh rules** (done with `action.X.cast_time`; tick-aware clipping not modelled) | Affliction, Shadow, Balance, Feral | Refresh at the right time without clipping the last tick; haste-dependent tick times. |
 | E8 | **Pets, totems, forms** (totems and stances done; pets partly: `pet.alive`) | Hunter, Warlock, Shaman, Druid | Pet active/abilities, totems up, current form (`GetShapeshiftForm()`). |
@@ -48,7 +48,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Rogue — energy + combo points
 
-- [ ] **Combat** (DPS) · E5 · Slice and Dice upkeep, Rupture, Sinister Strike, Killing Spree, Adrenaline Rush.
+- [ ] **Combat** (DPS) · E5 · implemented in 1.27.0, waiting on an in-game check · Slice and Dice upkeep, Rupture, Sinister Strike, Killing Spree, Adrenaline Rush.
 - [ ] **Assassination** (DPS) · E5 · Mutilate, Envenom with Hunger for Blood and SnD upkeep.
 - [ ] **Subtlety** (DPS) · E5 · Hemorrhage and Honor Among Thieves; rarely played for PvE.
 
@@ -87,7 +87,7 @@ Legend: role · power · engine features needed · notes.
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
-6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
+6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
 8. Niche specs (Subtlety Rogue, Frost Mage).
 

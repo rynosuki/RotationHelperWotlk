@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    combat = {
+        class = "ROGUE", power = { type = 3, current = 100, max = 100 },
+        talents = {
+            { name = "Assassination", talents = { { "Malice", 5 } } },
+            { name = "Combat", talents = { { "Improved Sinister Strike", 2 }, { "Vitality", 3 }, { "Combat Potency", 5 },
+                { "Killing Spree", 1 }, { "Adrenaline Rush", 1 }, { "Blade Flurry", 1 }, { "Improved Slice and Dice", 2 } } },
+            { name = "Subtlety", talents = {} },
+        },
+        spells = { "Sinister Strike", "Slice and Dice", "Rupture", "Eviscerate", "Killing Spree", "Adrenaline Rush",
+            "Blade Flurry", "Kick" },
+    },
     balance = {
         class = "DRUID", power = { type = 0, current = 20000, max = 20000 },
         talents = {
@@ -183,7 +194,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

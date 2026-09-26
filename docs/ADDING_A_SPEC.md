@@ -63,6 +63,8 @@ Ability fields (all optional except `id`):
 | `castTimeFn(spec, state)` | the base cast time when talents or buffs change it (Improved Fireball; Missile Barrage) |
 | `manaFn(spec, state, baseMana)` | a mana cost that depends on the state (Arcane Blast stacks) |
 | `instantWith` | a buff that makes the cast instant and is used up (Hot Streak for Pyroblast) |
+| `energy` / `energyCost(spec)` | energy cost (set `energyRegen(spec)` in the class data, and `energyBoost = { aura, factor }` for buffs that speed it up; `baseGcd = 1` for a 1 second GCD) |
+| `comboGain` / `finisher` | builders add combo points; finishers need one and use them all (`s.comboPointsSpent` in their `apply`) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 

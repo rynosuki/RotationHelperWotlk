@@ -36,7 +36,11 @@ casts Lava Burst while Flame Shock will still be up when it lands, Chain Lightni
 targets and Lightning Bolt otherwise, with Thunderstorm for mana and Earth Shock while moving.
 **Balance Druid** keeps Faerie Fire, Insect Swarm and Moonfire up, casts Starfire in Lunar
 Eclipse and Wrath in Solar, and between eclipses keeps casting the spell of the last one (which
-procs the other); Starfall on cooldown. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+procs the other); Starfall on cooldown. **Combat Rogue** keeps Slice and Dice up, spends 5 combo
+points on Rupture and Eviscerate (refreshing Slice and Dice first when it's running low), builds
+with Sinister Strike, and uses Blade Flurry, Killing Spree (while low on energy) and Adrenaline
+Rush; short on energy, the icon counts down to when you'll have enough. The checklist wants
+poisons on. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

@@ -70,6 +70,8 @@ function Abilities.PowerCost(ability, state)
     if ability.rpCost then return ability.rpCost(ns.Spec) end
     if ability.rageCost then return ability.rageCost(ns.Spec) end
     if ability.rage then return ability.rage end
+    if ability.energyCost then return ability.energyCost(ns.Spec) end
+    if ability.energy then return ability.energy end
     if ability.mana then
         return ability.manaCost or (ability.mana / 100 * (RH.classData.baseMana or 0))
     end
@@ -132,6 +134,8 @@ function Abilities.ReadyAt(state, key)
         and not (ability.usableWith and BuffUpAt(state, ability.usableWith, state.now)) then
         return nil, "not usable"
     end
+    -- Finishers need combo points.
+    if ability.finisher and (state.comboPoints or 0) < 1 then return nil, "combo points" end
     -- On-next-swing attacks (Heroic Strike, Cleave): not again while one is queued.
     if ability.nextSwing and state.queued and state.queued[key] then return nil, "queued" end
 
@@ -147,10 +151,10 @@ function Abilities.ReadyAt(state, key)
 
     local cost = Abilities.PowerCost(ability, state)
     if cost > 0 and PowerAt(state, t) < cost then
-        -- Rage keeps coming in: wait for it. Other power doesn't.
-        local regen = state.powerRegen
-        if regen and regen > 0 then
-            t, limitedBy = state.powerTime + (cost - state.power) / regen, state.powerType
+        -- Rage and energy keep coming in: wait for them. Other power doesn't.
+        local at = ns.Resources.TimeFor(state, cost)
+        if at then
+            t, limitedBy = at, state.powerType
         else
             return nil, state.powerType == "runic_power" and "runic power" or state.powerType
         end
@@ -377,6 +381,13 @@ function Abilities.Apply(s, key, t)
 
     s.power = max(0, min(s.powerMax, PowerAt(s, t) - Abilities.PowerCost(ability, s) + Abilities.PowerGain(ability)))
     s.powerTime = t
+    -- Combo points: builders add them, finishers use them all (their effects
+    -- can read how many: s.comboPointsSpent).
+    if ability.finisher then
+        s.comboPointsSpent, s.comboPoints = s.comboPoints or 0, 0
+    elseif ability.comboGain then
+        s.comboPoints = min(5, (s.comboPoints or 0) + ability.comboGain)
+    end
 
     if ability.consumes then
         for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end

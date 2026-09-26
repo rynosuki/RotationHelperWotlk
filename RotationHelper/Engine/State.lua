@@ -129,6 +129,16 @@ function State:Reset(now)
 
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
+    -- Energy regenerates at a known rate (classData.energyRegen), faster with
+    -- some buffs (regenBoost, e.g. Adrenaline Rush); combo points on the target.
+    s.regenBoost, s.regenBoostUntil = nil, nil
+    if s.powerType == "energy" then
+        s.powerRegen = classData.energyRegen and classData.energyRegen(ns.Spec) or 10
+        local boost = classData.energyBoost
+        local rec = boost and s.buffs[boost.aura]
+        if rec and rec.expires > now then s.regenBoost, s.regenBoostUntil = boost.factor, rec.expires end
+    end
+    s.comboPoints = GetComboPoints and GetComboPoints("player", "target") or 0
     -- The most recent of a group of buffs (Eclipse: Lunar or Solar), kept
     -- after it runs out: s.lastAura, for last.KEY in rotations.
     local group = classData.lastAuraGroup

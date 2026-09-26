@@ -117,6 +117,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `mana`, `mana.deficit` / `.max` / `.pct` | the same for mana users (Paladin) |
 | `rage`, `rage.deficit` / `.max` | rage (Warrior), including the expected income up to the moment the condition is checked |
 | `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
+| `energy`, `energy.deficit` / `.max` | energy (Rogue), including its regeneration up to the moment checked |
+| `combo_points` | combo points on your target |
 | `totem.fire.up` / `.remains` (also `earth`, `water`, `air`) | your totem of that element |
 | `totem.NAME.up` / `.remains` | a specific totem, e.g. `totem.magma_totem.remains` |
 | `action.NAME.cast_time` | the ability's cast or channel time with your spell haste (0 for instants) |
@@ -209,6 +211,9 @@ casts left.
 
 Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfire`, `insect_swarm`,
 `faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`.
+
+Rogue: `sinister_strike`, `slice_and_dice`, `rupture` (`dot.rupture`), `eviscerate` (finishers need
+at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

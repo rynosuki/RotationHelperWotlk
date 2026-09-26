@@ -80,6 +80,9 @@ function Sim.NewState(opts)
     if type(form) == "table" then form = form[ns.Spec.key] or 0 end
     s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, form
     s.totemKey, s.totemExpires = {}, {} -- no totems down at the start
+    s.comboPoints = 0
+    if power and power.type == "energy" and classData.energyRegen then s.powerRegen = classData.energyRegen(ns.Spec) end
+    if classData.baseGcd then s.gcdDuration = classData.baseGcd end
     return s
 end
 

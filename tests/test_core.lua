@@ -13,10 +13,10 @@ test("loads and initializes", function()
 end)
 
 test("unsupported class stays idle and says so", function()
-    local s, RH = newAddon({ class = "ROGUE" })
+    local s, RH = newAddon({ class = "HUNTER" })
     eq(RH.classSupported, false, "classSupported")
     eq(RH:IsActive(), false, "IsActive")
-    truthy(s:ChatContains("No rotation available for ROGUE"), "idle notice")
+    truthy(s:ChatContains("No rotation available for HUNTER"), "idle notice")
 end)
 
 test("/rh with no args prints help", function()

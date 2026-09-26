@@ -414,6 +414,10 @@ function Mock.NewSession(opts)
         [53201] = { "Starfall", "i" }, [33831] = { "Force of Nature", "i" }, [48467] = { "Hurricane", "i" },
         [24858] = { "Moonkin Form", "i" }, [53308] = { "Entangling Roots", "i" }, [48518] = { "Eclipse (Lunar)", "i" },
         [48517] = { "Eclipse (Solar)", "i" }, [1126] = { "Mark of the Wild", "i" },
+        -- Rogue
+        [48638] = { "Sinister Strike", "i" }, [6774] = { "Slice and Dice", "i" }, [48672] = { "Rupture", "i" },
+        [48668] = { "Eviscerate", "i" }, [51690] = { "Killing Spree", "i" }, [13750] = { "Adrenaline Rush", "i" },
+        [13877] = { "Blade Flurry", "i" }, [1766] = { "Kick", "i" }, [1752] = { "Sinister Strike", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },
@@ -542,6 +546,8 @@ function Mock.NewSession(opts)
         return session.imbues.main, 1800000, 0, session.imbues.off, 1800000, 0
     end
     env.OffhandHasWeapon = function() return session.offhandWeapon end
+    session.combo = 0 -- GetComboPoints("player", "target")
+    env.GetComboPoints = function() return session.combo end
     session.form = 0 -- GetShapeshiftForm (warrior stance)
     env.GetShapeshiftForm = function() return session.form end
     env.UnitCreatureType = function(unit) return unit == "target" and session.target.creatureType or nil end

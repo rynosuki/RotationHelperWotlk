@@ -124,6 +124,11 @@ local SIMPLE = {
     rage = Power,
     ["rage.deficit"] = PowerDeficit,
     ["rage.max"] = PowerMax,
+    -- Energy (Rogue, cat), with its regeneration up to the moment checked.
+    energy = Power,
+    ["energy.deficit"] = PowerDeficit,
+    ["energy.max"] = PowerMax,
+    combo_points = function(s) return s.comboPoints or 0 end,
     -- Warrior stances (GetShapeshiftForm: 1 battle, 2 defensive, 3 berserker).
     ["stance.battle"] = function(s) return B(s.form == 1) end,
     ["stance.defensive"] = function(s) return B(s.form == 2) end,

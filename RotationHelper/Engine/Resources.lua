@@ -29,11 +29,40 @@ local POWER_TYPES = { [0] = "mana", [1] = "rage", [2] = "focus", [3] = "energy",
 
 local min = math.min
 
+-- Regeneration can be boosted until a time (Adrenaline Rush: energy twice
+-- as fast): state.regenBoost (a factor) until state.regenBoostUntil.
+local function Gained(state, from, to)
+    local regen = state.powerRegen
+    local boostUntil = state.regenBoostUntil
+    if boostUntil and boostUntil > from then
+        local boosted = math.min(to, boostUntil) - from
+        return regen * (state.regenBoost or 1) * boosted + regen * (to - from - boosted)
+    end
+    return regen * (to - from)
+end
+
 -- The power at time `t`, with the expected regeneration.
 function Resources.PowerAt(state, t)
     local regen = state.powerRegen
     if not regen or t <= state.powerTime then return state.power end
-    return min(state.powerMax, state.power + regen * (t - state.powerTime))
+    return min(state.powerMax, state.power + Gained(state, state.powerTime, t))
+end
+
+-- When the power reaches `amount`, or nil if it never does (no regen).
+function Resources.TimeFor(state, amount)
+    local need = amount - state.power
+    if need <= 0 then return state.powerTime end
+    local regen = state.powerRegen
+    if not regen or regen <= 0 then return nil end
+    local from = state.powerTime
+    local boostUntil = state.regenBoostUntil
+    if boostUntil and boostUntil > from then
+        local fast = regen * (state.regenBoost or 1)
+        local boostedGain = fast * (boostUntil - from)
+        if boostedGain >= need then return from + need / fast end
+        return boostUntil + (need - boostedGain) / regen
+    end
+    return from + need / regen
 end
 
 ---------------------------------------------------------------------------
