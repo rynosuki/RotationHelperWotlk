@@ -20,7 +20,7 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 | E6 | **Buff stacks as a resource** (done: `buff.X.stack`, stacking procs in the simulator) | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
 | E7 | **DoT refresh rules** (done with `action.X.cast_time`; tick-aware clipping not modelled) | Affliction, Shadow, Balance, Feral | Refresh at the right time without clipping the last tick; haste-dependent tick times. |
 | E8 | **Pets, totems, forms** (totems and stances done; pets partly: `pet.alive`) | Hunter, Warlock, Shaman, Druid | Pet active/abilities, totems up, current form (`GetShapeshiftForm()`). |
-| E9 | **Auto Shot timing** | Hunter | Steady Shot shouldn't clip Auto Shot; needs the ranged swing timer. |
+| E9 | **Auto Shot timing** (done: `autoShot`, `avoidAutoClip`, `auto_shot.remains`) | Hunter | Steady Shot shouldn't clip Auto Shot; needs the ranged swing timer. |
 
 ## Specs
 
@@ -59,7 +59,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Hunter — mana (focus only arrives in Cataclysm)
 
-- [ ] **Marksmanship** (DPS) · E1, E2, E9 · Serpent Sting, Chimera Shot, Aimed Shot, Steady Shot around Auto Shot.
+- [ ] **Marksmanship** (DPS) · E1, E2, E9 · implemented in 1.30.0, waiting on an in-game check · Serpent Sting, Chimera Shot, Aimed Shot, Steady Shot around Auto Shot.
 - [ ] **Survival** (DPS) · E1, E2, E9 · Explosive Shot with Lock and Load, Black Arrow, Serpent Sting.
 - [ ] **Beast Mastery** (DPS) · E1, E2, E8, E9 · Kill Command, Bestial Wrath, pet focus.
 
@@ -88,7 +88,7 @@ Legend: role · power · engine features needed · notes.
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat** (done).
-7. **E9 Auto Shot timing** → **Hunters**.
+7. **E9 Auto Shot timing** (done) → **Hunters** (Marksmanship done).
 8. Niche specs (Subtlety Rogue, Frost Mage).
 
 ## Out of scope for now: tanks and healers

@@ -27,6 +27,7 @@ local SUITES = {
     "test_destruction",
     "test_balance",
     "test_feral",
+    "test_marksmanship",
     "test_combat",
     "test_assassination",
     "test_predict",

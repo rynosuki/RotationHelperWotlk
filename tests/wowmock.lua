@@ -426,6 +426,13 @@ function Mock.NewSession(opts)
         [46857] = { "Trauma", "i" }, [48572] = { "Shred", "i" }, [52610] = { "Savage Roar", "i" },
         [48577] = { "Ferocious Bite", "i" }, [50213] = { "Tiger's Fury", "i" }, [50334] = { "Berserk", "i" },
         [16870] = { "Clearcasting", "i" },
+        -- Hunter
+        [49052] = { "Steady Shot", "i" }, [49045] = { "Arcane Shot", "i" }, [53209] = { "Chimera Shot", "i" },
+        [49050] = { "Aimed Shot", "i" }, [49048] = { "Multi-Shot", "i" }, [49001] = { "Serpent Sting", "i" },
+        [61006] = { "Kill Shot", "i" }, [53338] = { "Hunter's Mark", "i" }, [34490] = { "Silencing Shot", "i" },
+        [3045] = { "Rapid Fire", "i" }, [23989] = { "Readiness", "i" }, [34026] = { "Kill Command", "i" },
+        [61847] = { "Aspect of the Dragonhawk", "i" }, [34074] = { "Aspect of the Viper", "i" }, [75] = { "Auto Shot", "i" },
+        [1130] = { "Hunter's Mark", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },
@@ -554,6 +561,8 @@ function Mock.NewSession(opts)
         return session.imbues.main, 1800000, 0, session.imbues.off, 1800000, 0
     end
     env.OffhandHasWeapon = function() return session.offhandWeapon end
+    session.rangedSpeed = 2.4 -- UnitRangedDamage("player")
+    env.UnitRangedDamage = function() return session.rangedSpeed, 1000, 1200 end
     session.combo = 0 -- GetComboPoints("player", "target")
     env.GetComboPoints = function() return session.combo end
     session.form = 0 -- GetShapeshiftForm (warrior stance)

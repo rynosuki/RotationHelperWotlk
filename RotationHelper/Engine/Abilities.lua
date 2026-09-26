@@ -162,7 +162,8 @@ function Abilities.ReadyAt(state, key)
     local castEnd = state.castEnd or (state.now + (state.castRemains or 0))
     if castEnd > t then t, limitedBy = castEnd, "cast" end
     -- Casts and channels can't be started while moving.
-    if state.moving and Abilities.CastTime(state, ability) > 0 then return nil, "moving" end
+    local cast = Abilities.CastTime(state, ability)
+    if state.moving and cast > 0 then return nil, "moving" end
     if not ability.offGcd and state.gcdEnd > t then t, limitedBy = state.gcdEnd, "gcd" end
 
     local cd = state.cooldowns[key]
@@ -183,6 +184,15 @@ function Abilities.ReadyAt(state, key)
         local runesAt = Abilities.RunesReadyAt(state, ability.runes, t)
         if not runesAt then return nil, "runes" end
         if runesAt > t then t, limitedBy = runesAt, "runes" end
+    end
+    -- A cast that would still be going when the next Auto Shot is due delays
+    -- it (Steady Shot). Wait for the Auto Shot instead, when waiting costs
+    -- less time than the delay would.
+    if ability.avoidAutoClip and cast > 0 and state.autoShotNext then
+        local shot = ns.AutoShot.NextAt(state, t)
+        if shot and shot > t and shot < t + cast and (shot - t) < (t + cast - shot) then
+            t, limitedBy = shot, "auto shot"
+        end
     end
     return t, limitedBy
 end
@@ -372,6 +382,11 @@ function Abilities.Apply(s, key, t)
     local cast = Abilities.CastTime(s, ability)
     local landsAt = t + cast
     s.castRemains, s.castEnd = cast, landsAt
+    -- An Auto Shot due during the cast fires when it ends instead.
+    if cast > 0 and s.autoShotNext then
+        local shot = ns.AutoShot.NextAt(s, t)
+        if shot and shot > t and shot < landsAt then s.autoShotNext = landsAt end
+    end
     if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
     if ability.reactive and s.usable then s.usable[key] = false end -- queued / used up
     if ability.nextSwing and s.queued then s.queued[key] = true end

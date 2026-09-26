@@ -119,6 +119,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
 | `energy`, `energy.deficit` / `.max` | energy (Rogue), including its regeneration up to the moment checked |
 | `combo_points` | combo points on your target |
+| `auto_shot.remains` | seconds until your next Auto Shot (Hunter; 0 when it's off) |
 | `totem.fire.up` / `.remains` (also `earth`, `water`, `air`) | your totem of that element |
 | `totem.NAME.up` / `.remains` | a specific totem, e.g. `totem.magma_totem.remains` |
 | `action.NAME.cast_time` | the ability's cast or channel time with your spell haste (0 for instants) |
@@ -218,6 +219,11 @@ Rogue: `sinister_strike`, `slice_and_dice`, `rupture` (`dot.rupture`), `eviscera
 at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`,
 `mutilate` (2 points), `envenom`, `hunger_for_blood` (needs a bleed: `dot.rupture.up` or
 `debuff.bleed.up`, anyone's), `cold_blood`.
+
+Hunter: `steady_shot` (waits for an Auto Shot it would delay, when that's cheaper), `arcane_shot`,
+`chimera_shot` (refreshes Serpent Sting), `aimed_shot` and `multi_shot` (shared cooldown),
+`serpent_sting`, `kill_shot`, `hunters_mark` (anyone's counts), `silencing_shot`, `rapid_fire`,
+`readiness`, `kill_command`, `aspect_of_the_dragonhawk`, `aspect_of_the_viper`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

@@ -66,6 +66,7 @@ Ability fields (all optional except `id`):
 | `energy` / `energyCost(spec)` | energy cost (set `energyRegen(spec)` in the class data, and `energyBoost = { aura, factor }` for buffs that speed it up; `baseGcd = 1` for a 1 second GCD) |
 | `energyGain(spec)` | energy it gives (Tiger's Fury); set `freeCostAura` (Clearcasting: the next ability is free) and `costBuff = { aura, factor }` (Berserk) in the class data for class-wide cost changes |
 | `comboGain` / `finisher` | builders add combo points; finishers need one and use them all (`s.comboPointsSpent` in their `apply`) |
+| `avoidAutoClip` | a cast that waits for the next Auto Shot rather than delaying it, when waiting is cheaper (set `autoShot = true` in the class data) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 

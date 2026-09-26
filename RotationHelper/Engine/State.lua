@@ -172,6 +172,7 @@ function State:Reset(now)
     t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
     ns.Dots:Read(s, now)
     if classData.usesTotems then ReadTotems(s, classData) end
+    if classData.autoShot then ns.AutoShot:Read(s, now) end
 
     local pullRemains = ns.PullTimer:Remains(now)
     s.pullAt = pullRemains and (now + pullRemains) or nil

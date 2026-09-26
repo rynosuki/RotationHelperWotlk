@@ -50,7 +50,8 @@ Display.COLOR_PRESETS = {
 }
 
 -- What the main icon waits on, when it's more than a GCD away.
-local HOLD_LABELS = { runes = "RUNES", cooldown = "COOLDOWN", cast = "CAST", wait = "WAIT" }
+local HOLD_LABELS = { runes = "RUNES", cooldown = "COOLDOWN", cast = "CAST", wait = "WAIT",
+    rage = "RAGE", energy = "ENERGY", ["auto shot"] = "AUTO" }
 
 -- Where each queued icon goes relative to the previous one.
 local GROW = {

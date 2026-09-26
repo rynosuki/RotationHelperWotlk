@@ -45,7 +45,11 @@ its bleed when nobody else has one on the target), spends 4+ points on Envenom (
 first) and builds with Mutilate. **Feral cat Druid** keeps Faerie Fire and Mangle up (anyone's
 count), Savage Roar, Rip at 5 points and Rake, Ferocious Bite when both have long left, and
 builds with Shred; Tiger's Fury when low on energy, Berserk halving costs, Clearcasting making the
-next ability free. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+next ability free. **Marksmanship Hunter** keeps Hunter's Mark and Serpent Sting up (Chimera Shot
+refreshes it), uses Kill Shot, Chimera Shot, Aimed Shot and Arcane Shot, and fills with Steady
+Shot timed around your Auto Shot: when a Steady Shot would delay the next Auto Shot, it waits for
+it if that costs less time. Rapid Fire with Readiness, Aspect of the Viper when mana runs out;
+the checklist wants your pet out. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

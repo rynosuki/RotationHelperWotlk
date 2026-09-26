@@ -129,6 +129,11 @@ local SIMPLE = {
     ["energy.deficit"] = PowerDeficit,
     ["energy.max"] = PowerMax,
     combo_points = function(s) return s.comboPoints or 0 end,
+    -- Hunters: seconds until the next Auto Shot (0 when Auto Shot is off).
+    ["auto_shot.remains"] = function(s)
+        local shot = ns.AutoShot and ns.AutoShot.NextAt(s, s.now)
+        return shot and max(0, shot - s.now) or 0
+    end,
     -- Warrior stances (GetShapeshiftForm: 1 battle, 2 defensive, 3 berserker).
     ["stance.battle"] = function(s) return B(s.form == 1) end,
     ["stance.defensive"] = function(s) return B(s.form == 2) end,

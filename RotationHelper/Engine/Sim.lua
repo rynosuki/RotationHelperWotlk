@@ -81,6 +81,8 @@ function Sim.NewState(opts)
     s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, form
     s.totemKey, s.totemExpires = {}, {} -- no totems down at the start
     s.comboPoints = 0
+    -- Hunters: Auto Shot every simAutoShot seconds from the start.
+    if classData.autoShot then s.autoShotSpeed, s.autoShotNext = classData.simAutoShot or 2.5, 0 end
     if power and power.type == "energy" and classData.energyRegen then s.powerRegen = classData.energyRegen(ns.Spec) end
     local baseGcd = classData.baseGcd
     if type(baseGcd) == "table" then baseGcd = baseGcd[ns.Spec.key] end

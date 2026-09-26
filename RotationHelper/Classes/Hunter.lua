@@ -1,0 +1,92 @@
+local ADDON_NAME, ns = ...
+
+-- Hunter data for 3.3.5a. Spell IDs are the highest rank; mana costs are
+-- percentages of base mana (see Classes/Paladin.lua).
+--
+-- Auto Shot keeps firing on its own (Engine/AutoShot.lua). Steady Shot is a
+-- cast (`avoidAutoClip`): when it would delay the next Auto Shot it waits
+-- for it, and instants fill the gap. Ranged haste shortens Steady Shot, but
+-- the GCD stays 1.5 seconds.
+
+-- Glyph of Serpent Sting: +6 seconds.
+local function SerpentSting(spec)
+    return spec:HasGlyph("serpent_sting") and 21 or 15
+end
+
+ns.RegisterClass("HUNTER", {
+    -- A spell with no cooldown; its cooldown is the GCD.
+    gcdSpell = 1130, -- Hunter's Mark
+    baseMana = 5046, -- level 80
+    baseGcd = 1.5,   -- not shortened by haste
+    hasteProbe = "steady_shot", -- its cast time in game gives the ranged haste
+    autoShot = true,
+    interrupt = "silencing_shot",
+    prepullPet = true, -- the checklist wants your pet out
+    majorCooldowns = { "rapid_fire", "readiness" },
+    reviewDebuffs = { marksmanship = { "serpent_sting" } },
+
+    -- For the simulator: mana with ~120 per second of regen (Aspect of the
+    -- Viper when low, Replenishment, Hunting Party), Auto Shot every 2.4
+    -- seconds.
+    simPower = { type = "mana", max = 22000, start = 22000, regen = 120 },
+    simAutoShot = 2.4,
+
+    specs = { beast_mastery = false, marksmanship = true, survival = false },
+
+    abilities = {
+        -- A 2 second cast (hasted); waits for the Auto Shot it would clip.
+        steady_shot = { id = 49052, mana = 5, castTime = 2, avoidAutoClip = true },
+        arcane_shot = { id = 49045, mana = 5, cooldown = 6 },
+        -- Refreshes Serpent Sting.
+        chimera_shot = { id = 53209, mana = 12, cooldown = 10,
+            apply = function(s, spec, fx)
+                if fx.DebuffUp(s, "serpent_sting") then fx.ApplyDebuff(s, "serpent_sting", SerpentSting(spec)) end
+            end },
+        -- Glyph of Aimed Shot: -2 seconds. Shares its cooldown with Multi-Shot.
+        aimed_shot = { id = 49050, mana = 8, cooldown = 10, cooldownGroup = "aimed",
+            cooldownFn = function(spec) return spec:HasGlyph("aimed_shot") and 8 or 10 end },
+        multi_shot = { id = 49048, mana = 9, cooldown = 10, cooldownGroup = "aimed" },
+        serpent_sting = { id = 49001, mana = 9,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "serpent_sting", SerpentSting(spec)) end },
+        -- Below 20% health only (the rotation checks target.health.pct).
+        kill_shot = { id = 61006, mana = 7, cooldown = 15 },
+        hunters_mark = { id = 53338, mana = 2,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "hunters_mark", 300) end },
+        silencing_shot = { id = 34490, mana = 6, cooldown = 20, offGcd = true },
+        -- Rapid Killing: -1 minute per rank.
+        rapid_fire = { id = 3045, mana = 3, cooldown = 300, offGcd = true,
+            cooldownFn = function(spec) return 300 - 60 * spec:TalentRank("rapid_killing") end,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "rapid_fire", 15) end },
+        -- Finishes the cooldown of your other Hunter abilities (not trinkets,
+        -- potions or racials).
+        readiness = { id = 23989, cooldown = 180, offGcd = true,
+            apply = function(s, spec, fx)
+                for key, cd in pairs(s.cooldowns) do
+                    if key ~= "readiness" and not ns.SharedAbilities[key] and cd.readyAt > s.now then
+                        cd.readyAt = s.now
+                    end
+                end
+            end },
+        kill_command = { id = 34026, mana = 3, cooldown = 60, offGcd = true },
+        aspect_of_the_dragonhawk = { id = 61847,
+            apply = function(s, spec, fx)
+                fx.RemoveBuff(s, "aspect_of_the_viper")
+                fx.ApplyBuff(s, "aspect_of_the_dragonhawk")
+            end },
+        aspect_of_the_viper = { id = 34074,
+            apply = function(s, spec, fx)
+                fx.RemoveBuff(s, "aspect_of_the_dragonhawk")
+                fx.ApplyBuff(s, "aspect_of_the_viper")
+            end },
+    },
+
+    auras = {
+        serpent_sting = { id = 49001, debuff = true },
+        -- Anyone's Hunter's Mark counts.
+        hunters_mark = { id = 53338, debuff = true, anySource = true },
+        rapid_fire = { id = 3045 },
+        aspect_of_the_dragonhawk = { id = 61847 },
+        aspect_of_the_viper = { id = 34074 },
+        bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
+    },
+})
