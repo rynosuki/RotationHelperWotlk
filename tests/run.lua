@@ -29,6 +29,7 @@ local SUITES = {
     "test_feral",
     "test_marksmanship",
     "test_survival",
+    "test_beast_mastery",
     "test_combat",
     "test_assassination",
     "test_predict",

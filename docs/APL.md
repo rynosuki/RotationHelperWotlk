@@ -224,7 +224,9 @@ Hunter: `steady_shot` (waits for an Auto Shot it would delay, when that's cheape
 `chimera_shot` (refreshes Serpent Sting), `aimed_shot` and `multi_shot` (shared cooldown),
 `serpent_sting`, `kill_shot`, `hunters_mark` (anyone's counts), `silencing_shot`, `rapid_fire`,
 `readiness`, `kill_command`, `aspect_of_the_dragonhawk`, `aspect_of_the_viper`, `explosive_shot`
-(free and without its cooldown with `buff.lock_and_load`, two charges), `black_arrow`.
+(free and without its cooldown with `buff.lock_and_load`, two charges), `black_arrow`,
+`bestial_wrath` (Kill Command and Bestial Wrath need your pet; `buff.the_beast_within` halves
+your costs).
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

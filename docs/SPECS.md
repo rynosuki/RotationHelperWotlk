@@ -61,7 +61,7 @@ Legend: role · power · engine features needed · notes.
 
 - [ ] **Marksmanship** (DPS) · E1, E2, E9 · implemented in 1.30.0, waiting on an in-game check · Serpent Sting, Chimera Shot, Aimed Shot, Steady Shot around Auto Shot.
 - [ ] **Survival** (DPS) · E1, E2, E9 · implemented in 1.31.0 (`ignoreCooldownWith` for Lock and Load), waiting on an in-game check · Explosive Shot with Lock and Load, Black Arrow, Serpent Sting.
-- [ ] **Beast Mastery** (DPS) · E1, E2, E8, E9 · Kill Command, Bestial Wrath, pet focus.
+- [ ] **Beast Mastery** (DPS) · E1, E2, E8, E9 · implemented in 1.32.0, waiting on an in-game check · Kill Command, Bestial Wrath, pet focus.
 
 ### Mage — mana
 
@@ -88,7 +88,7 @@ Legend: role · power · engine features needed · notes.
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat** (done).
-7. **E9 Auto Shot timing** (done) → **Hunters** (Marksmanship, Survival done).
+7. **E9 Auto Shot timing** (done) → **Hunters** (done).
 8. Niche specs (Subtlety Rogue, Frost Mage).
 
 ## Out of scope for now: tanks and healers

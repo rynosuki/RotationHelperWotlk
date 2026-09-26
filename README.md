@@ -51,7 +51,9 @@ Shot timed around your Auto Shot: when a Steady Shot would delay the next Auto S
 it if that costs less time. Rapid Fire with Readiness, Aspect of the Viper when mana runs out;
 the checklist wants your pet out. **Survival Hunter** uses Explosive Shot on cooldown (twice,
 free and without the cooldown, with Lock and Load), Black Arrow, Serpent Sting, Aimed Shot and
-Steady Shot, with the same Auto Shot timing. See [docs/SPECS.md](docs/SPECS.md) for
+Steady Shot, with the same Auto Shot timing. **Beast Mastery Hunter** adds Kill Command on
+cooldown and Bestial Wrath with Rapid Fire (The Beast Within halves your costs); both need your
+pet out. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install
