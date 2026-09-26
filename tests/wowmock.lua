@@ -411,6 +411,13 @@ function Mock.NewSession(opts)
         [48158] = { "Shadow Word: Death", "i" }, [34433] = { "Shadowfiend", "i" }, [47585] = { "Dispersion", "i" },
         [15473] = { "Shadowform", "i" }, [48168] = { "Inner Fire", "i" }, [15286] = { "Vampiric Embrace", "i" },
         [15487] = { "Silence", "i" }, [15258] = { "Shadow Weaving", "i" }, [1243] = { "Power Word: Fortitude", "i" },
+        -- Mage
+        [42833] = { "Fireball", "i" }, [42891] = { "Pyroblast", "i" }, [55360] = { "Living Bomb", "i" },
+        [42859] = { "Scorch", "i" }, [42873] = { "Fire Blast", "i" }, [42926] = { "Flamestrike", "i" },
+        [11129] = { "Combustion", "i" }, [55342] = { "Mirror Image", "i" }, [12051] = { "Evocation", "i" },
+        [43046] = { "Molten Armor", "i" }, [2139] = { "Counterspell", "i" }, [48108] = { "Hot Streak", "i" },
+        [22959] = { "Improved Scorch", "i" }, [12579] = { "Winter's Chill", "i" }, [17800] = { "Shadow Mastery", "i" },
+        [1459] = { "Arcane Intellect", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells

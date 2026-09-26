@@ -31,8 +31,8 @@ test("locked display is click-through and hidden without recommendations", funct
 end)
 
 test("unsupported class shows nothing even when unlocked", function()
-    local s = newAddon({ class = "MAGE" })
-    falsy(display(s).frame:IsShown(), "hidden for MAGE")
+    local s = newAddon({ class = "ROGUE" })
+    falsy(display(s).frame:IsShown(), "hidden for ROGUE")
 end)
 
 test("/rh test shows sample icons while locked", function()

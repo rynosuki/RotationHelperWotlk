@@ -20,6 +20,7 @@ local SUITES = {
     "test_arms",
     "test_enhancement",
     "test_shadow",
+    "test_fire",
     "test_predict",
     "test_targets",
     "test_options",

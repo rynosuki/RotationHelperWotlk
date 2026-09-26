@@ -143,11 +143,11 @@ test("/rh without the dialog prints help instead", function()
 end)
 
 test("the rotation tab is hidden for classes without data", function()
-    local s = newAddon({ class = "MAGE" })
+    local s = newAddon({ class = "ROGUE" })
     truthy(Options(s):GetOptionsTable().args.rotation.hidden(), "hidden")
     s:ClearChat()
     s:Slash("ACECONSOLE_RH", "apl")
-    truthy(s:ChatContains("No rotation support for MAGE"), "message")
+    truthy(s:ChatContains("No rotation support for ROGUE"), "message")
 end)
 
 test("general and display settings write to the profile", function()

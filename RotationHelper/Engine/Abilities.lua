@@ -88,9 +88,16 @@ Abilities.RunicPowerGain = Abilities.PowerGain
 -- How long using an ability keeps you busy casting or channelling (0 for
 -- instants): `castTime` or `channel`, in base seconds, shortened by spell
 -- haste (state.hasteFactor, see Engine/Cooldowns.lua).
+-- `castTimeFn(spec)` gives the base cast time when talents change it, and
+-- `instantWith` names a buff that makes it instant (Hot Streak: Pyroblast).
 function Abilities.CastTime(state, ability)
     local base = ability.castTime or ability.channel
     if not base then return 0 end
+    if ability.instantWith then
+        local rec = state.buffs[ability.instantWith]
+        if rec and rec.expires > state.now then return 0 end
+    end
+    if ability.castTimeFn then base = ability.castTimeFn(ns.Spec) end
     return base * (state.hasteFactor or 1)
 end
 
@@ -173,7 +180,7 @@ function Abilities.SpendsProc(state, key, proc, t)
     local rec = state.buffs[proc]
     if not (rec and rec.expires > t) then return nil end
     local ability = RH.classData.abilities[key]
-    if ability.freeWith == proc then return rec.expires end
+    if ability.freeWith == proc or ability.instantWith == proc then return rec.expires end
     if ability.consumes then
         for _, consumed in ipairs(ability.consumes) do
             if consumed == proc then return rec.expires end
@@ -353,6 +360,7 @@ function Abilities.Apply(s, key, t)
     if ability.consumes then
         for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end
     end
+    if ability.instantWith then Effects.RemoveBuff(s, ability.instantWith) end
     s.now = landsAt
     if ability.apply then ability.apply(s, ns.Spec, Effects) end
     s.now = t

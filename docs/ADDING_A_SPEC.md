@@ -60,6 +60,8 @@ Ability fields (all optional except `id`):
 | `cooldownGroup` | abilities sharing one cooldown (the Shaman shocks) |
 | `totem` + `totemDuration` | a totem of that element (set `usesTotems` in the class data) |
 | `castTime` / `channel` | cast or channel time in base seconds (set `hasteProbe` in the class data: an ability with a fixed `castTime` whose hasted cast time gives your spell haste) |
+| `castTimeFn(spec)` | the base cast time when talents change it (Improved Fireball) |
+| `instantWith` | a buff that makes the cast instant and is used up (Hot Streak for Pyroblast) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 

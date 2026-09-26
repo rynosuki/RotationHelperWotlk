@@ -189,6 +189,10 @@ Priest: `vampiric_touch`, `shadow_word_pain`, `devouring_plague` (all `dot.*`), 
 `inner_fire`, `vampiric_embrace`, `silence`. Abilities with a cast time aren't suggested while
 you're moving, and the next ability waits for the cast or channel to finish.
 
+Mage: `fireball`, `pyroblast` (instant with `buff.hot_streak`), `living_bomb` (`dot.living_bomb`),
+`scorch` (`debuff.improved_scorch`: anyone's, or Winter's Chill / Shadow Mastery), `fire_blast`,
+`flamestrike`, `combustion`, `mirror_image`, `evocation`, `molten_armor`, `counterspell`.
+
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),
 `potion` (Potion of Speed, or Indestructible Potion, from your bags; once per combat),
