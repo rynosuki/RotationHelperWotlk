@@ -45,7 +45,7 @@ what's planned.
 | Blue icon | Waiting on runes. |
 | Red icon | Your target is out of range for it. |
 | Text in the corner | The key the ability is bound to. |
-| `CD` under the big icon | Green: cooldowns are recommended. Red: they're not. |
+| `CD` under the big icon | Green: cooldowns are recommended now. Yellow: on, but waiting for a boss. Red: off. |
 | `POT` next to it (while you have a potion) | Green: potions can be suggested now. Yellow: on, but waiting for a boss. Red: off. |
 | `ST` / `AOE` / a number under the big icon | The AoE mode is forced to single target / AoE, or (auto mode) how many enemies are counted. |
 
@@ -104,6 +104,9 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
   armor or health on-use are left to you. General > Trinkets can change that and shows how your
   trinkets were read. A potion is suggested once per combat,
   with Bloodlust or near the end of a fight.
+- **Bosses only**: cooldowns (with racials and trinkets) are by default only suggested in boss
+  fights, the same as consumables below. "Only against bosses" under the Cooldowns toggle turns
+  that off. On trash the fight review doesn't count them as unused either.
 - **Consumables**: potions have their own toggle (the `POT` chip, `/rh pots`, a key binding). By
   default they're only suggested against bosses, so trash and add pulls don't use them. A boss is
   a skull-level target, any target while boss frames are up, or a target whose name is on the

@@ -89,7 +89,6 @@ function State:Reset(now)
         end
     end
     local toggles = RH.db.profile.toggles
-    s.cooldownsEnabled = toggles.cooldowns
 
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
@@ -99,6 +98,8 @@ function State:Reset(now)
     -- a boss targeted (skull level, "worldboss", or a known boss name,
     -- Engine/Bosses.lua), or boss frames up.
     s.bossFight = State.IsBossFight(s.target)
+    -- Cooldowns likewise: toggled on, and by default only in boss fights.
+    s.cooldownsEnabled = toggles.cooldowns and (s.bossFight or not toggles.cooldownsBossOnly) or false
     s.consumablesAllowed = toggles.consumables and (s.bossFight or not RH.db.profile.items.consumablesBossOnly) or false
     ReadCast(s, now)
 

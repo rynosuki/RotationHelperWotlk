@@ -94,6 +94,7 @@ test("expressions: power, gcd, time, toggles, talents, glyphs", function()
     s:FireEvent("PLAYER_REGEN_DISABLED")
     s.time = s.time + 12
     near(Eval(s, "time"), 12, "combat time")
+    s.hasTarget = true -- a boss (cooldowns are for bosses only by default)
     eq(Eval(s, "toggle.cooldowns"), 1, "cooldowns on")
     RH.db.profile.toggles.cooldowns = false
     eq(Eval(s, "toggle.cooldowns"), 0, "cooldowns off")

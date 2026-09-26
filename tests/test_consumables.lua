@@ -52,6 +52,8 @@ test("the toggle turns them off; 'only against bosses' can be turned off", funct
     Trash(s)
     local args = s.ns.Options:GetOptionsTable().args.general.args
     args.consumablesBossOnly.set(nil, false)
+    falsy(First(s) == "potion", "the potion line is in the cooldowns list, which is for bosses only too")
+    RH.db.profile.toggles.cooldownsBossOnly = false
     eq(First(s), "potion", "everywhere")
     truthy(s.env.BINDING_NAME_ROTATIONHELPER_TOGGLE_CONSUMABLES, "key binding")
 end)
@@ -120,4 +122,42 @@ test("known bosses: extra names from the options; the options show the target", 
     truthy(args.bossTarget.name():find("counts as a boss", 1, true), "now a boss")
     args.extraBosses.set(nil, "")
     falsy(First(s) == "potion", "removed again")
+end)
+
+---------------------------------------------------------------------------
+-- Cooldowns: bosses only too
+---------------------------------------------------------------------------
+test("cooldowns only against bosses by default; the CD chip shows it", function()
+    local s, RH = Fight()
+    s.bags[40211] = nil
+    s:FireEvent("BAG_UPDATE")
+    s:Learn("Unbreakable Armor")
+    local D = s.ns.Display
+    eq(First(s), "unbreakable_armor", "boss: cooldowns")
+    eq(D.frame.cdChip.text:GetText(), "|cff40ff40CD|r", "green")
+    Trash(s)
+    s.target.name = "Ymirjar Deathbringer"
+    falsy(First(s) == "unbreakable_armor", "trash: none")
+    eq(D.frame.cdChip.text:GetText(), "|cffffd100CD|r", "yellow: waiting for a boss")
+    s.target.name = "Ingvar the Plunderer"
+    eq(First(s), "unbreakable_armor", "a known boss by name")
+    s.target.name = "Ymirjar Deathbringer"
+    s.ns.Options:GetOptionsTable().args.general.set({ "cooldownsBossOnly" }, false) -- the group's setter
+    eq(RH.db.profile.toggles.cooldownsBossOnly, false, "option")
+    eq(First(s), "unbreakable_armor", "'only against bosses' off")
+    s:Slash("ACECONSOLE_RH", "cd")
+    falsy(First(s) == "unbreakable_armor", "toggled off")
+    eq(D.frame.cdChip.text:GetText(), "|cffff4040CD|r", "red")
+end)
+
+test("the review doesn't count cooldowns as unused on trash", function()
+    local s, RH = Fight()
+    s:Learn("Unbreakable Armor")
+    Trash(s)
+    s.target.name = "Ymirjar Deathbringer"
+    for _ = 1, 250 do s:Tick(0.1) end
+    s:FireEvent("PLAYER_REGEN_ENABLED")
+    local review = RH.db.char.reviews[#RH.db.char.reviews]
+    truthy(review, "reviewed")
+    eq(#review.cooldowns, 0, "no unused cooldowns on trash")
 end)

@@ -507,7 +507,13 @@ function Display:UpdateStatus()
         return
     end
     local toggles = RH.db.profile.toggles
-    SetChipText(f.cdChip, toggles.cooldowns and "|cff40ff40CD|r" or "|cffff4040CD|r")
+    -- CD: green when cooldowns are suggested now, yellow when on but waiting
+    -- for a boss ("bosses only"), red when off.
+    local cdText = "|cffff4040CD|r"
+    if toggles.cooldowns then
+        cdText = ns.State.real.cooldownsEnabled and "|cff40ff40CD|r" or "|cffffd100CD|r"
+    end
+    SetChipText(f.cdChip, cdText)
 
     -- POT: green when consumables would be suggested now, yellow when on but
     -- waiting for a boss, red when off. Only while you have a consumable.

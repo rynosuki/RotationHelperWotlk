@@ -23,6 +23,7 @@ local min, max, floor = math.min, math.max, math.floor
 local tinsert, tremove, sort, wipe = table.insert, table.remove, table.sort, wipe
 
 local MAX_REVIEWS = 10
+local EMPTY = {}
 local MAX_SAMPLE_GAP = 0.5 -- longer gaps between updates aren't counted
 local MAX_MISTAKES_KEPT = 50
 local PAIRS = { { 1, 2 }, { 3, 4 }, { 5, 6 } }
@@ -76,7 +77,9 @@ function Review:Sample(s, recs)
         local rec = s.debuffs[key]
         if rec and rec.expires > now then fight.debuffs[key] = (fight.debuffs[key] or 0) + dt end
     end
-    for _, key in ipairs(classData.majorCooldowns or {}) do
+    -- Unused cooldowns aren't counted on trash when cooldowns are for bosses only.
+    local trashFight = RH.db.profile.toggles.cooldownsBossOnly and not s.bossFight
+    for _, key in ipairs(trashFight and EMPTY or classData.majorCooldowns or EMPTY) do
         local cd = s.cooldowns[key]
         if ns.Spec.known[key] and (not cd or cd.readyAt <= now) then
             fight.cooldowns[key] = (fight.cooldowns[key] or 0) + dt

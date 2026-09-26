@@ -162,6 +162,10 @@ function Options:BuildOptionsTable()
         args = {
             cooldowns = { type = "toggle", name = "Cooldowns", order = 1,
                 desc = "Recommend major cooldowns (Unbreakable Armor, Empower Rune Weapon, ...)." },
+            cooldownsBossOnly = { type = "toggle", name = "Only against bosses", order = 1.05,
+                desc = "Cooldowns (and racials and trinkets) only while you target a boss or boss frames are "
+                    .. "up, so trash and add pulls don't use them.",
+                disabled = function() return not RH.db.profile.toggles.cooldowns end },
             consumables = { type = "toggle", name = "Consumables", order = 1.1,
                 desc = "Suggest potions (the POT chip under the icons)." },
             consumablesBossOnly = { type = "toggle", name = "Only against bosses", order = 1.2,
@@ -176,7 +180,8 @@ function Options:BuildOptionsTable()
                     .. "here: names separated by commas.",
                 disabled = function()
                     local p = RH.db.profile
-                    return not (p.toggles.consumables and p.items.consumablesBossOnly)
+                    return not ((p.toggles.consumables and p.items.consumablesBossOnly)
+                        or (p.toggles.cooldowns and p.toggles.cooldownsBossOnly))
                 end,
                 get = function() return RH.db.profile.items.extraBosses end,
                 set = function(_, value) RH.db.profile.items.extraBosses = value; Changed() end },

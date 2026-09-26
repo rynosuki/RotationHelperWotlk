@@ -72,6 +72,7 @@ local defaults = {
         updateInterval = 0.1, -- seconds between recommendation refreshes
         toggles = {
             cooldowns = true,
+            cooldownsBossOnly = true, -- cooldowns only in boss fights (Engine/Bosses.lua)
             consumables = true, -- potions (see items.consumablesBossOnly)
             aoeMode = "auto", -- auto | single | aoe
         },
@@ -365,7 +366,7 @@ end
 function RH:ToggleCooldowns()
     local t = self.db.profile.toggles
     t.cooldowns = not t.cooldowns
-    self:Print("Cooldowns: " .. Utils.OnOff(t.cooldowns))
+    self:Print("Cooldowns: " .. Utils.OnOff(t.cooldowns) .. (t.cooldowns and t.cooldownsBossOnly and " (bosses only)" or ""))
     self:SettingChangedOutsideOptions()
 end
 
@@ -509,7 +510,8 @@ function RH:PrintStatus()
     self:Print(("v%s, class %s (%s)"):format(self.version, self.playerClass or "?",
         self.classSupported and "supported" or "not supported"))
     print("  Enabled: " .. Utils.OnOff(p.enabled) .. "  Paused: " .. Utils.OnOff(p.paused))
-    print("  Cooldowns: " .. Utils.OnOff(p.toggles.cooldowns) .. "  AoE mode: " .. p.toggles.aoeMode)
+    print("  Cooldowns: " .. Utils.OnOff(p.toggles.cooldowns) .. (p.toggles.cooldownsBossOnly and " (bosses only)" or "")
+        .. "  AoE mode: " .. p.toggles.aoeMode)
     print("  Consumables: " .. Utils.OnOff(p.toggles.consumables)
         .. (p.items.consumablesBossOnly and " (bosses only)" or ""))
     print("  Display locked: " .. Utils.OnOff(p.display.locked) .. "  Debug: " .. Utils.OnOff(p.debug))
