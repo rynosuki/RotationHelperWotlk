@@ -14,6 +14,7 @@ local UnitHealth, UnitHealthMax, UnitLevel, UnitClassification =
     UnitHealth, UnitHealthMax, UnitLevel, UnitClassification
 local UnitCastingInfo, UnitChannelInfo, GetUnitSpeed = UnitCastingInfo, UnitChannelInfo, GetUnitSpeed
 local GetCVar, GetNetStats, tonumber = GetCVar, GetNetStats, tonumber
+local IsUsableSpell, IsCurrentSpell = IsUsableSpell, IsCurrentSpell
 
 State.real = {
     now = 0,
@@ -27,6 +28,7 @@ State.real = {
     readySince = {}, -- ability key -> when its cooldown last became ready
     otherDots = {},      -- dot key -> enemies other than the target with it (Engine/Dots.lua)
     otherDotsUntil = {}, -- dot key -> when those run out (math.huge: until the log says so)
+    usable = {},         -- reactive ability key -> usable right now (Rune Strike)
 }
 
 local function ReadTarget(t)
@@ -68,6 +70,16 @@ function State:Reset(now)
     s.combatStart = RH.combatStart
     s.petAlive = (UnitExists("pet") and not UnitIsDead("pet")) and true or false
     s.moving = GetUnitSpeed and GetUnitSpeed("player") > 0 or false
+    local healthMax = UnitHealthMax("player")
+    s.healthPct = healthMax > 0 and UnitHealth("player") / healthMax * 100 or 100
+    -- Reactive abilities: usable (after a dodge or parry) and not already
+    -- queued for the next swing.
+    for key, ability in pairs(classData.abilities) do
+        if ability.reactive then
+            local name = ability.name
+            s.usable[key] = (name and IsUsableSpell(name) and not IsCurrentSpell(name)) and true or false
+        end
+    end
     local toggles = RH.db.profile.toggles
     s.cooldownsEnabled = toggles.cooldowns
 
@@ -155,6 +167,7 @@ State.virtual = {
     readySince = {},
     otherDots = {},
     otherDotsUntil = {},
+    usable = {},
 }
 
 local function CopyAuras(dst, src)
@@ -205,6 +218,7 @@ function State.CopyInto(dst, src)
     CopyMap(dst.readySince, src.readySince)
     CopyMap(dst.otherDots, src.otherDots)
     CopyMap(dst.otherDotsUntil, src.otherDotsUntil)
+    CopyMap(dst.usable, src.usable)
     wipe(dst.variables)
     dst.target = src.target
     return dst

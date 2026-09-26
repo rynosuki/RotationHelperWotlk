@@ -233,6 +233,7 @@ end)
 
 test("a spec without a default can get a custom rotation", function()
     local s, RH = Fight()
+    s.ns.APLs.DEATHKNIGHT.blood = nil -- as if Blood had no rotation
     s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
     eq(First(s), nil, "blood: nothing")

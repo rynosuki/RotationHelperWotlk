@@ -17,6 +17,7 @@ local ADDON_NAME, ns = ...
 --             base types become death runes if any listed talent is at rank 3
 --   apply     function(state, spec, Effects): the ability's other effects, for prediction
 --   requiresPet  true if it needs a living pet (Ghoul Frenzy)
+--   reactive  true if only usable when the game says so (Rune Strike after a dodge or parry)
 
 local EPIDEMIC_PER_RANK = 3 -- seconds added to disease duration
 local DISEASE_DURATION = 15
@@ -47,7 +48,8 @@ ns.RegisterClass("DEATHKNIGHT", {
     procs = { "killing_machine", "freezing_fog" },
     -- For the fight review: cooldowns whose unused time is reported, and
     -- debuffs whose uptime on the target is measured.
-    majorCooldowns = { "unbreakable_armor", "empower_rune_weapon", "summon_gargoyle", "deathchill" },
+    majorCooldowns = { "unbreakable_armor", "empower_rune_weapon", "summon_gargoyle", "deathchill",
+        "dancing_rune_weapon", "hysteria" },
     reviewDebuffs = { "frost_fever", "blood_plague" },
     -- Diseases Pestilence spreads; tracked on other enemies (Engine/Dots.lua).
     spreadDots = { "frost_fever", "blood_plague" },
@@ -65,7 +67,7 @@ ns.RegisterClass("DEATHKNIGHT", {
           perMinute = function(spec) return spec:TalentRank("killing_machine") end },
     },
 
-    specs = { blood = false, frost = true, unholy = true },
+    specs = { blood = true, frost = true, unholy = true },
 
     abilities = {
         icy_touch = { id = 49909, runes = { frost = 1 }, rp = -10, rpGain = ChillOfTheGrave,
@@ -130,6 +132,17 @@ ns.RegisterClass("DEATHKNIGHT", {
         summon_gargoyle = { id = 49206, rp = 60, cooldown = 180 },
         bone_shield = { id = 49222, runes = { unholy = 1 }, rp = -10, cooldown = 60,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "bone_shield", 300) end },
+
+        -- Blood
+        heart_strike = { id = 55262, runes = { blood = 1 }, rp = -10 },
+        -- Hits with the next swing, only after a dodge or parry (tanking).
+        rune_strike = { id = 56815, rp = 20, offGcd = true, reactive = true },
+        dancing_rune_weapon = { id = 49028, rp = 60, cooldown = 90 },
+        hysteria = { id = 49016, cooldown = 180, offGcd = true,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "hysteria", 30) end },
+        rune_tap = { id = 48982, runes = { blood = 1 }, cooldown = 60, offGcd = true },
+        vampiric_blood = { id = 55233, runes = { blood = 1 }, cooldown = 60, offGcd = true,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "vampiric_blood", 10) end },
     },
 
     -- Buffs are read from the player, debuffs from the target. Debuffs only
@@ -148,5 +161,7 @@ ns.RegisterClass("DEATHKNIGHT", {
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
         desolation = { id = 66803 },           -- from Blood Strike, Unholy talent
         bone_shield = { id = 49222 },
+        hysteria = { id = 49016 },
+        vampiric_blood = { id = 55233 },
     },
 })

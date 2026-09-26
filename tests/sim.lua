@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <frost|unholy> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,20 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    blood = {
+        talents = {
+            { name = "Blood", talents = { { "Heart Strike", 1 }, { "Dancing Rune Weapon", 1 }, { "Hysteria", 1 },
+                { "Rune Tap", 1 }, { "Vampiric Blood", 1 }, { "Butchery", 2 }, { "Subversion", 3 },
+                { "Bladed Armor", 5 }, { "Blood-Caked Blade", 3 }, { "Veteran of the Third War", 3 },
+                { "Might of Mograine", 3 }, { "Bloody Vengeance", 3 }, { "Improved Death Strike", 2 },
+                { "Sudden Doom", 3 }, { "Blood Gorged", 5 }, { "Dark Conviction", 5 } } },
+            { name = "Frost", talents = { { "Improved Icy Touch", 3 } } },
+            { name = "Unholy", talents = { { "Epidemic", 2 }, { "Virulence", 3 }, { "Morbidity", 3 } } },
+        },
+        spells = { "Icy Touch", "Plague Strike", "Heart Strike", "Death Strike", "Death Coil", "Pestilence",
+            "Blood Boil", "Death and Decay", "Horn of Winter", "Blood Tap", "Empower Rune Weapon",
+            "Dancing Rune Weapon", "Hysteria", "Rune Tap", "Vampiric Blood", "Rune Strike", "Mind Freeze" },
+    },
     frost = {
         talents = {
             { name = "Blood", talents = { { "Subversion", 3 }, { "Butchery", 2 } } },
@@ -45,7 +59,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <frost|unholy> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

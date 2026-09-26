@@ -22,10 +22,11 @@ UI/Display, Keybinds, Options
 Load order is in `RotationHelper.toc`: class files after `Core.lua`, APL files after the `APL/`
 modules, `Engine/Recommender.lua` after the APL files.
 
-## A new Death Knight spec (Blood)
+## A new Death Knight spec
 
-Frost and Unholy are done: [APLs/DeathKnight_Unholy.lua](../RotationHelper/APLs/DeathKnight_Unholy.lua)
-and [tests/test_unholy.lua](../tests/test_unholy.lua) are the most recent worked example of these steps.
+All three Death Knight specs are done: [APLs/DeathKnight_Blood.lua](../RotationHelper/APLs/DeathKnight_Blood.lua)
+and [tests/test_blood.lua](../tests/test_blood.lua) are the most recent worked example of these steps
+(the Blood examples below show how it was done).
 
 ### 1. Add missing abilities and auras
 
@@ -49,6 +50,7 @@ Ability fields (all optional except `id`):
 | `consumes` | buff keys it uses up, e.g. `{ "killing_machine" }` |
 | `convert` | death rune conversion: `{ runes = { blood = true }, talents = { "blood_of_the_north" } }` |
 | `requiresPet` | `true` if it needs a living pet, like Ghoul Frenzy |
+| `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
 Trinkets (`trinket1`, `trinket2`), `potion` and the DPS racials (`blood_fury`, `berserking`,

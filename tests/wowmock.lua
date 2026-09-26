@@ -366,6 +366,8 @@ function Mock.NewSession(opts)
         [49206] = { "Summon Gargoyle", "i" }, [49222] = { "Bone Shield", "i" }, [66803] = { "Desolation", "i" },
         [20572] = { "Blood Fury", "i" }, [26297] = { "Berserking", "i" }, [50613] = { "Arcane Torrent", "i" },
         [53908] = { "Speed", "i" },
+        [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
+        [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells
         [58647] = { "Glyph of Frost Strike", "i" }, [58671] = { "Glyph of Obliterate", "i" },
     }
@@ -433,8 +435,21 @@ function Mock.NewSession(opts)
         if not t or target ~= "target" or not session.hasTarget then return nil end
         return t.isTanking, t.isTanking and 3 or 1, t.scaledPercent, t.scaledPercent, 1000
     end
-    env.UnitHealth = function(unit) return unit == "target" and session.target.health or 0 end
-    env.UnitHealthMax = function(unit) return unit == "target" and session.target.healthMax or 0 end
+    -- session.player = { health, healthMax }
+    session.player = { health = 20000, healthMax = 20000 }
+    env.UnitHealth = function(unit)
+        if unit == "player" then return session.player.health end
+        return unit == "target" and session.target.health or 0
+    end
+    env.UnitHealthMax = function(unit)
+        if unit == "player" then return session.player.healthMax end
+        return unit == "target" and session.target.healthMax or 0
+    end
+    -- Reactive spells (Rune Strike): session.usable[name] = true after a
+    -- dodge or parry; session.current[name] = true while queued for the next swing.
+    session.usable, session.current = {}, {}
+    env.IsUsableSpell = function(name) return session.usable[name] or false, false end
+    env.IsCurrentSpell = function(name) return session.current[name] or false end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
     env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
     -- The target's cast/channel: session.targetCast / targetChannel =

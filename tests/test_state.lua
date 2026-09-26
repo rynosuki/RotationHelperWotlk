@@ -95,6 +95,7 @@ end)
 
 test("a spec without a rotation is flagged unsupported", function()
     local s = newAddon()
+    s.env.RotationHelper.classData.specs.blood = false -- as if Blood had no rotation
     s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
     eq(s.ns.Spec.key, "blood", "spec")

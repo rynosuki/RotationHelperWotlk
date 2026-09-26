@@ -207,7 +207,7 @@ local SIMPLE_NAMES = {
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
     "target.health.pct", "target.time_to_die", "toggle.cooldowns",
     "pull.active", "pull.remains", "burst.active", "burst.remains",
-    "diseased_enemies",
+    "diseased_enemies", "health.pct",
 }
 local ACTION_TEMPLATES = {
     "call_action_list,name=", "run_action_list,name=", "variable,name=,value=", "wait,sec=",

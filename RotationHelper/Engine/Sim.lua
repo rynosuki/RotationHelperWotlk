@@ -68,6 +68,8 @@ function Sim.NewState(opts)
     s.burstUntil = 0 -- no burst buffs (and no pull timer) in a simulation
     -- The other enemies start without diseases; Pestilence spreads them.
     s.otherDots, s.otherDotsUntil, s.otherDiseased, s.otherDiseasedUntil = {}, {}, 0, 0
+    -- Full health, and no dodges or parries (Rune Strike never comes up).
+    s.healthPct, s.usable = 100, {}
     return s
 end
 

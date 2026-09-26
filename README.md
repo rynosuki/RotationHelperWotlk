@@ -4,8 +4,10 @@ A Hekili-style rotation helper for **World of Warcraft 3.3.5a** (WotLK), tested 
 It shows the ability to press next, plus a prediction of the few after it, based on a
 priority list you can read and edit in game.
 
-Supported so far: **Frost** and **Unholy Death Knight**. Blood can get a rotation by writing one
-in the in-game editor. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+Supported so far: all three **Death Knight** specs: **Frost**, **Unholy** and **Blood**. Blood
+plays the DPS rotation in Blood Presence and switches to a tank list in Frost Presence (Rune
+Strike after dodges and parries, Rune Tap and Vampiric Blood when you're hurt, runic power kept
+for Rune Strike). Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

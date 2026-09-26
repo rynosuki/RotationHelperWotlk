@@ -130,6 +130,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `moving` | 1 while moving |
 | `pet.alive` | 1 while your pet (ghoul) is out and alive |
 | `target.health.pct` | target health percent |
+| `health.pct` | your own health percent (for defensives like Rune Tap) |
 | `target.time_to_die` | estimated seconds until the target dies (3600 if unknown, e.g. training dummies) |
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
 | `glyph.NAME.enabled` | glyph by name without "Glyph of", e.g. `glyph.disease.enabled` |
@@ -149,7 +150,11 @@ Death Knight: `icy_touch`, `plague_strike`, `obliterate`, `frost_strike`, `howli
 `scourge_strike`, `blood_strike`, `pestilence`, `blood_boil`, `death_and_decay`, `death_coil`,
 `death_strike`, `horn_of_winter`, `blood_tap`, `unbreakable_armor`, `empower_rune_weapon`,
 `deathchill`, `ghoul_frenzy`, `summon_gargoyle`, `bone_shield`, `army_of_the_dead`, `raise_dead`,
-`mind_freeze`.
+`mind_freeze`, `heart_strike`, `rune_strike`, `dancing_rune_weapon`, `hysteria`, `rune_tap`,
+`vampiric_blood`.
+
+`rune_strike` is only considered while the game allows it (after you dodge or parry) and it isn't
+already queued for your next swing.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if it has a use effect),
 `potion` (Potion of Speed, or Indestructible Potion, from your bags; once per combat),

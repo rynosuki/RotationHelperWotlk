@@ -80,6 +80,8 @@ function Abilities.ReadyAt(state, key)
     if not ability then return nil, "unknown ability" end
     if not ns.Spec.known[key] then return nil, "not in spellbook" end
     if ability.requiresPet and not state.petAlive then return nil, "no pet" end
+    -- Reactive abilities (Rune Strike after a dodge or parry) only while the game allows them.
+    if ability.reactive and not (state.usable and state.usable[key]) then return nil, "not usable" end
 
     local t, limitedBy = state.now, nil
     local castEnd = state.now + (state.castRemains or 0)
@@ -266,6 +268,7 @@ function Abilities.Apply(s, key, t)
     s.now = t
     s.castRemains = 0
     if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
+    if ability.reactive and s.usable then s.usable[key] = false end -- queued / used up
 
     local cd = s.cooldowns[key]
     if cd then

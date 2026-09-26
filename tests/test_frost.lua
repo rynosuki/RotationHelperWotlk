@@ -253,6 +253,7 @@ end)
 
 test("a spec without an APL recommends nothing", function()
     local s = Fight()
+    s.ns.APLs.DEATHKNIGHT.blood = nil -- as if Blood had no rotation
     s.talentTabs[1].talents[1][2] = 51
     s:FireEvent("PLAYER_TALENT_UPDATE")
     eq(Recommend(s), nil, "blood")

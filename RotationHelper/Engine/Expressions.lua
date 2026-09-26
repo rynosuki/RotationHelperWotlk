@@ -124,6 +124,7 @@ local SIMPLE = {
     ["burst.active"] = function(s) return B((s.burstUntil or 0) > s.now) end,
     ["burst.remains"] = function(s) return max(0, (s.burstUntil or 0) - s.now) end,
     ["target.health.pct"] = function(s) return s.target.healthPct end,
+    ["health.pct"] = function(s) return s.healthPct or 100 end, -- yours
     -- 3600 when unknown or the target isn't losing health.
     ["target.time_to_die"] = function(s) return s.target.timeToDie end,
     ["toggle.cooldowns"] = function(s) return B(s.cooldownsEnabled) end,

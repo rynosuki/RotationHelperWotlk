@@ -30,7 +30,7 @@ Legend: role · power · engine features needed · notes.
 
 - [x] **Frost** (DPS) · done
 - [ ] **Unholy** (DPS) · implemented in 1.1.0, waiting on an in-game check · Scourge Strike, Desolation, Ghoul Frenzy, Summon Gargoyle, Bone Shield.
-- [ ] **Blood** (DPS or tank) · data + APL only · Heart Strike, Hysteria, Rune Tap, Vampiric Blood. Probably separate DPS and tank lists.
+- [ ] **Blood** (DPS or tank) · implemented in 1.14.0, waiting on an in-game check · Heart Strike, Death Strike, Dancing Rune Weapon, Hysteria; in Frost Presence a tank list with Rune Strike (new: `reactive` abilities), Rune Tap and Vampiric Blood by `health.pct`.
 
 ### Paladin — mana
 
@@ -89,7 +89,7 @@ Legend: role · power · engine features needed · notes.
 
 ## Suggested order
 
-1. **Unholy DK** (done), **Blood DK**: data and APLs only, no engine work.
+1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
 2. **E1 mana costs** → **Retribution Paladin**, then **Protection Paladin**.
 3. **E3 + E4 rage** → **Fury**, **Arms**, **Protection Warrior**.
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
