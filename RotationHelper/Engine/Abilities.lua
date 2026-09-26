@@ -219,7 +219,8 @@ function Abilities.SpendsProc(state, key, proc, t)
     local rec = state.buffs[proc]
     if not (rec and rec.expires > t) then return nil end
     local ability = RH.classData.abilities[key]
-    if ability.freeWith == proc or ability.instantWith == proc or ability.ignoreCooldownWith == proc then
+    if ability.freeWith == proc or ability.instantWith == proc or ability.ignoreCooldownWith == proc
+        or ability.usesStack == proc then
         return rec.expires
     end
     -- Clearcasting (classData.freeCostAura): any ability that costs something uses it.
@@ -445,6 +446,8 @@ function Abilities.Apply(s, key, t)
         for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end
     end
     if ability.instantWith then Effects.RemoveBuff(s, ability.instantWith) end
+    -- One charge of a buff with charges (Fingers of Frost).
+    if ability.usesStack then Effects.ConsumeStack(s, ability.usesStack) end
     s.now = landsAt
     if ability.apply then ability.apply(s, ns.Spec, Effects) end
     s.now = t

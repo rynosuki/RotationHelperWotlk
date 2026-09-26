@@ -11,8 +11,8 @@ ns.RegisterClass("MAGE", {
     baseMana = 3268, -- level 80
     hasteProbe = "scorch", -- a 1.5s cast no talent changes: its cast time in game gives the spell haste
     interrupt = "counterspell",
-    procs = { "hot_streak", "missile_barrage" },
-    majorCooldowns = { "combustion", "arcane_power", "mirror_image" },
+    procs = { "hot_streak", "missile_barrage", "brain_freeze", "fingers_of_frost" },
+    majorCooldowns = { "combustion", "arcane_power", "icy_veins", "mirror_image" },
     hasPlayerDebuffs = true, -- Arcane Blast's stacks are a debuff on you
     reviewDebuffs = { fire = { "living_bomb" } },
 
@@ -29,9 +29,15 @@ ns.RegisterClass("MAGE", {
           chance = function(spec) return 0.08 * spec:TalentRank("missile_barrage") end },
         { aura = "missile_barrage", duration = 15, on = { arcane_barrage = true, fireball = true },
           chance = function(spec) return 0.04 * spec:TalentRank("missile_barrage") end },
+        -- Frost: Fingers of Frost (7/15% per chill, two charges) and Brain
+        -- Freeze (5% per rank) from Frostbolt.
+        { aura = "fingers_of_frost", duration = 15, stacks = 2, on = { frostbolt = true },
+          chance = function(spec) return ({ 0.07, 0.15 })[spec:TalentRank("fingers_of_frost")] or 0 end },
+        { aura = "brain_freeze", duration = 15, on = { frostbolt = true },
+          chance = function(spec) return 0.05 * spec:TalentRank("brain_freeze") end },
     },
 
-    specs = { arcane = true, fire = true, frost = false },
+    specs = { arcane = true, fire = true, frost = true },
 
     abilities = {
         -- Improved Fireball: -0.1 seconds per rank.
@@ -89,6 +95,36 @@ ns.RegisterClass("MAGE", {
         presence_of_mind = { id = 12043, cooldown = 120, offGcd = true,
             cooldownFn = function(spec) return 120 * (1 - 0.15 * spec:TalentRank("arcane_flows")) end,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "presence_of_mind") end },
+
+        -- Frost
+        -- Improved Frostbolt: -0.1 seconds per rank.
+        -- Frost spells use a Fingers of Frost charge (their shatter crit).
+        frostbolt = { id = 42842, mana = 11, castTime = 3, usesStack = "fingers_of_frost",
+            castTimeFn = function(spec) return 3 - 0.1 * spec:TalentRank("improved_frostbolt") end },
+        -- Instant and free with Brain Freeze (the rotation only uses it then).
+        frostfire_bolt = { id = 47610, mana = 14, castTime = 3, instantWith = "brain_freeze",
+            manaFn = function(spec, s, baseMana)
+                local rec = s.buffs.brain_freeze
+                return (rec and rec.expires > s.now) and 0 or 0.14 * baseMana
+            end },
+        ice_lance = { id = 42914, mana = 6, usesStack = "fingers_of_frost" },
+        -- Only on a frozen target; Fingers of Frost counts (one charge used).
+        deep_freeze = { id = 44572, mana = 9, cooldown = 30, reactive = true, usableWith = "fingers_of_frost",
+            usesStack = "fingers_of_frost" },
+        -- Ice Floes: -7/14/20% cooldown.
+        icy_veins = { id = 12472, mana = 3, cooldown = 180, offGcd = true,
+            cooldownFn = function(spec) return 180 * (1 - (({ 0.07, 0.14, 0.2 })[spec:TalentRank("ice_floes")] or 0)) end,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "icy_veins", 20) end },
+        -- Finishes the cooldown of your Frost spells.
+        cold_snap = { id = 11958, cooldown = 480, offGcd = true,
+            apply = function(s, spec, fx)
+                for _, key in ipairs({ "icy_veins", "deep_freeze", "summon_water_elemental" }) do
+                    local cd = s.cooldowns[key]
+                    if cd and cd.readyAt > s.now then cd.readyAt = s.now end
+                end
+            end },
+        summon_water_elemental = { id = 31687, mana = 16, cooldown = 180,
+            apply = function(s, spec, fx) fx.SummonPet(s) end },
     },
 
     auras = {
@@ -96,6 +132,9 @@ ns.RegisterClass("MAGE", {
         missile_barrage = { id = 44401 },
         arcane_blast = { id = 36032, onPlayer = true }, -- the stacking debuff on you
         arcane_power = { id = 12042 },
+        fingers_of_frost = { id = 74396 },
+        brain_freeze = { id = 57761 },
+        icy_veins = { id = 12472 },
         presence_of_mind = { id = 12043 },
         living_bomb = { id = 55360, debuff = true },
         -- The 5% crit debuff; any mage's counts, and Winter's Chill or a

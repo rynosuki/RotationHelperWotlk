@@ -453,6 +453,9 @@ function Mock.NewSession(opts)
         [42897] = { "Arcane Blast", "i" }, [36032] = { "Arcane Blast", "i" }, [42846] = { "Arcane Missiles", "i" },
         [44401] = { "Missile Barrage", "i" }, [44781] = { "Arcane Barrage", "i" }, [12042] = { "Arcane Power", "i" },
         [12043] = { "Presence of Mind", "i" },
+        [42842] = { "Frostbolt", "i" }, [47610] = { "Frostfire Bolt", "i" }, [42914] = { "Ice Lance", "i" },
+        [44572] = { "Deep Freeze", "i" }, [74396] = { "Fingers of Frost", "i" }, [57761] = { "Fireball!", "i" },
+        [12472] = { "Icy Veins", "i" }, [11958] = { "Cold Snap", "i" }, [31687] = { "Summon Water Elemental", "i" },
         -- Warlock
         [59164] = { "Haunt", "i" }, [47813] = { "Corruption", "i" }, [47843] = { "Unstable Affliction", "i" },
         [47864] = { "Curse of Agony", "i" }, [47865] = { "Curse of the Elements", "i" }, [47809] = { "Shadow Bolt", "i" },

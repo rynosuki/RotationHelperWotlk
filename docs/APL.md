@@ -201,7 +201,9 @@ Mage: `fireball`, `pyroblast` (instant with `buff.hot_streak`), `living_bomb` (`
 `flamestrike`, `combustion`, `mirror_image`, `evocation`, `molten_armor`, `counterspell`,
 `arcane_blast` (`buff.arcane_blast.stack`: the stacks on you; each makes it cost more; instant
 with Presence of Mind), `arcane_missiles` (fast and free with `buff.missile_barrage`),
-`arcane_barrage`, `arcane_power`, `presence_of_mind`.
+`arcane_barrage`, `arcane_power`, `presence_of_mind`, `frostbolt`, `frostfire_bolt` (instant and free
+with `buff.brain_freeze`), `ice_lance`, `deep_freeze` (on a frozen target or with
+`buff.fingers_of_frost`), `icy_veins`, `cold_snap`, `summon_water_elemental`.
 
 Warlock: `haunt`, `corruption`, `unstable_affliction`, `curse_of_agony`, `curse_of_the_elements`
 (anyone's, or Earth and Moon / Ebon Plague, counts as `debuff.curse_of_the_elements`), `shadow_bolt`,

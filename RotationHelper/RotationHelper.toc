@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.33.0
+## Version: 1.34.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -58,6 +58,7 @@ APLs\Hunter_Marksmanship.lua
 APLs\Hunter_Survival.lua
 APLs\Mage_Arcane.lua
 APLs\Mage_Fire.lua
+APLs\Mage_Frost.lua
 APLs\Paladin_Retribution.lua
 APLs\Priest_Shadow.lua
 APLs\Rogue_Assassination.lua

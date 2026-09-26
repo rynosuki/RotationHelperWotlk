@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,18 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    frost_mage = {
+        class = "MAGE", spec = "frost", power = { type = 0, current = 20000, max = 20000 },
+        talents = {
+            { name = "Arcane", talents = { { "Arcane Focus", 3 } } },
+            { name = "Fire", talents = {} },
+            { name = "Frost", talents = { { "Improved Frostbolt", 5 }, { "Fingers of Frost", 2 }, { "Brain Freeze", 3 },
+                { "Deep Freeze", 1 }, { "Ice Floes", 3 }, { "Icy Veins", 1 }, { "Cold Snap", 1 },
+                { "Summon Water Elemental", 1 } } },
+        },
+        spells = { "Frostbolt", "Frostfire Bolt", "Ice Lance", "Deep Freeze", "Icy Veins", "Cold Snap",
+            "Summon Water Elemental", "Mirror Image", "Evocation", "Molten Armor", "Counterspell", "Arcane Intellect", "Scorch" },
+    },
     subtlety = {
         class = "ROGUE", power = { type = 3, current = 100, max = 100 },
         talents = {
@@ -262,7 +274,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety|frost_mage> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end
@@ -293,14 +305,15 @@ s.talentTabs = build.talents
 s:LoadAddon()
 s:Learn(unpack(build.spells))
 local ns = s.ns
-if ns.Spec.key ~= specKey then Usage("the build didn't come out as " .. specKey) end
+local treeKey = build.spec or specKey
+if ns.Spec.key ~= treeKey then Usage("the build didn't come out as " .. treeKey) end
 
 -- Compile each rotation
 local rotations = {}
 for _, file in ipairs(files) do
     local text
     if file == "default" then
-        text = ns.APLs[build.class or "DEATHKNIGHT"][specKey].text
+        text = ns.APLs[build.class or "DEATHKNIGHT"][treeKey].text
     else
         local f = io.open(file, "r")
         if not f then Usage("can't read " .. file) end

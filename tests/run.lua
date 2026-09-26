@@ -23,6 +23,7 @@ local SUITES = {
     "test_shadow",
     "test_fire",
     "test_arcane",
+    "test_frost_mage",
     "test_affliction",
     "test_destruction",
     "test_balance",

@@ -67,7 +67,7 @@ Legend: role · power · engine features needed · notes.
 
 - [ ] **Fire** (DPS) · E1, E2, E6 · implemented in 1.21.0 (`instantWith` for Hot Streak, `castTimeFn`), waiting on an in-game check · Fireball, Hot Streak (instant Pyroblast), Living Bomb upkeep, Scorch debuff.
 - [ ] **Arcane** (DPS) · E1, E2, E6 · implemented in 1.22.0 (state-dependent costs and cast times, debuffs on yourself), waiting on an in-game check · Arcane Blast stacking and mana management, Missile Barrage, Arcane Power.
-- [ ] **Frost** (DPS) · E1, E2 · Frostbolt, Fingers of Frost, Brain Freeze; mostly PvP in WotLK.
+- [ ] **Frost** (DPS) · E1, E2 · implemented in 1.34.0 (`usesStack` for Fingers of Frost), waiting on an in-game check · Frostbolt, Fingers of Frost, Brain Freeze; mostly PvP in WotLK.
 
 ### Warlock — mana
 
@@ -89,7 +89,7 @@ Legend: role · power · engine features needed · notes.
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat** (done).
 7. **E9 Auto Shot timing** (done) → **Hunters** (done).
-8. Niche specs: Subtlety Rogue (done), Frost Mage, Demonology Warlock.
+8. Niche specs: Subtlety Rogue (done), Frost Mage (done), Demonology Warlock.
 
 ## Out of scope for now: tanks and healers
 

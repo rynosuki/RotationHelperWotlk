@@ -145,7 +145,7 @@ local function GainProc(s, proc, m)
         stats.overwritten = stats.overwritten + 1
     end
     Abilities.Effects.ApplyBuff(s, proc.aura, proc.duration, stacks)
-    stats.gained = stats.gained + 1
+    stats.gained = stats.gained + (proc.stacks or 1) -- every charge (Fingers of Frost: 2)
     if proc.resetCooldown and s.cooldowns[proc.resetCooldown] then
         s.cooldowns[proc.resetCooldown].readyAt = s.now
     end
@@ -216,7 +216,12 @@ function Sim.Run(apl, opts)
                 local ability = classData.abilities[key]
                 for aura, stats in pairs(m.procs) do
                     -- A stacking proc is used up all at once (5 Maelstrom Weapon stacks).
-                    if Abilities.SpendsProc(s, key, aura, t) then stats.used = stats.used + (s.buffs[aura].stacks or 1) end
+                    -- One charge for abilities that use a single charge (Fingers of Frost).
+                    if Abilities.SpendsProc(s, key, aura, t) then
+                        local ability = classData.abilities[key]
+                        local oneCharge = ability.usesStack == aura or ability.ignoreCooldownWith == aura
+                        stats.used = stats.used + (oneCharge and 1 or (s.buffs[aura].stacks or 1))
+                    end
                 end
                 local after = s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)
                 if after > s.powerMax then m.rpLost = m.rpLost + (after - s.powerMax) end
@@ -295,7 +300,8 @@ function Sim.Summarize(apl, opts, runs)
             local consumed = false
             for _, ability in pairs(RH.classData.abilities) do
                 if ability.freeWith == proc.aura or ability.instantWith == proc.aura
-                    or ability.usableWith == proc.aura then consumed = true end
+                    or ability.usableWith == proc.aura or ability.usesStack == proc.aura
+                    or ability.ignoreCooldownWith == proc.aura then consumed = true end
                 for _, c in ipairs(ability.consumes or {}) do
                     if c == proc.aura then consumed = true end
                 end

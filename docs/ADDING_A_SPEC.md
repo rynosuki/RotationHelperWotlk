@@ -68,6 +68,7 @@ Ability fields (all optional except `id`):
 | `comboGain` / `finisher` | builders add combo points; finishers need one and use them all (`s.comboPointsSpent` in their `apply`) |
 | `avoidAutoClip` | a cast that waits for the next Auto Shot rather than delaying it, when waiting is cheaper (set `autoShot = true` in the class data) |
 | `ignoreCooldownWith` | a buff with charges that lets the ability skip its cooldown (Lock and Load); one charge is used |
+| `usesStack` | uses one charge of a buff with charges (Fingers of Frost) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
