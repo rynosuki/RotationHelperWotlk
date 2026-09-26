@@ -16,7 +16,10 @@ actions.precombat+=/potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
 actions.precombat+=/horn_of_winter,if=!buff.horn_of_winter.up
 
 ## Main priority
-actions=call_action_list,name=cooldowns,if=toggle.cooldowns
+# Short cooldowns follow the CD toggle but are used on trash too; the big ones
+# are for bosses only by default.
+actions=call_action_list,name=short_cooldowns,if=toggle.short_cooldowns
+actions+=/call_action_list,name=cooldowns,if=toggle.cooldowns
 actions+=/run_action_list,name=aoe,if=active_enemies>=3
 # With Glyph of Disease, Pestilence refreshes both diseases for one blood rune.
 actions+=/pestilence,if=glyph.disease.enabled&dot.frost_fever.up&dot.blood_plague.up&(dot.frost_fever.remains<4|dot.blood_plague.remains<4)
@@ -34,13 +37,15 @@ actions+=/howling_blast,if=buff.freezing_fog.up
 # next ability counting down instead of a filler.
 actions+=/horn_of_winter,if=!buff.horn_of_winter.up
 
-## Off-GCD cooldowns
-actions.cooldowns=blood_tap,if=talent.unbreakable_armor.enabled&cooldown.unbreakable_armor.ready
-actions.cooldowns+=/unbreakable_armor
+## Short cooldowns (1-2 minutes, used on trash too)
+actions.short_cooldowns=blood_tap,if=talent.unbreakable_armor.enabled&cooldown.unbreakable_armor.ready
+actions.short_cooldowns+=/unbreakable_armor
 # Deathchill guarantees a crit: save it for an Obliterate that's castable now.
-actions.cooldowns+=/deathchill,if=runes.frost+runes.death>=1&runes.unholy+runes.death>=1&runes.frost+runes.unholy+runes.death>=2
+actions.short_cooldowns+=/deathchill,if=runes.frost+runes.death>=1&runes.unholy+runes.death>=1&runes.frost+runes.unholy+runes.death>=2
+
+## Big cooldowns (the CD toggle)
 # 5 minute cooldown: don't spend it on something that's about to die.
-actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
+actions.cooldowns=empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
 # Racials and trinkets with Unbreakable Armor (or when it's far away), a potion with Bloodlust or at the end.
 actions.cooldowns+=/blood_fury,if=buff.unbreakable_armor.up|cooldown.unbreakable_armor.remains>20|!talent.unbreakable_armor.enabled
 actions.cooldowns+=/berserking,if=buff.unbreakable_armor.up|cooldown.unbreakable_armor.remains>20|!talent.unbreakable_armor.enabled

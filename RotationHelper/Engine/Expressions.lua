@@ -128,6 +128,8 @@ local SIMPLE = {
     -- 3600 when unknown or the target isn't losing health.
     ["target.time_to_die"] = function(s) return s.target.timeToDie end,
     ["toggle.cooldowns"] = function(s) return B(s.cooldownsEnabled) end,
+    -- The CD toggle alone (no boss check): for short cooldowns used on trash too.
+    ["toggle.short_cooldowns"] = function(s) return B(s.shortCooldownsEnabled ~= false) end,
     -- Consumables allowed right now (the POT toggle; bosses only by default).
     ["toggle.consumables"] = function(s) return B(s.consumablesAllowed ~= false) end,
     -- Enemies with all of the class's spreadable dots (diseases), the

@@ -134,7 +134,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `target.time_to_die` | estimated seconds until the target dies (3600 if unknown, e.g. training dummies) |
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
 | `glyph.NAME.enabled` | glyph by name without "Glyph of", e.g. `glyph.disease.enabled` |
-| `toggle.cooldowns` | 1 when cooldowns are toggled on |
+| `toggle.cooldowns` | 1 when cooldowns are toggled on and (by default) in a boss fight |
+| `toggle.short_cooldowns` | 1 when the CD toggle is on, boss fight or not: for short cooldowns used on trash too |
 | `toggle.consumables` | 1 when consumables may be used now: toggled on and (by default) in a boss fight. `potion` checks this by itself. |
 | `pull.active` | 1 while a pull timer runs (DBM, BigWigs or `/rh pull N`), and for 2 seconds after it reaches 0 |
 | `pull.remains` | seconds until the pull (0 without a timer) |

@@ -205,7 +205,7 @@ end
 local SIMPLE_NAMES = {
     "runic_power", "runic_power.deficit", "runic_power.max", "runic_power.pct",
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
-    "target.health.pct", "target.time_to_die", "toggle.cooldowns", "toggle.consumables",
+    "target.health.pct", "target.time_to_die", "toggle.cooldowns", "toggle.short_cooldowns", "toggle.consumables",
     "pull.active", "pull.remains", "burst.active", "burst.remains",
     "diseased_enemies", "health.pct",
 }

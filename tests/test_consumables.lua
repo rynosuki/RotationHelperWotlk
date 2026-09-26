@@ -127,27 +127,37 @@ end)
 ---------------------------------------------------------------------------
 -- Cooldowns: bosses only too
 ---------------------------------------------------------------------------
-test("cooldowns only against bosses by default; the CD chip shows it", function()
+test("big cooldowns only against bosses by default; the CD chip shows it", function()
     local s, RH = Fight()
     s.bags[40211] = nil
     s:FireEvent("BAG_UPDATE")
-    s:Learn("Unbreakable Armor")
+    s:Learn("Blood Fury") -- a big cooldown (no Unbreakable Armor talent here)
     local D = s.ns.Display
-    eq(First(s), "unbreakable_armor", "boss: cooldowns")
+    eq(First(s), "blood_fury", "boss: cooldowns")
     eq(D.frame.cdChip.text:GetText(), "|cff40ff40CD|r", "green")
     Trash(s)
     s.target.name = "Ymirjar Deathbringer"
-    falsy(First(s) == "unbreakable_armor", "trash: none")
+    falsy(First(s) == "blood_fury", "trash: none")
     eq(D.frame.cdChip.text:GetText(), "|cffffd100CD|r", "yellow: waiting for a boss")
     s.target.name = "Ingvar the Plunderer"
-    eq(First(s), "unbreakable_armor", "a known boss by name")
+    eq(First(s), "blood_fury", "a known boss by name")
     s.target.name = "Ymirjar Deathbringer"
     s.ns.Options:GetOptionsTable().args.general.set({ "cooldownsBossOnly" }, false) -- the group's setter
     eq(RH.db.profile.toggles.cooldownsBossOnly, false, "option")
-    eq(First(s), "unbreakable_armor", "'only against bosses' off")
+    eq(First(s), "blood_fury", "'only against bosses' off")
     s:Slash("ACECONSOLE_RH", "cd")
-    falsy(First(s) == "unbreakable_armor", "toggled off")
+    falsy(First(s) == "blood_fury", "toggled off")
     eq(D.frame.cdChip.text:GetText(), "|cffff4040CD|r", "red")
+end)
+
+test("short cooldowns (Unbreakable Armor) are used on trash too, unless CD is off", function()
+    local s, RH = Fight()
+    s:Learn("Unbreakable Armor")
+    Trash(s)
+    s.target.name = "Ymirjar Deathbringer"
+    eq(First(s), "unbreakable_armor", "trash: short cooldown")
+    s:Slash("ACECONSOLE_RH", "cd")
+    falsy(First(s) == "unbreakable_armor", "CD off: none")
 end)
 
 test("the review doesn't count cooldowns as unused on trash", function()

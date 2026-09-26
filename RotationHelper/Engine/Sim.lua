@@ -51,7 +51,8 @@ function Sim.NewState(opts)
         runeRegen = 10, powerType = "runic_power", power = 0, powerMax = opts.powerMax or 130,
         gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, realGcdEnd = 0, realCastRemains = 0,
         lookahead = 0, inCombat = true, combatStart = 0, moving = false, petAlive = true,
-        cooldownsEnabled = opts.cooldowns ~= false, activeEnemies = opts.enemies or 1,
+        cooldownsEnabled = opts.cooldowns ~= false, shortCooldownsEnabled = opts.cooldowns ~= false,
+        activeEnemies = opts.enemies or 1,
         target = { exists = true, canAttack = true, dead = false, name = "Simulated target", guid = "sim",
             health = 1, healthMax = 1, healthPct = 100, level = -1, timeToDie = 3600 },
     }

@@ -100,6 +100,7 @@ function State:Reset(now)
     s.bossFight = State.IsBossFight(s.target)
     -- Cooldowns likewise: toggled on, and by default only in boss fights.
     s.cooldownsEnabled = toggles.cooldowns and (s.bossFight or not toggles.cooldownsBossOnly) or false
+    s.shortCooldownsEnabled = toggles.cooldowns and true or false -- the toggle alone, trash included
     s.consumablesAllowed = toggles.consumables and (s.bossFight or not RH.db.profile.items.consumablesBossOnly) or false
     ReadCast(s, now)
 

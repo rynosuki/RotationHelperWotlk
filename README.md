@@ -104,8 +104,10 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
   armor or health on-use are left to you. General > Trinkets can change that and shows how your
   trinkets were read. A potion is suggested once per combat,
   with Bloodlust or near the end of a fight.
-- **Bosses only**: cooldowns (with racials and trinkets) are by default only suggested in boss
-  fights, the same as consumables below. "Only against bosses" under the Cooldowns toggle turns
+- **Bosses only**: big cooldowns (Empower Rune Weapon, Summon Gargoyle, Dancing Rune Weapon,
+  Hysteria, racials, trinkets) are by default only suggested in boss fights, the same as
+  consumables below. Short ones that are part of the rotation (Unbreakable Armor, Deathchill,
+  Blood Tap) are used on trash too; turning CD off stops them as well. "Only against bosses" under the Cooldowns toggle turns
   that off. On trash the fight review doesn't count them as unused either.
 - **Consumables**: potions have their own toggle (the `POT` chip, `/rh pots`, a key binding). By
   default they're only suggested against bosses, so trash and add pulls don't use them. A boss is
