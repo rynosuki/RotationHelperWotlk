@@ -59,6 +59,14 @@ local function ReadCast(s, now)
     if s.castRemains < 0 then s.castRemains = 0 end
 end
 
+-- Whether target `t` (as read by ReadTarget) makes this a boss fight.
+function State.IsBossFight(t)
+    if t.exists and (t.level == -1 or t.classification == "worldboss" or ns.Bosses:IsKnown(t.name)) then
+        return true
+    end
+    return UnitExists("boss1") and true or false
+end
+
 -- Reads everything from the game. Order matters: cooldowns use the rune
 -- regen time and presence buffs read before them.
 function State:Reset(now)
@@ -88,9 +96,9 @@ function State:Reset(now)
     ns.Cooldowns.Read(s, classData, now)
     ReadTarget(s.target)
     -- Consumables (potions): toggled on, and by default only in boss fights:
-    -- a boss targeted (skull level or "worldboss"), or boss frames up.
-    local t0 = s.target
-    s.bossFight = (t0.exists and (t0.level == -1 or t0.classification == "worldboss")) or UnitExists("boss1") and true or false
+    -- a boss targeted (skull level, "worldboss", or a known boss name,
+    -- Engine/Bosses.lua), or boss frames up.
+    s.bossFight = State.IsBossFight(s.target)
     s.consumablesAllowed = toggles.consumables and (s.bossFight or not RH.db.profile.items.consumablesBossOnly) or false
     ReadCast(s, now)
 

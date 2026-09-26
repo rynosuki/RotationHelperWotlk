@@ -105,8 +105,11 @@ button: left click opens the options, right click toggles cooldowns, drag moves 
   trinkets were read. A potion is suggested once per combat,
   with Bloodlust or near the end of a fight.
 - **Consumables**: potions have their own toggle (the `POT` chip, `/rh pots`, a key binding). By
-  default they're only suggested against bosses: a boss targeted (skull level) or boss frames up,
-  so trash and add pulls don't use them. "Only against bosses" on the General tab turns that off.
+  default they're only suggested against bosses, so trash and add pulls don't use them. A boss is
+  a skull-level target, any target while boss frames are up, or a target whose name is on the
+  built-in list (ICC, ToC, Naxxramas, Ulduar and the WotLK dungeons, every mob of multi-boss
+  encounters included). Missing ones can be added under General > Extra bosses, which also shows
+  whether your current target counts. "Only against bosses" turns the check off.
   For the pre-pull potion, have the boss targeted when the pull timer ends.
 - **Burst windows**: Summon Gargoyle keeps the stats you have when it's summoned, so it waits
   for a burst buff (Bloodlust, Hyperspeed Acceleration, trinket procs, ...), but no more than

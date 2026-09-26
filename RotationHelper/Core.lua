@@ -95,6 +95,7 @@ local defaults = {
         items = {
             trinkets = "offensive", -- suggest trinkets: offensive (use effects only) | all | none
             consumablesBossOnly = true, -- consumables only while targeting a boss or with boss frames up
+            extraBosses = "",           -- more boss names, comma separated (Engine/Bosses.lua)
         },
         review = {
             enabled = true,
@@ -345,6 +346,7 @@ end
 
 function RH:OnConfigChanged()
     if ns.Burst then ns.Burst.built = false end -- the burst list may have changed
+    if ns.Bosses then ns.Bosses.built = false end -- and the extra boss names
     self:SendMessage("ROTATIONHELPER_CONFIG_CHANGED")
     self:Invalidate()
 end

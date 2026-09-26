@@ -82,3 +82,42 @@ test("POT chip: green on a boss, yellow waiting for one, red when off; click tog
     First(s)
     falsy(D.frame.potChip:IsShown(), "no potions: no chip")
 end)
+
+---------------------------------------------------------------------------
+-- Known boss names
+---------------------------------------------------------------------------
+test("known bosses: a dungeon boss by name, ignoring case", function()
+    local s, RH = Fight()
+    s.target.level, s.target.classification = 82, "elite"
+    s.target.name = "Ingvar the Plunderer"
+    eq(First(s), "potion", "Utgarde Keep boss (level 82 elite)")
+    s.target.name = "Sjonnir The Ironshaper"
+    eq(First(s), "potion", "case doesn't matter")
+    s.target.name = "Blood Prince Guard"
+    falsy(First(s) == "potion", "an elite that isn't a boss")
+end)
+
+test("known bosses: every mob of a multi-boss encounter", function()
+    local Bosses = select(1, Fight()).ns.Bosses
+    for _, name in ipairs({ "Prince Valanar", "Prince Keleseth", "Prince Taldaram", "Steelbreaker",
+        "Runemaster Molgeim", "Stormcaller Brundir", "Thane Korth'azz", "Lady Blaumeux", "Sir Zeliek",
+        "Baron Rivendare", "Fjola Lightbane", "Eydis Darkbane", "Stalagg", "Feugen" }) do
+        truthy(Bosses:IsKnown(name), name)
+    end
+    falsy(Bosses:IsKnown(nil), "no name")
+    falsy(Bosses:IsKnown("Training Dummy"), "dummy")
+end)
+
+test("known bosses: extra names from the options; the options show the target", function()
+    local s, RH = Fight()
+    Trash(s)
+    s.target.name = "Some Custom Boss"
+    falsy(First(s) == "potion", "unknown")
+    local args = s.ns.Options:GetOptionsTable().args.general.args
+    truthy(args.bossTarget.name():find("Some Custom Boss (|cffffd100not a boss|r)", 1, true), "shown as not a boss")
+    args.extraBosses.set(nil, "Another One,  some custom boss ")
+    eq(First(s), "potion", "added (trimmed, any case)")
+    truthy(args.bossTarget.name():find("counts as a boss", 1, true), "now a boss")
+    args.extraBosses.set(nil, "")
+    falsy(First(s) == "potion", "removed again")
+end)

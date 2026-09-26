@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.15.0
+## Version: 1.15.1
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -25,6 +25,7 @@ Engine\Dots.lua
 Engine\Items.lua
 Engine\PullTimer.lua
 Engine\Burst.lua
+Engine\Bosses.lua
 Engine\State.lua
 Engine\Waste.lua
 Engine\Threat.lua

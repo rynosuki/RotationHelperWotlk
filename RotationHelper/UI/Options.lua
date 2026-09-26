@@ -170,6 +170,24 @@ function Options:BuildOptionsTable()
                 disabled = function() return not RH.db.profile.toggles.consumables end,
                 get = function() return RH.db.profile.items.consumablesBossOnly end,
                 set = function(_, value) RH.db.profile.items.consumablesBossOnly = value; Changed() end },
+            extraBosses = { type = "input", name = "Extra bosses", order = 1.3, width = "full",
+                desc = "Bosses count when they're skull level, boss frames are up, or their name is on the "
+                    .. "built-in list (ICC, ToC, Naxxramas, Ulduar, the WotLK dungeons). Add missing ones "
+                    .. "here: names separated by commas.",
+                disabled = function()
+                    local p = RH.db.profile
+                    return not (p.toggles.consumables and p.items.consumablesBossOnly)
+                end,
+                get = function() return RH.db.profile.items.extraBosses end,
+                set = function(_, value) RH.db.profile.items.extraBosses = value; Changed() end },
+            bossTarget = { type = "description", order = 1.4, fontSize = "medium",
+                name = function()
+                    local t = ns.State.real.target
+                    if not (t and t.exists and t.name) then return "Target something to see if it counts as a boss." end
+                    local boss = ns.State.IsBossFight(t)
+                    return ("Current target: %s (%s)."):format(t.name, boss and "|cff40ff40counts as a boss|r"
+                        or "|cffffd100not a boss|r")
+                end },
             aoeMode = { type = "select", name = "AoE mode", order = 2, values = AOE_MODES,
                 desc = "Auto counts enemies from the combat log; the others force a mode." },
             bindings = { type = "description", order = 3, fontSize = "medium",
