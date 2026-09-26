@@ -18,6 +18,7 @@ Burst.DEFAULT_NAMES = {
     "Hyperspeed Acceleration",             -- engineering gloves
     "Berserking", "Blood Fury",            -- racials
     "Hysteria",                            -- Blood Death Knight
+    "Avenging Wrath",                      -- Paladin
     "Speed",                               -- Potion of Speed
     "Unholy Strength",                     -- Rune of the Fallen Crusader
     "Greatness",                           -- Darkmoon Card: Greatness

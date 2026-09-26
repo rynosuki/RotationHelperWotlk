@@ -15,6 +15,7 @@ local SUITES = {
     "test_frost",
     "test_unholy",
     "test_blood",
+    "test_retribution",
     "test_predict",
     "test_targets",
     "test_options",

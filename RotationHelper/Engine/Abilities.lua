@@ -8,7 +8,8 @@ local ADDON_NAME, ns = ...
 --   - the GCD (off-GCD abilities ignore it) and any cast in progress
 --   - the ability's cooldown
 --   - rune costs; death runes can pay for any rune type
---   - runic power (it doesn't regenerate, so too little means "never")
+--   - runic power or mana (neither is predicted to come back, so too little
+--     means "never")
 local Abilities = {}
 ns.Abilities = Abilities
 
@@ -58,15 +59,32 @@ function Abilities.RunesReadyAt(state, cost, from)
     return nil
 end
 
-function Abilities.RunicPowerCost(ability)
+-- What an ability costs in the class's power: runic power (`rp`, `rpCost`)
+-- or mana (`mana`, a percentage of base mana as in the tooltips; the real
+-- cost read from the client, `manaCost`, when there is one).
+function Abilities.PowerCost(ability)
     if ability.rpCost then return ability.rpCost(ns.Spec) end
+    if ability.mana then
+        return ability.manaCost or (ability.mana / 100 * (RH.classData.baseMana or 0))
+    end
     return ability.rp and ability.rp > 0 and ability.rp or 0
 end
 
-function Abilities.RunicPowerGain(ability)
+-- Power an ability generates (runic power).
+function Abilities.PowerGain(ability)
     local gain = ability.rp and ability.rp < 0 and -ability.rp or 0
     if ability.rpGain then gain = gain + ability.rpGain(ns.Spec) end
     return gain
+end
+
+-- The Death Knight names, still used in places.
+Abilities.RunicPowerCost = Abilities.PowerCost
+Abilities.RunicPowerGain = Abilities.PowerGain
+
+-- The cooldown after using an ability, with talents and glyphs (cooldownFn).
+function Abilities.CooldownDuration(ability)
+    if ability.cooldownFn then return ability.cooldownFn(ns.Spec) end
+    return ability.cooldown
 end
 
 local function BuffUpAt(state, key, at)
@@ -92,9 +110,9 @@ function Abilities.ReadyAt(state, key)
     local cd = state.cooldowns[key]
     if cd and cd.readyAt > t then t, limitedBy = cd.readyAt, "cooldown" end
 
-    local rpCost = Abilities.RunicPowerCost(ability)
-    if rpCost > 0 and state.power < rpCost then
-        return nil, "runic power"
+    local cost = Abilities.PowerCost(ability)
+    if cost > 0 and state.power < cost then
+        return nil, state.powerType == "mana" and "mana" or "runic power"
     end
 
     if ability.runes and not (ability.freeWith and BuffUpAt(state, ability.freeWith, t)) then

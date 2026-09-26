@@ -264,6 +264,21 @@ function Options:BuildOptionsTable()
         confirm = true, confirmText = "Forget all recorded damage for this character?",
         func = function() RH:PrintDamage("reset") end }
 
+    -- Abilities with variants (Paladin: which Judgement).
+    local variantOrder = 58
+    for key, ability in pairs(RH.classData and RH.classData.abilities or {}) do
+        if ability.variants then
+            local values = {}
+            for choice, id in pairs(ability.variants) do values[choice] = GetSpellInfo(id) or choice end
+            general.args["variant_" .. key] = { type = "select", name = (key:gsub("_", " "):gsub("^%l", string.upper)),
+                order = variantOrder, values = values,
+                desc = "Which one the rotation suggests for '" .. key .. "'.",
+                get = function() return RH.db.profile.variants[key] or ability.variant end,
+                set = function(_, value) RH.db.profile.variants[key] = value; Changed() end }
+            variantOrder = variantOrder + 0.1
+        end
+    end
+
     general.args.trinketsHeader = { type = "header", name = "Trinkets", order = 55 }
     general.args.trinkets = { type = "select", name = "Suggest trinkets", order = 56,
         values = { offensive = "Damage on-use effects only", all = "Every on-use trinket", none = "Never" },

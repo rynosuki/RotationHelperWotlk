@@ -78,8 +78,12 @@ function Spec:Update()
     local classData = RH.classData
     if classData then
         for key, ability in pairs(classData.abilities) do
+            if ability.variants then self:ApplyVariant(key, ability) end
             if not (ability.itemSlot or ability.potionItems) then
-                self.known[key] = ability.name ~= nil and GetSpellInfo(ability.name) ~= nil
+                local name, _, _, cost = GetSpellInfo(ability.name or "")
+                self.known[key] = ability.name ~= nil and name ~= nil
+                -- Mana costs as the client reports them (talents included).
+                if ability.mana then ability.manaCost = (cost and cost > 0) and cost or nil end
             end
         end
         -- Item abilities (trinkets, potions) are decided by what you carry.
@@ -88,6 +92,18 @@ function Spec:Update()
 
     self.supported = classData and classData.specs[self.key] or false
     RH:Invalidate()
+end
+
+-- Abilities with variants (Judgement of Light / Wisdom / Justice): the
+-- one chosen in the options (profile.variants[key]), else the default.
+function Spec:ApplyVariant(key, ability)
+    local choice = RH.db.profile.variants[key] or ability.variant
+    local id = ability.variants[choice] or ability.variants[ability.variant]
+    if id and id ~= ability.id then
+        ability.id = id
+        ability.name = GetSpellInfo(id)
+        ability.icon = nil
+    end
 end
 
 function Spec:RetryUpdate()
@@ -114,5 +130,6 @@ function Spec:OnEnable()
     self:RegisterEvent("GLYPH_UPDATED", "Update")
     self:RegisterEvent("LEARNED_SPELL_IN_TAB", "Update")
     self:RegisterMessage("ROTATIONHELPER_TALENTS_CHANGED", "Update")
+    self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "Update") -- variant choices
     self:Update()
 end

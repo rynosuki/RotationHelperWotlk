@@ -7,7 +7,10 @@ priority list you can read and edit in game.
 Supported so far: all three **Death Knight** specs: **Frost**, **Unholy** and **Blood**. Blood
 plays the DPS rotation in Blood Presence and switches to a tank list in Frost Presence (Rune
 Strike after dodges and parries, Rune Tap and Vampiric Blood when you're hurt, runic power kept
-for Rune Strike). Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+for Rune Strike). **Retribution Paladin** plays the classic first-come-first-served priority
+(Judgement, Hammer of Wrath, Crusader Strike, Divine Storm, Consecration, Exorcism with The Art
+of War, Holy Wrath on undead and demons) and keeps your seal up; which Judgement it suggests is
+set on the General tab. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

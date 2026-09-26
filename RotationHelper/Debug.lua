@@ -181,8 +181,8 @@ function RH:PrintWhy(arg)
     local t, reason = ns.Abilities.ReadyAt(s, key)
     if not t then
         local detail = reason
-        if reason == "runic power" then
-            detail = format("runic power (needs %d, have %d)", ns.Abilities.RunicPowerCost(ability), s.power)
+        if reason == "runic power" or reason == "mana" then
+            detail = format("%s (needs %d, have %d)", reason, ns.Abilities.PowerCost(ability), s.power)
         end
         print("   Can't be used now: " .. detail)
     elseif t - s.now <= 0.05 then

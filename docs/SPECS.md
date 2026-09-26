@@ -12,7 +12,7 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 
 | # | Feature | Needed by | Notes |
 |---|---|---|---|
-| E1 | **Mana costs** | most non-DK specs | Check the cost like runic power. Mana regen can be ignored at first (you rarely go OOM mid-rotation). |
+| E1 | **Mana costs** (done) | most non-DK specs | `mana = <% of base mana>` in class data; the client's real cost is used in game. No regen in the prediction (abilities can add some, e.g. Divine Plea); the simulator has `simPower.regen`. |
 | E2 | **Cast times and channels** | all casters | A cast delays the next action by its cast time (hasted), not the GCD. Channels (Mind Flay, Arcane Missiles) likewise. |
 | E3 | **Rage** | Warrior, Bear | Costs like runic power; rage income can't be predicted, so no regen. |
 | E4 | **"On next swing" abilities** | Warrior, Bear | Heroic Strike, Cleave, Maul are off-GCD queued attacks; recommend them alongside the GCD ability. |
@@ -34,7 +34,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Paladin — mana
 
-- [ ] **Retribution** (DPS) · E1 · Famous "first come, first served" priority (Judgement, Divine Storm, Crusader Strike, Consecration, Exorcism with Art of War, Hammer of Wrath). The best first non-DK spec: only needs mana costs.
+- [ ] **Retribution** (DPS) · E1 · implemented in 1.16.0 (mana costs, variants for Judgement, `target.type.X`, group auras for seals), waiting on an in-game check · Famous "first come, first served" priority (Judgement, Divine Storm, Crusader Strike, Consecration, Exorcism with Art of War, Hammer of Wrath). The best first non-DK spec: only needs mana costs.
 - [ ] **Protection** (tank) · E1 · The 9-6-9-6 rotation (Shield of Righteousness, Hammer of the Righteous vs. Judgement, Consecration, Holy Shield).
 - [ ] **Holy** (healer) · out of scope, see below.
 
@@ -90,7 +90,7 @@ Legend: role · power · engine features needed · notes.
 ## Suggested order
 
 1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
-2. **E1 mana costs** → **Retribution Paladin**, then **Protection Paladin**.
+2. **E1 mana costs** (done) → **Retribution Paladin** (done), then **Protection Paladin**.
 3. **E3 + E4 rage** → **Fury**, **Arms**, **Protection Warrior**.
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
 5. **E2 cast times + E7 DoTs** → **Shadow Priest**, then the other casters (Fire/Arcane Mage,

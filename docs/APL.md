@@ -114,6 +114,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `runes.TYPE.time_to_N` | seconds until N runes of that type are ready (N = 1-6) |
 | `runic_power` | current runic power |
 | `runic_power.deficit` / `.max` / `.pct` | missing, maximum, percent |
+| `mana`, `mana.deficit` / `.max` / `.pct` | the same for mana users (Paladin) |
 
 `rune.` works the same as `runes.`.
 
@@ -131,6 +132,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `pet.alive` | 1 while your pet (ghoul) is out and alive |
 | `target.health.pct` | target health percent |
 | `health.pct` | your own health percent (for defensives like Rune Tap) |
+| `target.type.NAME` | 1 if the target is that creature type, e.g. `target.type.undead`, `target.type.demon` |
 | `target.time_to_die` | estimated seconds until the target dies (3600 if unknown, e.g. training dummies) |
 | `talent.NAME.enabled` / `.rank` | talent by name, e.g. `talent.blood_of_the_north.rank` |
 | `glyph.NAME.enabled` | glyph by name without "Glyph of", e.g. `glyph.disease.enabled` |
@@ -157,6 +159,11 @@ Death Knight: `icy_touch`, `plague_strike`, `obliterate`, `frost_strike`, `howli
 
 `rune_strike` is only considered while the game allows it (after you dodge or parry) and it isn't
 already queued for your next swing.
+
+Paladin: `crusader_strike`, `divine_storm`, `judgement` (Light, Wisdom or Justice, as chosen on the
+General tab), `consecration`, `exorcism`, `hammer_of_wrath`, `holy_wrath`, `avenging_wrath`,
+`divine_plea`, `seal_of_vengeance`, `seal_of_corruption`, `seal_of_command`,
+`seal_of_righteousness`. `buff.seal.up` is 1 while any seal is up.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

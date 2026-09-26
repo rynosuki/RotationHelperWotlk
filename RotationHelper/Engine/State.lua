@@ -10,8 +10,8 @@ ns.State = State
 
 local GetTime, UnitExists, UnitGUID, UnitName, UnitCanAttack, UnitIsDead =
     GetTime, UnitExists, UnitGUID, UnitName, UnitCanAttack, UnitIsDead
-local UnitHealth, UnitHealthMax, UnitLevel, UnitClassification =
-    UnitHealth, UnitHealthMax, UnitLevel, UnitClassification
+local UnitHealth, UnitHealthMax, UnitLevel, UnitClassification, UnitCreatureType =
+    UnitHealth, UnitHealthMax, UnitLevel, UnitClassification, UnitCreatureType
 local UnitCastingInfo, UnitChannelInfo, GetUnitSpeed = UnitCastingInfo, UnitChannelInfo, GetUnitSpeed
 local GetCVar, GetNetStats, tonumber = GetCVar, GetNetStats, tonumber
 local IsUsableSpell, IsCurrentSpell = IsUsableSpell, IsCurrentSpell
@@ -36,6 +36,7 @@ local function ReadTarget(t)
     if not t.exists then
         t.guid, t.name, t.canAttack, t.dead = nil, nil, false, false
         t.health, t.healthMax, t.healthPct, t.level, t.classification = 0, 0, 0, 0, nil
+        t.creatureType = nil
         return
     end
     t.guid = UnitGUID("target")
@@ -47,6 +48,9 @@ local function ReadTarget(t)
     t.healthPct = t.healthMax > 0 and (t.health / t.healthMax * 100) or 0
     t.level = UnitLevel("target") -- -1 for bosses ("??")
     t.classification = UnitClassification("target")
+    -- "undead", "demon", "humanoid", ... (lowercase; enUS as on Whitemane)
+    local creatureType = UnitCreatureType("target")
+    t.creatureType = creatureType and creatureType:lower() or nil
 end
 
 local function ReadCast(s, now)

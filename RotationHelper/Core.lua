@@ -37,6 +37,15 @@ function ns.RegisterClass(classToken, data)
             end
         end
         -- Item abilities (no id) get their name from Engine/Items.lua.
+        -- Every variant (e.g. each Judgement) counts as this ability when cast.
+        for _, id in pairs(ability.variants or {}) do
+            local name = GetSpellInfo(id)
+            if name then
+                data.abilityByName[name] = key
+            else
+                tinsert(data.badSpellIds, key .. " (" .. id .. ")")
+            end
+        end
     end
     for key, aura in pairs(data.auras) do
         aura.key = key
@@ -77,6 +86,7 @@ local defaults = {
             aoeMode = "auto", -- auto | single | aoe
         },
         customAPLs = {}, -- [class][spec] = APL text edited in the options
+        variants = {},   -- [ability key] = chosen variant, e.g. judgement = "wisdom"
         editor = {
             syntaxColors = true,
         },

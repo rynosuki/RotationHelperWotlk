@@ -59,7 +59,7 @@ function Cooldowns.Read(state, classData, now)
                 rec.duration = d
             else
                 rec.readyAt = now
-                rec.duration = ability.cooldown
+                rec.duration = ns.Abilities.CooldownDuration(ability)
             end
         end
     end

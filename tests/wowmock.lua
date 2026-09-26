@@ -380,6 +380,14 @@ function Mock.NewSession(opts)
         [49206] = { "Summon Gargoyle", "i" }, [49222] = { "Bone Shield", "i" }, [66803] = { "Desolation", "i" },
         [20572] = { "Blood Fury", "i" }, [26297] = { "Berserking", "i" }, [50613] = { "Arcane Torrent", "i" },
         [53908] = { "Speed", "i" },
+        -- Paladin
+        [35395] = { "Crusader Strike", "i" }, [53385] = { "Divine Storm", "i" }, [20271] = { "Judgement of Light", "i" },
+        [53408] = { "Judgement of Wisdom", "i" }, [53407] = { "Judgement of Justice", "i" }, [48819] = { "Consecration", "i" },
+        [48801] = { "Exorcism", "i" }, [48806] = { "Hammer of Wrath", "i" }, [48817] = { "Holy Wrath", "i" },
+        [31884] = { "Avenging Wrath", "i" }, [54428] = { "Divine Plea", "i" }, [31801] = { "Seal of Vengeance", "i" },
+        [53736] = { "Seal of Corruption", "i" }, [20375] = { "Seal of Command", "i" }, [21084] = { "Seal of Righteousness", "i" },
+        [20165] = { "Seal of Light", "i" }, [20166] = { "Seal of Wisdom", "i" }, [20164] = { "Seal of Justice", "i" },
+        [59578] = { "The Art of War", "i" }, [53489] = { "The Art of War", "i" }, [19740] = { "Blessing of Might", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells
@@ -387,9 +395,10 @@ function Mock.NewSession(opts)
     }
     -- Like the real client, a lookup by name only finds spells in the spellbook.
     session.known = {}
+    session.spellCosts = {} -- name -> mana cost reported for a learned spell
     env.GetSpellInfo = function(idOrName)
         if type(idOrName) == "string" then
-            if session.known[idOrName] then return idOrName, "", "i" end
+            if session.known[idOrName] then return idOrName, "", "i", session.spellCosts[idOrName] or 0 end
             return nil
         end
         local s = session.spells[idOrName]
@@ -467,6 +476,7 @@ function Mock.NewSession(opts)
     env.IsUsableSpell = function(name) return session.usable[name] or false, false end
     env.IsCurrentSpell = function(name) return session.current[name] or false end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
+    env.UnitCreatureType = function(unit) return unit == "target" and session.target.creatureType or nil end
     env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
     -- The target's cast/channel: session.targetCast / targetChannel =
     -- { name, endsIn = seconds, notInterruptible }. The player never casts here.

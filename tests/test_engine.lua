@@ -122,7 +122,7 @@ test("expressions: helpful errors", function()
     eq(ResolveError(s, "cooldown.obliterat.ready"), "unknown ability 'obliterat'", "cooldown ability")
     eq(ResolveError(s, "runes.fire"), "unknown rune type 'fire' (use blood, unholy, frost, death or total)", "rune type")
     eq(ResolveError(s, "runes.frost.time_to_9"), "unknown rune field 'time_to_9' (use time_to_1 .. time_to_6)", "rune field")
-    eq(ResolveError(s, "mana"), "unknown name 'mana'", "unknown name")
+    eq(ResolveError(s, "energy"), "unknown name 'energy'", "unknown name")
 end)
 
 ---------------------------------------------------------------------------

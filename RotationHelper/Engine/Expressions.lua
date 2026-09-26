@@ -109,6 +109,11 @@ local SIMPLE = {
     ["runic_power.deficit"] = function(s) return s.powerMax - s.power end,
     ["runic_power.max"] = function(s) return s.powerMax end,
     ["runic_power.pct"] = function(s) return s.powerMax > 0 and s.power / s.powerMax * 100 or 0 end,
+    -- Mana (the same numbers; for classes that use mana).
+    mana = function(s) return s.power end,
+    ["mana.deficit"] = function(s) return s.powerMax - s.power end,
+    ["mana.max"] = function(s) return s.powerMax end,
+    ["mana.pct"] = function(s) return s.powerMax > 0 and s.power / s.powerMax * 100 or 0 end,
     gcd = function(s) return s.gcdDuration end,
     ["gcd.remains"] = function(s) return max(0, s.gcdEnd - s.now) end,
     time = function(s) return s.combatStart and max(0, s.now - s.combatStart) or 0 end,
@@ -204,6 +209,15 @@ local function GlyphGetter(parts)
     return function() return B(Spec:HasGlyph(key)) end
 end
 
+-- target.type.NAME: the target's creature type, e.g. target.type.undead.
+local function TargetGetter(parts)
+    if #parts == 3 and parts[2] == "type" then
+        local wanted = parts[3]
+        return function(s) return B(s.target.creatureType == wanted) end
+    end
+    return nil, "unknown target name (use target.health.pct, target.time_to_die or target.type.NAME)"
+end
+
 local PREFIXES = {
     buff = function(parts, classData) return AuraGetter(parts, classData, "buffs") end,
     debuff = function(parts, classData) return AuraGetter(parts, classData, "debuffs") end,
@@ -214,6 +228,7 @@ local PREFIXES = {
     talent = TalentGetter,
     glyph = GlyphGetter,
     active_dot = ActiveDotGetter,
+    target = TargetGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.

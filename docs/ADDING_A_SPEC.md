@@ -50,6 +50,9 @@ Ability fields (all optional except `id`):
 | `consumes` | buff keys it uses up, e.g. `{ "killing_machine" }` |
 | `convert` | death rune conversion: `{ runes = { blood = true }, talents = { "blood_of_the_north" } }` |
 | `requiresPet` | `true` if it needs a living pet, like Ghoul Frenzy |
+| `mana` | mana cost in % of base mana (set `baseMana` in the class data); in game the client's real cost is used |
+| `cooldownFn(spec)` | the cooldown with talents or glyphs, e.g. Improved Judgements; used by the prediction |
+| `variants` + `variant` | several spells behind one key, chosen in the options (Judgement of Light / Wisdom / Justice); every variant counts as a cast |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
@@ -67,7 +70,12 @@ damage.
 Auras: `key = { id = N }` (or `ids = { ... }` for several ranks or equivalent buffs), with
 `debuff = true` for debuffs on the target. Debuffs only count when you applied them, unless
 `anySource = true`. Auras are also matched by localized name, so a wrong rank ID still works for
-reading, but fix it anyway.
+reading, but fix it anyway. `partOf = "group"` makes an aura also count as a group aura
+(declared as `group = {}`): every Paladin seal is `partOf = "seal"`, so `buff.seal.up` means any seal.
+
+A new class also needs `gcdSpell` (a spell with no cooldown of its own), and for the simulator
+`simPower = { type, max, start, regen }` when it doesn't start at 0 runic power
+([Classes/Paladin.lua](../RotationHelper/Classes/Paladin.lua) is the example).
 
 ### 2. Write the APL
 

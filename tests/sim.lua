@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    retribution = {
+        class = "PALADIN", power = { type = 0, current = 25000, max = 25000 },
+        talents = {
+            { name = "Holy", talents = { { "Divine Intellect", 5 } } },
+            { name = "Protection", talents = { { "Divine Strength", 5 } } },
+            { name = "Retribution", talents = { { "Improved Judgements", 2 }, { "The Art of War", 2 },
+                { "Sanctified Wrath", 2 }, { "Judgements of the Wise", 3 } } },
+        },
+        spells = { "Crusader Strike", "Divine Storm", "Judgement of Light", "Consecration", "Exorcism",
+            "Hammer of Wrath", "Holy Wrath", "Avenging Wrath", "Divine Plea", "Seal of Vengeance", "Blessing of Might" },
+    },
     blood = {
         talents = {
             { name = "Blood", talents = { { "Heart Strike", 1 }, { "Dancing Rune Weapon", 1 }, { "Hysteria", 1 },
@@ -59,7 +70,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end
@@ -84,7 +95,8 @@ end
 if #files == 0 then files[1] = "default" end
 
 -- A mocked client with the build
-local s = Mock.NewSession()
+local s = Mock.NewSession({ class = build.class })
+if build.power then s.power = build.power end
 s.talentTabs = build.talents
 s:LoadAddon()
 s:Learn(unpack(build.spells))
@@ -96,7 +108,7 @@ local rotations = {}
 for _, file in ipairs(files) do
     local text
     if file == "default" then
-        text = ns.APLs.DEATHKNIGHT[specKey].text
+        text = ns.APLs[build.class or "DEATHKNIGHT"][specKey].text
     else
         local f = io.open(file, "r")
         if not f then Usage("can't read " .. file) end
@@ -115,10 +127,12 @@ end
 -- Side-by-side table
 local rows = {
     { "Time spent casting %", function(sm) return sm.gcdUsage end },
-    { "Rune pairs full s/min", function(sm) return sm.runeWaste end },
-    { "Runic power at cap s/min", function(sm) return sm.rpCapped end },
-    { "Runic power lost /min", function(sm) return sm.rpLost end },
 }
+if not build.class then -- Death Knights
+    rows[#rows + 1] = { "Rune pairs full s/min", function(sm) return sm.runeWaste end }
+    rows[#rows + 1] = { "Runic power at cap s/min", function(sm) return sm.rpCapped end }
+    rows[#rows + 1] = { "Runic power lost /min", function(sm) return sm.rpLost end }
+end
 local first = rotations[1].summary
 for d = 1, #first.debuffs do
     rows[#rows + 1] = { first.debuffs[d].key .. " uptime %", function(sm) return sm.debuffs[d].uptime end }

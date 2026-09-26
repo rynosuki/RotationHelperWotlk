@@ -204,6 +204,7 @@ end
 ---------------------------------------------------------------------------
 local SIMPLE_NAMES = {
     "runic_power", "runic_power.deficit", "runic_power.max", "runic_power.pct",
+    "mana", "mana.deficit", "mana.max", "mana.pct",
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
     "target.health.pct", "target.time_to_die", "toggle.cooldowns", "toggle.short_cooldowns", "toggle.consumables",
     "pull.active", "pull.remains", "burst.active", "burst.remains",
@@ -244,7 +245,13 @@ function APLText.Names(classData)
             add("runes." .. rune .. ".time_to_2", "name")
         end
     end
-    for _, name in ipairs(SIMPLE_NAMES) do add(name, "name") end
+    for _, name in ipairs(SIMPLE_NAMES) do
+        -- Only the power names of this class (runic power or mana).
+        local isRunic, isMana = name:find("^runic_power") ~= nil, name:find("^mana") ~= nil
+        if not (isRunic and not classData.usesRunes) and not (isMana and not classData.baseMana) then
+            add(name, "name")
+        end
+    end
     for key in pairs(ns.Spec.talents) do
         add("talent." .. key .. ".enabled", "name")
         add("talent." .. key .. ".rank", "name")

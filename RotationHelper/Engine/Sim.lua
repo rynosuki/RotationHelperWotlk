@@ -48,7 +48,10 @@ function Sim.NewState(opts)
     local classData = RH.classData
     local s = {
         now = 0, runes = {}, buffs = {}, debuffs = {}, cooldowns = {}, variables = {}, lastCast = {},
-        runeRegen = 10, powerType = "runic_power", power = 0, powerMax = opts.powerMax or 130,
+        runeRegen = 10, powerType = classData.simPower and classData.simPower.type or "runic_power",
+        power = classData.simPower and classData.simPower.start or 0,
+        powerRegen = classData.simPower and classData.simPower.regen,
+        powerMax = opts.powerMax or (classData.simPower and classData.simPower.max) or 130,
         gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, realGcdEnd = 0, realCastRemains = 0,
         lookahead = 0, inCombat = true, combatStart = 0, moving = false, petAlive = true,
         cooldownsEnabled = opts.cooldowns ~= false, shortCooldownsEnabled = opts.cooldowns ~= false,
@@ -62,7 +65,7 @@ function Sim.NewState(opts)
     s.readySince = {}
     for key, ability in pairs(classData.abilities) do
         if ability.cooldown and ability.cooldown > 0 then
-            s.cooldowns[key] = { readyAt = 0, duration = ability.cooldown }
+            s.cooldowns[key] = { readyAt = 0, duration = Abilities.CooldownDuration(ability) }
             s.readySince[key] = 0
         end
     end
@@ -88,7 +91,9 @@ local function Measure(s, m, t0, t1)
             if cappedFrom < t1 then m.runeWaste = m.runeWaste + (t1 - cappedFrom) end
         end
     end
-    if s.power >= s.powerMax then m.rpCapped = m.rpCapped + (t1 - t0) end
+    if s.powerType == "runic_power" and s.power >= s.powerMax then m.rpCapped = m.rpCapped + (t1 - t0) end
+    -- Passive mana regeneration (classData.simPower.regen per second).
+    if s.powerRegen then s.power = min(s.powerMax, s.power + s.powerRegen * (t1 - t0)) end
     for key, up in pairs(m.debuffUp) do
         local rec = s.debuffs[key]
         if rec and rec.expires > t0 then m.debuffUp[key] = up + (min(t1, rec.expires) - t0) end
@@ -270,8 +275,10 @@ function Sim.Format(summary)
     local function add(text) lines[#lines + 1] = text end
     add(("Simulated %d x %d:%02d:"):format(summary.runs, floor(summary.seconds / 60), summary.seconds % 60))
     add(("  Time spent casting: %.1f%%"):format(summary.gcdUsage))
-    add(("  Rune pairs sitting full: %.1f s/min   Runic power at cap: %.1f s/min, lost: %.1f/min")
-        :format(summary.runeWaste, summary.rpCapped, summary.rpLost))
+    if RH.classData.usesRunes then
+        add(("  Rune pairs sitting full: %.1f s/min   Runic power at cap: %.1f s/min, lost: %.1f/min")
+            :format(summary.runeWaste, summary.rpCapped, summary.rpLost))
+    end
     for _, d in ipairs(summary.debuffs) do add(("  %s uptime: %.1f%%"):format(d.key, d.uptime)) end
     for _, p in ipairs(summary.procs) do
         add(("  %s: %.1f per fight, %.1f used, %.1f wasted"):format(p.aura, p.gained, p.used, p.wasted))

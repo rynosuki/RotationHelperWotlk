@@ -5,7 +5,8 @@ local Utils = ns.Utils
 -- state.debuffs (target). Each entry is keyed by the aura's key in the
 -- class data and looks like:
 --   { spellId, stacks, duration, expires }   (expires = math.huge if permanent)
--- Auras that aren't up have no entry.
+-- Auras that aren't up have no entry. An aura with `partOf = "group"` also
+-- fills the entry of that group aura (e.g. every seal counts as `seal`).
 local Auras = {}
 ns.Auras = Auras
 
@@ -53,6 +54,12 @@ local function ReadUnit(list, unit, filter, lookup, defs)
                 rec.duration = duration or 0
                 rec.expires = (expires and expires > 0) and expires or huge
                 list[key] = rec
+                local group = def.partOf
+                if group and not list[group] then
+                    local copy = Utils.Acquire()
+                    copy.spellId, copy.stacks, copy.duration, copy.expires = rec.spellId, rec.stacks, rec.duration, rec.expires
+                    list[group] = copy
+                end
             end
         end
     end
