@@ -418,6 +418,9 @@ function Mock.NewSession(opts)
         [43046] = { "Molten Armor", "i" }, [2139] = { "Counterspell", "i" }, [48108] = { "Hot Streak", "i" },
         [22959] = { "Improved Scorch", "i" }, [12579] = { "Winter's Chill", "i" }, [17800] = { "Shadow Mastery", "i" },
         [1459] = { "Arcane Intellect", "i" },
+        [42897] = { "Arcane Blast", "i" }, [36032] = { "Arcane Blast", "i" }, [42846] = { "Arcane Missiles", "i" },
+        [44401] = { "Missile Barrage", "i" }, [44781] = { "Arcane Barrage", "i" }, [12042] = { "Arcane Power", "i" },
+        [12043] = { "Presence of Mind", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells

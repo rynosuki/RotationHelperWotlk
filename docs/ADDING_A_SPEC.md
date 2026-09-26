@@ -60,7 +60,8 @@ Ability fields (all optional except `id`):
 | `cooldownGroup` | abilities sharing one cooldown (the Shaman shocks) |
 | `totem` + `totemDuration` | a totem of that element (set `usesTotems` in the class data) |
 | `castTime` / `channel` | cast or channel time in base seconds (set `hasteProbe` in the class data: an ability with a fixed `castTime` whose hasted cast time gives your spell haste) |
-| `castTimeFn(spec)` | the base cast time when talents change it (Improved Fireball) |
+| `castTimeFn(spec, state)` | the base cast time when talents or buffs change it (Improved Fireball; Missile Barrage) |
+| `manaFn(spec, state, baseMana)` | a mana cost that depends on the state (Arcane Blast stacks) |
 | `instantWith` | a buff that makes the cast instant and is used up (Hot Streak for Pyroblast) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
@@ -78,7 +79,8 @@ damage.
 
 Auras: `key = { id = N }` (or `ids = { ... }` for several ranks or equivalent buffs), with
 `debuff = true` for debuffs on the target. Debuffs only count when you applied them, unless
-`anySource = true`. Auras are also matched by localized name, so a wrong rank ID still works for
+`anySource = true`. `onPlayer = true` is for a harmful aura on yourself that should read like a buff
+(Arcane Blast's stacks); set `hasPlayerDebuffs` in the class data. Auras are also matched by localized name, so a wrong rank ID still works for
 reading, but fix it anyway. `partOf = "group"` makes an aura also count as a group aura
 (declared as `group = {}`): every Paladin seal is `partOf = "seal"`, so `buff.seal.up` means any seal.
 

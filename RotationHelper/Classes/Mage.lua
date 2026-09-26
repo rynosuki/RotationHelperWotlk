@@ -11,8 +11,9 @@ ns.RegisterClass("MAGE", {
     baseMana = 3268, -- level 80
     hasteProbe = "scorch", -- a 1.5s cast no talent changes: its cast time in game gives the spell haste
     interrupt = "counterspell",
-    procs = { "hot_streak" },
-    majorCooldowns = { "combustion", "mirror_image" },
+    procs = { "hot_streak", "missile_barrage" },
+    majorCooldowns = { "combustion", "arcane_power", "mirror_image" },
+    hasPlayerDebuffs = true, -- Arcane Blast's stacks are a debuff on you
     reviewDebuffs = { fire = { "living_bomb" } },
 
     -- For the simulator: mana with ~150 per second of regen (Replenishment,
@@ -23,9 +24,14 @@ ns.RegisterClass("MAGE", {
         { aura = "hot_streak", duration = 10,
           on = { fireball = true, scorch = true, fire_blast = true, living_bomb = true },
           chance = function(spec) return 0.2 * spec:TalentRank("hot_streak") / 3 end },
+        -- Missile Barrage: 8% per rank from Arcane Blast (40% at 5/5), half that from others.
+        { aura = "missile_barrage", duration = 15, on = { arcane_blast = true },
+          chance = function(spec) return 0.08 * spec:TalentRank("missile_barrage") end },
+        { aura = "missile_barrage", duration = 15, on = { arcane_barrage = true, fireball = true },
+          chance = function(spec) return 0.04 * spec:TalentRank("missile_barrage") end },
     },
 
-    specs = { arcane = false, fire = true, frost = false },
+    specs = { arcane = true, fire = true, frost = false },
 
     abilities = {
         -- Improved Fireball: -0.1 seconds per rank.
@@ -49,10 +55,48 @@ ns.RegisterClass("MAGE", {
         molten_armor = { id = 43046, mana = 28,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "molten_armor", 1800) end },
         counterspell = { id = 2139, mana = 9, cooldown = 24, offGcd = true },
+
+        -- Arcane
+        -- Each Arcane Blast stack (up to 4, 6 seconds) adds 175% to its cost.
+        -- Presence of Mind makes it instant.
+        arcane_blast = { id = 42897, mana = 7, castTime = 2.5, instantWith = "presence_of_mind",
+            manaFn = function(spec, s, baseMana)
+                local rec = s.buffs.arcane_blast
+                local stacks = (rec and rec.expires > s.now) and rec.stacks or 0
+                return 0.07 * baseMana * (1 + 1.75 * stacks)
+            end,
+            apply = function(s, spec, fx)
+                local rec = s.buffs.arcane_blast
+                local stacks = (rec and rec.expires > s.now) and rec.stacks or 0
+                fx.ApplyBuff(s, "arcane_blast", 6, math.min(4, stacks + 1))
+            end },
+        -- A 5 second channel; with Missile Barrage 2.5 seconds and free. Uses
+        -- up the Arcane Blast stacks.
+        arcane_missiles = { id = 42846, mana = 31, channel = 5, consumes = { "missile_barrage", "arcane_blast" },
+            castTimeFn = function(spec, s)
+                local rec = s and s.buffs.missile_barrage
+                return (rec and rec.expires > s.now) and 2.5 or 5
+            end,
+            manaFn = function(spec, s, baseMana)
+                local rec = s.buffs.missile_barrage
+                return (rec and rec.expires > s.now) and 0 or 0.31 * baseMana
+            end },
+        arcane_barrage = { id = 44781, mana = 18, cooldown = 3, consumes = { "arcane_blast" } },
+        -- Arcane Flows: -15% cooldown per rank.
+        arcane_power = { id = 12042, cooldown = 120, offGcd = true,
+            cooldownFn = function(spec) return 120 * (1 - 0.15 * spec:TalentRank("arcane_flows")) end,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "arcane_power", 15) end },
+        presence_of_mind = { id = 12043, cooldown = 120, offGcd = true,
+            cooldownFn = function(spec) return 120 * (1 - 0.15 * spec:TalentRank("arcane_flows")) end,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "presence_of_mind") end },
     },
 
     auras = {
         hot_streak = { id = 48108 },
+        missile_barrage = { id = 44401 },
+        arcane_blast = { id = 36032, onPlayer = true }, -- the stacking debuff on you
+        arcane_power = { id = 12042 },
+        presence_of_mind = { id = 12043 },
         living_bomb = { id = 55360, debuff = true },
         -- The 5% crit debuff; any mage's counts, and Winter's Chill or a
         -- warlock's Shadow Mastery do the same.

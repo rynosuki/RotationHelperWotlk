@@ -66,7 +66,7 @@ Legend: role · power · engine features needed · notes.
 ### Mage — mana
 
 - [ ] **Fire** (DPS) · E1, E2, E6 · implemented in 1.21.0 (`instantWith` for Hot Streak, `castTimeFn`), waiting on an in-game check · Fireball, Hot Streak (instant Pyroblast), Living Bomb upkeep, Scorch debuff.
-- [ ] **Arcane** (DPS) · E1, E2, E6 · Arcane Blast stacking and mana management, Missile Barrage, Arcane Power.
+- [ ] **Arcane** (DPS) · E1, E2, E6 · implemented in 1.22.0 (state-dependent costs and cast times, debuffs on yourself), waiting on an in-game check · Arcane Blast stacking and mana management, Missile Barrage, Arcane Power.
 - [ ] **Frost** (DPS) · E1, E2 · Frostbolt, Fingers of Frost, Brain Freeze; mostly PvP in WotLK.
 
 ### Warlock — mana
@@ -85,7 +85,7 @@ Legend: role · power · engine features needed · notes.
 2. **E1 mana costs** (done) → **Retribution Paladin** (done).
 3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
-5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage,
+5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
    Affliction/Destruction Warlock, Elemental, Balance).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.

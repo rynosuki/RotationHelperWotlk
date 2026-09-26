@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    arcane = {
+        class = "MAGE", power = { type = 0, current = 20000, max = 20000 },
+        talents = {
+            { name = "Arcane", talents = { { "Missile Barrage", 5 }, { "Arcane Flows", 2 }, { "Arcane Power", 1 },
+                { "Presence of Mind", 1 }, { "Arcane Empowerment", 3 } } },
+            { name = "Fire", talents = { { "Improved Fireball", 2 } } },
+            { name = "Frost", talents = {} },
+        },
+        spells = { "Arcane Blast", "Arcane Missiles", "Arcane Barrage", "Arcane Power", "Presence of Mind",
+            "Mirror Image", "Evocation", "Molten Armor", "Counterspell", "Arcane Intellect", "Scorch", "Fireball" },
+    },
     fire = {
         class = "MAGE", power = { type = 0, current = 20000, max = 20000 },
         talents = {
@@ -127,7 +138,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

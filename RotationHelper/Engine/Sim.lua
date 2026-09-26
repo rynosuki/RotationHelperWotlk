@@ -255,9 +255,13 @@ function Sim.Summarize(apl, opts, runs)
     for _, key in ipairs(RH:ReviewDebuffs()) do
         summary.debuffs[#summary.debuffs + 1] = { key = key, uptime = round1((total.debuffUp[key] or 0) / (seconds * runs) * 100) }
     end
+    -- One line per proc aura (a proc can have several sources), and only
+    -- procs the build has (e.g. no Hot Streak for an Arcane mage).
+    local listed = {}
     for _, proc in ipairs(RH.classData.simProcs or {}) do
         local p = total.procs[proc.aura]
-        if p then
+        if p and p.gained > 0 and not listed[proc.aura] then
+            listed[proc.aura] = true
             summary.procs[#summary.procs + 1] = { aura = proc.aura, gained = round1(p.gained / runs),
                 used = round1(p.used / runs), wasted = round1((p.gained - p.used) / runs) }
         end

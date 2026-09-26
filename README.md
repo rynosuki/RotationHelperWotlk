@@ -24,7 +24,9 @@ them drop; Mind Flay keeps Shadow Word: Pain going), with Mind Blast and Mind Fl
 channels delay the next icon by their hasted time, and while you move only instants are shown.
 **Fire Mage** keeps the crit debuff (Improved Scorch, unless someone else's is up) and Living Bomb
 going, casts Pyroblast when Hot Streak makes it instant, and fills with Fireball; Fire Blast
-while moving. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+while moving. **Arcane Mage** spams Arcane Blast above 35% mana and below it builds 4 stacks and
+spends them with Arcane Missiles; Missile Barrage procs are used at 4 stacks, Presence of Mind
+makes an Arcane Blast instant, Arcane Barrage while moving. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

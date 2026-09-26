@@ -21,6 +21,7 @@ local SUITES = {
     "test_enhancement",
     "test_shadow",
     "test_fire",
+    "test_arcane",
     "test_predict",
     "test_targets",
     "test_options",

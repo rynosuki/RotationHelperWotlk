@@ -191,7 +191,10 @@ you're moving, and the next ability waits for the cast or channel to finish.
 
 Mage: `fireball`, `pyroblast` (instant with `buff.hot_streak`), `living_bomb` (`dot.living_bomb`),
 `scorch` (`debuff.improved_scorch`: anyone's, or Winter's Chill / Shadow Mastery), `fire_blast`,
-`flamestrike`, `combustion`, `mirror_image`, `evocation`, `molten_armor`, `counterspell`.
+`flamestrike`, `combustion`, `mirror_image`, `evocation`, `molten_armor`, `counterspell`,
+`arcane_blast` (`buff.arcane_blast.stack`: the stacks on you; each makes it cost more; instant
+with Presence of Mind), `arcane_missiles` (fast and free with `buff.missile_barrage`),
+`arcane_barrage`, `arcane_power`, `presence_of_mind`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

@@ -63,7 +63,10 @@ end
 -- What an ability costs in the class's power: runic power (`rp`, `rpCost`)
 -- or mana (`mana`, a percentage of base mana as in the tooltips; the real
 -- cost read from the client, `manaCost`, when there is one).
-function Abilities.PowerCost(ability)
+-- `state` is optional: `manaFn(spec, state)` gives costs that depend on it
+-- (Arcane Blast: more per stack).
+function Abilities.PowerCost(ability, state)
+    if ability.manaFn and state then return ability.manaFn(ns.Spec, state, RH.classData.baseMana or 0) end
     if ability.rpCost then return ability.rpCost(ns.Spec) end
     if ability.rageCost then return ability.rageCost(ns.Spec) end
     if ability.rage then return ability.rage end
@@ -88,7 +91,8 @@ Abilities.RunicPowerGain = Abilities.PowerGain
 -- How long using an ability keeps you busy casting or channelling (0 for
 -- instants): `castTime` or `channel`, in base seconds, shortened by spell
 -- haste (state.hasteFactor, see Engine/Cooldowns.lua).
--- `castTimeFn(spec)` gives the base cast time when talents change it, and
+-- `castTimeFn(spec, state)` gives the base cast time when talents or buffs
+-- change it (Missile Barrage: Arcane Missiles twice as fast), and
 -- `instantWith` names a buff that makes it instant (Hot Streak: Pyroblast).
 function Abilities.CastTime(state, ability)
     local base = ability.castTime or ability.channel
@@ -97,7 +101,7 @@ function Abilities.CastTime(state, ability)
         local rec = state.buffs[ability.instantWith]
         if rec and rec.expires > state.now then return 0 end
     end
-    if ability.castTimeFn then base = ability.castTimeFn(ns.Spec) end
+    if ability.castTimeFn then base = ability.castTimeFn(ns.Spec, state) end
     return base * (state.hasteFactor or 1)
 end
 
@@ -141,7 +145,7 @@ function Abilities.ReadyAt(state, key)
     local cd = state.cooldowns[key]
     if cd and cd.readyAt > t then t, limitedBy = cd.readyAt, "cooldown" end
 
-    local cost = Abilities.PowerCost(ability)
+    local cost = Abilities.PowerCost(ability, state)
     if cost > 0 and PowerAt(state, t) < cost then
         -- Rage keeps coming in: wait for it. Other power doesn't.
         local regen = state.powerRegen
@@ -354,7 +358,7 @@ function Abilities.Apply(s, key, t)
     if ability.runes and not free then SpendRunes(s, ability) end
     if free then Effects.RemoveBuff(s, ability.freeWith) end
 
-    s.power = max(0, min(s.powerMax, PowerAt(s, t) - Abilities.PowerCost(ability) + Abilities.PowerGain(ability)))
+    s.power = max(0, min(s.powerMax, PowerAt(s, t) - Abilities.PowerCost(ability, s) + Abilities.PowerGain(ability)))
     s.powerTime = t
 
     if ability.consumes then
