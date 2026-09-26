@@ -15,7 +15,11 @@ Execute, with Heroic Strike (Cleave on several targets) on the next swing when t
 spare. When you're short on rage, the icon counts down to when your rage income (learned during
 the fight) will cover it. **Arms Warrior** keeps Rend up and plays Overpower (Taste for Blood or a
 dodge), Mortal Strike, Execute (Sudden Death or below 20%), Bladestorm and Slam. The checklist
-flags the wrong stance for your spec. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+flags the wrong stance for your spec. **Enhancement Shaman** plays Lightning Bolt (Chain Lightning
+on several targets) at 5 Maelstrom Weapon stacks, Stormstrike, Flame Shock, Earth Shock (without
+letting Flame Shock drop), Magma Totem and Fire Nova, Lava Lash and Lightning Shield, with
+Shamanistic Rage when mana runs low; the checklist wants weapon imbues on. Other classes load
+but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

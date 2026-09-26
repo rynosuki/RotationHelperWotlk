@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,18 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    enhancement = {
+        class = "SHAMAN", power = { type = 0, current = 20000, max = 20000 },
+        talents = {
+            { name = "Elemental", talents = { { "Convection", 5 }, { "Reverberation", 5 } } },
+            { name = "Enhancement", talents = { { "Maelstrom Weapon", 5 }, { "Improved Fire Nova", 2 }, { "Stormstrike", 1 },
+                { "Lava Lash", 1 }, { "Feral Spirit", 1 }, { "Shamanistic Rage", 1 }, { "Dual Wield", 1 } } },
+            { name = "Restoration", talents = {} },
+        },
+        spells = { "Stormstrike", "Lava Lash", "Earth Shock", "Flame Shock", "Frost Shock", "Lightning Bolt",
+            "Chain Lightning", "Fire Nova", "Magma Totem", "Searing Totem", "Lightning Shield", "Feral Spirit",
+            "Shamanistic Rage", "Wind Shear" },
+    },
     arms = {
         class = "WARRIOR", power = { type = 1, current = 20, max = 100 },
         talents = {
@@ -92,7 +104,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

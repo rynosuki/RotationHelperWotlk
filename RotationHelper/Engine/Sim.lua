@@ -76,6 +76,7 @@ function Sim.NewState(opts)
     local form = classData.simForm or 0
     if type(form) == "table" then form = form[ns.Spec.key] or 0 end
     s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, form
+    s.totemKey, s.totemExpires = {}, {} -- no totems down at the start
     return s
 end
 
@@ -101,11 +102,20 @@ local function Measure(s, m, t0, t1)
     end
 end
 
+-- A proc lands. Stacking procs (maxStacks, e.g. Maelstrom Weapon) add a
+-- stack; one landing at the maximum is lost.
 local function GainProc(s, proc, m)
     local stats = m.procs[proc.aura]
     local rec = s.buffs[proc.aura]
-    if rec and rec.expires > s.now then stats.overwritten = stats.overwritten + 1 end
-    Abilities.Effects.ApplyBuff(s, proc.aura, proc.duration)
+    local up = rec and rec.expires > s.now
+    local stacks = 1
+    if proc.maxStacks then
+        stacks = up and math.min(proc.maxStacks, rec.stacks + 1) or 1
+        if up and rec.stacks >= proc.maxStacks then stats.overwritten = stats.overwritten + 1 end
+    elseif up then
+        stats.overwritten = stats.overwritten + 1
+    end
+    Abilities.Effects.ApplyBuff(s, proc.aura, proc.duration, stacks)
     stats.gained = stats.gained + 1
     if proc.resetCooldown and s.cooldowns[proc.resetCooldown] then
         s.cooldowns[proc.resetCooldown].readyAt = s.now
@@ -176,7 +186,8 @@ function Sim.Run(apl, opts)
                 local key = action.name
                 local ability = classData.abilities[key]
                 for aura, stats in pairs(m.procs) do
-                    if Abilities.SpendsProc(s, key, aura, t) then stats.used = stats.used + 1 end
+                    -- A stacking proc is used up all at once (5 Maelstrom Weapon stacks).
+                    if Abilities.SpendsProc(s, key, aura, t) then stats.used = stats.used + (s.buffs[aura].stacks or 1) end
                 end
                 local after = s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)
                 if after > s.powerMax then m.rpLost = m.rpLost + (after - s.powerMax) end

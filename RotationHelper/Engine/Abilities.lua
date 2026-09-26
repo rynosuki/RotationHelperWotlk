@@ -314,6 +314,19 @@ function Abilities.Apply(s, key, t)
         -- A potion can't be used again in the same combat.
         cd.readyAt = ability.oncePerCombat and math.huge or t + (cd.duration or ability.cooldown)
         if s.readySince then s.readySince[key] = nil end
+        -- A shared cooldown (the Shaman shocks) starts for the whole group.
+        local group = ability.cooldownGroup
+        if group then
+            for other, def in pairs(RH.classData.abilities) do
+                local ocd = def.cooldownGroup == group and other ~= key and s.cooldowns[other]
+                if ocd and ocd.readyAt < cd.readyAt then ocd.readyAt = cd.readyAt end
+            end
+        end
+    end
+    -- Totems: the element's totem is replaced (s.totemKey / s.totemExpires).
+    if ability.totem and s.totemKey then
+        s.totemKey[ability.totem] = key
+        s.totemExpires[ability.totem] = t + ability.totemDuration
     end
 
     local free = ability.freeWith and BuffUpAt(s, ability.freeWith, t)

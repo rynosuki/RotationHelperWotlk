@@ -17,9 +17,9 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 | E3 | **Rage** (done) | Warrior | Costs like runic power; rage income can't be predicted, so no regen. |
 | E4 | **"On next swing" abilities** (done) | Warrior | Heroic Strike and Cleave are off-GCD queued attacks; recommend them alongside the GCD ability. |
 | E5 | **Energy regen + combo points** | Rogue, Cat | Energy comes back at 10/s: `ReadyAt` must predict when there's enough. Finishers use combo points. |
-| E6 | **Buff stacks as a resource** | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
+| E6 | **Buff stacks as a resource** (done: `buff.X.stack`, stacking procs in the simulator) | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
 | E7 | **DoT refresh rules** | Affliction, Shadow, Balance, Feral | Refresh at the right time without clipping the last tick; haste-dependent tick times. |
-| E8 | **Pets, totems, forms** | Hunter, Warlock, Shaman, Druid | Pet active/abilities, totems up, current form (`GetShapeshiftForm()`). |
+| E8 | **Pets, totems, forms** (totems and stances done; pets partly: `pet.alive`) | Hunter, Warlock, Shaman, Druid | Pet active/abilities, totems up, current form (`GetShapeshiftForm()`). |
 | E9 | **Auto Shot timing** | Hunter | Steady Shot shouldn't clip Auto Shot; needs the ranged swing timer. |
 
 ## Specs
@@ -43,7 +43,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Shaman — mana
 
-- [ ] **Enhancement** (DPS) · E1, E6, E8 · Stormstrike, Lava Lash, shocks, Maelstrom Weapon at 5 stacks, Magma Totem, Shamanistic Rage.
+- [ ] **Enhancement** (DPS) · E1, E6, E8 · implemented in 1.19.0 (totems, shared shock cooldown, stacking procs in the simulator, imbue checklist), waiting on an in-game check · Stormstrike, Lava Lash, shocks, Maelstrom Weapon at 5 stacks, Magma Totem, Shamanistic Rage.
 - [ ] **Elemental** (DPS) · E1, E2, E7 · Flame Shock upkeep, Lava Burst, Chain Lightning, Lightning Bolt, Thunderstorm.
 
 ### Rogue — energy + combo points
@@ -84,7 +84,7 @@ Legend: role · power · engine features needed · notes.
 1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
 2. **E1 mana costs** (done) → **Retribution Paladin** (done).
 3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
-4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
+4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** → **Shadow Priest**, then the other casters (Fire/Arcane Mage,
    Affliction/Destruction Warlock, Elemental, Balance).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.

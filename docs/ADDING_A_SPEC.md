@@ -57,6 +57,8 @@ Ability fields (all optional except `id`):
 | `nextSwing` | an on-next-swing attack (Heroic Strike): not suggested again while queued (`IsCurrentSpell`) |
 | `requiresForm` | the stance or form it needs (`GetShapeshiftForm()` index); skipped otherwise |
 | `usableWith` | a buff that also makes a `reactive` ability usable (Overpower with Taste for Blood) |
+| `cooldownGroup` | abilities sharing one cooldown (the Shaman shocks) |
+| `totem` + `totemDuration` | a totem of that element (set `usesTotems` in the class data) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 

@@ -14,7 +14,7 @@ local UnitHealth, UnitHealthMax, UnitLevel, UnitClassification, UnitCreatureType
     UnitHealth, UnitHealthMax, UnitLevel, UnitClassification, UnitCreatureType
 local UnitCastingInfo, UnitChannelInfo, GetUnitSpeed = UnitCastingInfo, UnitChannelInfo, GetUnitSpeed
 local GetCVar, GetNetStats, tonumber = GetCVar, GetNetStats, tonumber
-local IsUsableSpell, IsCurrentSpell = IsUsableSpell, IsCurrentSpell
+local IsUsableSpell, IsCurrentSpell, GetTotemInfo = IsUsableSpell, IsCurrentSpell, GetTotemInfo
 
 State.real = {
     now = 0,
@@ -30,7 +30,34 @@ State.real = {
     otherDotsUntil = {}, -- dot key -> when those run out (math.huge: until the log says so)
     usable = {},         -- reactive ability key -> usable right now (Rune Strike)
     queued = {},         -- on-next-swing ability key -> queued right now (Heroic Strike)
+    totemKey = {},       -- element ("fire", "earth", "water", "air") -> totem ability key, or false
+    totemExpires = {},   -- element -> when that totem runs out
 }
+
+-- GetTotemInfo slots.
+State.TOTEM_ELEMENTS = { "fire", "earth", "water", "air" }
+local totemKeyByName = {} -- "Magma Totem VII" -> "magma_totem" (cached)
+
+local function TotemKey(name, classData)
+    local key = totemKeyByName[name]
+    if key == nil then
+        key = classData.abilityByName[(name:gsub("%s+[IVXL]+$", ""))] or false
+        totemKeyByName[name] = key
+    end
+    return key
+end
+
+local function ReadTotems(s, classData)
+    for slot, element in ipairs(State.TOTEM_ELEMENTS) do
+        local have, name, start, duration = GetTotemInfo(slot)
+        if have and name and name ~= "" and duration and duration > 0 then
+            s.totemKey[element] = TotemKey(name, classData)
+            s.totemExpires[element] = start + duration
+        else
+            s.totemKey[element], s.totemExpires[element] = false, 0
+        end
+    end
+end
 
 local function ReadTarget(t)
     t.exists = UnitExists("target") and true or false
@@ -121,6 +148,7 @@ function State:Reset(now)
     s.activeEnemies = Targets:ActiveEnemies(now, toggles.aoeMode, t.exists and t.canAttack and not t.dead)
     t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
     ns.Dots:Read(s, now)
+    if classData.usesTotems then ReadTotems(s, classData) end
 
     local pullRemains = ns.PullTimer:Remains(now)
     s.pullAt = pullRemains and (now + pullRemains) or nil
@@ -194,6 +222,8 @@ State.virtual = {
     otherDotsUntil = {},
     usable = {},
     queued = {},
+    totemKey = {},
+    totemExpires = {},
 }
 
 local function CopyAuras(dst, src)
@@ -246,6 +276,8 @@ function State.CopyInto(dst, src)
     CopyMap(dst.otherDotsUntil, src.otherDotsUntil)
     CopyMap(dst.usable, src.usable)
     CopyMap(dst.queued, src.queued)
+    CopyMap(dst.totemKey, src.totemKey)
+    CopyMap(dst.totemExpires, src.totemExpires)
     wipe(dst.variables)
     dst.target = src.target
     return dst

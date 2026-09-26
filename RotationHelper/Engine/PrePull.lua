@@ -54,6 +54,12 @@ function PrePull:Check(s, settings)
     -- Stance or form the spec wants (Fury: Berserker Stance).
     local form = RH.classData.prepullForm and RH.classData.prepullForm[ns.Spec.key or ""]
     if form and s.form ~= form.form then missing[#missing + 1] = form.label end
+    -- Weapon imbues (Shaman: Windfury / Flametongue), on both weapons when dual wielding.
+    if RH.classData.prepullImbues then
+        local hasMain, _, _, hasOff = GetWeaponEnchantInfo()
+        if not hasMain then missing[#missing + 1] = "Main-hand imbue" end
+        if not hasOff and OffhandHasWeapon and OffhandHasWeapon() then missing[#missing + 1] = "Off-hand imbue" end
+    end
 
     return #missing > 0 and missing or nil
 end

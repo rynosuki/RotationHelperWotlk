@@ -117,6 +117,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `mana`, `mana.deficit` / `.max` / `.pct` | the same for mana users (Paladin) |
 | `rage`, `rage.deficit` / `.max` | rage (Warrior), including the expected income up to the moment the condition is checked |
 | `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
+| `totem.fire.up` / `.remains` (also `earth`, `water`, `air`) | your totem of that element |
+| `totem.NAME.up` / `.remains` | a specific totem, e.g. `totem.magma_totem.remains` |
 
 `rune.` works the same as `runes.`.
 
@@ -174,6 +176,11 @@ Warrior: `bloodthirst`, `whirlwind`, `slam` (use it with `buff.bloodsurge.up`), 
 Abilities that need a stance (Overpower: Battle; Whirlwind, Pummel, Recklessness: Berserker) are
 skipped in the wrong one. Heroic Strike and Cleave are on the next
 swing: they're off the GCD and not suggested again while one is queued.
+
+Shaman: `stormstrike`, `lava_lash`, `earth_shock`, `flame_shock` (`dot.flame_shock`), `frost_shock`
+(the shocks share a cooldown), `lightning_bolt` and `chain_lightning` (use them with
+`buff.maelstrom_weapon.stack=5`), `fire_nova` (needs `totem.fire.up`), `magma_totem`,
+`searing_totem`, `lightning_shield`, `feral_spirit`, `shamanistic_rage`, `wind_shear`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

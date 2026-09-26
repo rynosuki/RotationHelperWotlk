@@ -398,6 +398,13 @@ function Mock.NewSession(opts)
         [47486] = { "Mortal Strike", "i" }, [47465] = { "Rend", "i" }, [7384] = { "Overpower", "i" },
         [46924] = { "Bladestorm", "i" }, [12328] = { "Sweeping Strikes", "i" }, [60503] = { "Taste for Blood", "i" },
         [52437] = { "Sudden Death", "i" },
+        -- Shaman
+        [17364] = { "Stormstrike", "i" }, [60103] = { "Lava Lash", "i" }, [49231] = { "Earth Shock", "i" },
+        [49233] = { "Flame Shock", "i" }, [49236] = { "Frost Shock", "i" }, [49238] = { "Lightning Bolt", "i" },
+        [49271] = { "Chain Lightning", "i" }, [61657] = { "Fire Nova", "i" }, [58734] = { "Magma Totem", "i" },
+        [58704] = { "Searing Totem", "i" }, [49281] = { "Lightning Shield", "i" }, [324] = { "Lightning Shield", "i" },
+        [51533] = { "Feral Spirit", "i" }, [30823] = { "Shamanistic Rage", "i" }, [57994] = { "Wind Shear", "i" },
+        [53817] = { "Maelstrom Weapon", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells
@@ -486,6 +493,19 @@ function Mock.NewSession(opts)
     env.IsUsableSpell = function(name) return session.usable[name] or false, false end
     env.IsCurrentSpell = function(name) return session.current[name] or false end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
+    -- Totems: session.totems[slot] = { name, start, duration } (1 fire, 2 earth, 3 water, 4 air).
+    session.totems = {}
+    env.GetTotemInfo = function(slot)
+        local t = session.totems[slot]
+        if not t then return false, "", 0, 0, nil end
+        return true, t[1], t[2], t[3], "i"
+    end
+    -- Temporary weapon enchants (Shaman imbues): session.imbues = { main = bool, off = bool }.
+    session.imbues, session.offhandWeapon = { main = false, off = false }, false
+    env.GetWeaponEnchantInfo = function()
+        return session.imbues.main, 1800000, 0, session.imbues.off, 1800000, 0
+    end
+    env.OffhandHasWeapon = function() return session.offhandWeapon end
     session.form = 0 -- GetShapeshiftForm (warrior stance)
     env.GetShapeshiftForm = function() return session.form end
     env.UnitCreatureType = function(unit) return unit == "target" and session.target.creatureType or nil end

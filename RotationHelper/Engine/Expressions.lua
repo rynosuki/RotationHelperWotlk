@@ -223,6 +223,29 @@ local function GlyphGetter(parts)
     return function() return B(Spec:HasGlyph(key)) end
 end
 
+-- totem.ELEMENT.up / .remains (fire, earth, water, air), or totem.KEY.up /
+-- .remains for a specific totem ability (totem.magma_totem.remains).
+local ELEMENTS = { fire = true, earth = true, water = true, air = true }
+local function TotemGetter(parts, classData)
+    local what, field = parts[2], parts[3]
+    if #parts ~= 3 or (field ~= "up" and field ~= "remains") then
+        return nil, "use totem.fire.up / .remains, or totem.NAME.up / .remains"
+    end
+    local element, key = what, nil
+    if not ELEMENTS[what] then
+        local ability = classData.abilities[what]
+        if not (ability and ability.totem) then return nil, "unknown totem '" .. tostring(what) .. "'" end
+        element, key = ability.totem, what
+    end
+    local function Remains(s)
+        local keys = s.totemKey
+        if not keys or not keys[element] or (key and keys[element] ~= key) then return 0 end
+        return max(0, s.totemExpires[element] - s.now)
+    end
+    if field == "remains" then return Remains end
+    return function(s) return B(Remains(s) > 0) end
+end
+
 -- target.type.NAME: the target's creature type, e.g. target.type.undead.
 local function TargetGetter(parts)
     if #parts == 3 and parts[2] == "type" then
@@ -243,6 +266,7 @@ local PREFIXES = {
     glyph = GlyphGetter,
     active_dot = ActiveDotGetter,
     target = TargetGetter,
+    totem = TotemGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.
