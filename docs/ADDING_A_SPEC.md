@@ -139,6 +139,8 @@ that nothing important is under "Not in spellbook", and that the trace picks wha
 - Compare versions side by side: `lua tests/sim.lua unholy default my_version.apl`. Look for
   higher time spent casting, less rune and runic power waste, diseases near 100%, and few wasted
   procs. The class data's `reviewDebuffs` lists the debuffs whose uptime is reported.
+- `lastAuraGroup = { "lunar_eclipse", "solar_eclipse" }` remembers which of those buffs came last
+  (`last.lunar_eclipse`); simulator procs can have an internal cooldown (`icd`).
 - `reviewDebuffs` can also be per spec: `{ arms = { "rend" } }`.
 - `spreadDots` lists the dots tracked on other enemies (`active_dot.X`, `diseased_enemies`);
   an ability's `apply` calls `fx.SpreadDots(s, duration)` to spread them in the prediction.

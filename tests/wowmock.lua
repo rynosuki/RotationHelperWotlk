@@ -408,6 +408,12 @@ function Mock.NewSession(opts)
         [49276] = { "Lesser Healing Wave", "i" }, [60043] = { "Lava Burst", "i" }, [59159] = { "Thunderstorm", "i" },
         [16166] = { "Elemental Mastery", "i" }, [57722] = { "Totem of Wrath", "i" }, [2894] = { "Fire Elemental Totem", "i" },
         [57960] = { "Water Shield", "i" },
+        -- Druid
+        [48461] = { "Wrath", "i" }, [48465] = { "Starfire", "i" }, [48463] = { "Moonfire", "i" },
+        [48468] = { "Insect Swarm", "i" }, [770] = { "Faerie Fire", "i" }, [16857] = { "Faerie Fire (Feral)", "i" },
+        [53201] = { "Starfall", "i" }, [33831] = { "Force of Nature", "i" }, [48467] = { "Hurricane", "i" },
+        [24858] = { "Moonkin Form", "i" }, [53308] = { "Entangling Roots", "i" }, [48518] = { "Eclipse (Lunar)", "i" },
+        [48517] = { "Eclipse (Solar)", "i" }, [1126] = { "Mark of the Wild", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },

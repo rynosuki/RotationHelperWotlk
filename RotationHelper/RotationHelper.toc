@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.25.0
+## Version: 1.26.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -13,6 +13,7 @@ SpecProfiles.lua
 
 Classes\Shared.lua
 Classes\DeathKnight.lua
+Classes\Druid.lua
 Classes\Mage.lua
 Classes\Paladin.lua
 Classes\Priest.lua
@@ -47,6 +48,7 @@ APL\Runner.lua
 APLs\DeathKnight_Blood.lua
 APLs\DeathKnight_Frost.lua
 APLs\DeathKnight_Unholy.lua
+APLs\Druid_Balance.lua
 APLs\Mage_Arcane.lua
 APLs\Mage_Fire.lua
 APLs\Paladin_Retribution.lua

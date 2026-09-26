@@ -34,7 +34,9 @@ next three casts faster) and Chaos Bolt on cooldown, Curse of Doom on long fight
 Agony), and fills with Incinerate. **Elemental Shaman** keeps Totem of Wrath and Flame Shock up,
 casts Lava Burst while Flame Shock will still be up when it lands, Chain Lightning on several
 targets and Lightning Bolt otherwise, with Thunderstorm for mana and Earth Shock while moving.
-Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+**Balance Druid** keeps Faerie Fire, Insect Swarm and Moonfire up, casts Starfire in Lunar
+Eclipse and Wrath in Solar, and between eclipses keeps casting the spell of the last one (which
+procs the other); Starfall on cooldown. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

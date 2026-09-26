@@ -121,6 +121,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `totem.NAME.up` / `.remains` | a specific totem, e.g. `totem.magma_totem.remains` |
 | `action.NAME.cast_time` | the ability's cast or channel time with your spell haste (0 for instants) |
 | `action.NAME.execute_time` | that, or the GCD if longer: how long using it keeps you busy |
+| `last.NAME` | 1 if NAME was the most recent of its group, even after it ran out (Balance: `last.lunar_eclipse` / `last.solar_eclipse`) |
 
 `rune.` works the same as `runes.`.
 
@@ -205,6 +206,9 @@ Warlock: `haunt`, `corruption`, `unstable_affliction`, `curse_of_agony`, `curse_
 `fel_armor`, `immolate`, `conflagrate` (needs `dot.immolate.up`; uses it up without Glyph of
 Conflagrate), `chaos_bolt`, `incinerate`, `curse_of_doom`. `buff.backdraft.stack` counts the faster
 casts left.
+
+Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfire`, `insect_swarm`,
+`faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

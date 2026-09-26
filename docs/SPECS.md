@@ -55,7 +55,7 @@ Legend: role · power · engine features needed · notes.
 ### Druid
 
 - [ ] **Feral, cat** (DPS) · E5, E7, E8 · Savage Roar, Rip, Rake, Mangle upkeep, Shred, Tiger's Fury, Berserk. The hardest melee rotation.
-- [ ] **Balance** (DPS) · E1, E2, E7 · Eclipse (Wrath/Starfire switching), Moonfire and Insect Swarm upkeep, Starfall.
+- [ ] **Balance** (DPS) · E1, E2, E7 · implemented in 1.26.0 (`last.X` for the last Eclipse, proc cooldowns in the simulator), waiting on an in-game check · Eclipse (Wrath/Starfire switching), Moonfire and Insect Swarm upkeep, Starfall.
 
 ### Hunter — mana (focus only arrives in Cataclysm)
 
@@ -86,7 +86,7 @@ Legend: role · power · engine features needed · notes.
 3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
-   Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance).
+   Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
 8. Niche specs (Subtlety Rogue, Frost Mage).

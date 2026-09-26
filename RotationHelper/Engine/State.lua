@@ -129,6 +129,19 @@ function State:Reset(now)
 
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
+    -- The most recent of a group of buffs (Eclipse: Lunar or Solar), kept
+    -- after it runs out: s.lastAura, for last.KEY in rotations.
+    local group = classData.lastAuraGroup
+    if group then
+        local best, bestExpires
+        for _, key in ipairs(group) do
+            local rec = s.buffs[key]
+            if rec and rec.expires > now and (not best or rec.expires > bestExpires) then
+                best, bestExpires = key, rec.expires
+            end
+        end
+        if best then s.lastAura = best end
+    end
     ns.Cooldowns.Read(s, classData, now)
     ReadTarget(s.target)
     -- Consumables (potions): toggled on, and by default only in boss fights:

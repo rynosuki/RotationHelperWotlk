@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    balance = {
+        class = "DRUID", power = { type = 0, current = 20000, max = 20000 },
+        talents = {
+            { name = "Balance", talents = { { "Starlight Wrath", 5 }, { "Eclipse", 3 }, { "Nature's Splendor", 1 },
+                { "Moonkin Form", 1 }, { "Starfall", 1 }, { "Force of Nature", 1 }, { "Improved Faerie Fire", 3 } } },
+            { name = "Feral Combat", talents = {} },
+            { name = "Restoration", talents = { { "Intensity", 3 } } },
+        },
+        spells = { "Wrath", "Starfire", "Moonfire", "Insect Swarm", "Faerie Fire", "Starfall", "Force of Nature",
+            "Hurricane", "Moonkin Form", "Entangling Roots", "Mark of the Wild" },
+    },
     elemental = {
         class = "SHAMAN", power = { type = 0, current = 22000, max = 22000 },
         talents = {
@@ -172,7 +183,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end
@@ -241,7 +252,11 @@ for d = 1, #first.debuffs do
 end
 for p = 1, #first.procs do
     local aura = first.procs[p].aura
-    rows[#rows + 1] = { aura .. " wasted /fight", function(sm) return sm.procs[p].wasted end }
+    if first.procs[p].wasted then
+        rows[#rows + 1] = { aura .. " wasted /fight", function(sm) return sm.procs[p].wasted end }
+    else
+        rows[#rows + 1] = { aura .. " per fight", function(sm) return sm.procs[p].gained end }
+    end
 end
 local abilities, seen = {}, {}
 for _, r in ipairs(rotations) do

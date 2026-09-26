@@ -109,6 +109,19 @@ end
 -- stack; one landing at the maximum is lost.
 local function GainProc(s, proc, m)
     local stats = m.procs[proc.aura]
+    -- An internal cooldown (Eclipse: 30 seconds) stops it proccing again soon.
+    if proc.icd then
+        s.procAt = s.procAt or {}
+        local last = s.procAt[proc.aura]
+        if last and s.now - last < proc.icd then return end
+        s.procAt[proc.aura] = s.now
+    end
+    local group = RH.classData.lastAuraGroup
+    if group then
+        for _, key in ipairs(group) do
+            if key == proc.aura then s.lastAura = key end
+        end
+    end
     local rec = s.buffs[proc.aura]
     local up = rec and rec.expires > s.now
     local stacks = 1
@@ -265,8 +278,17 @@ function Sim.Summarize(apl, opts, runs)
         local p = total.procs[proc.aura]
         if p and p.gained > 0 and not listed[proc.aura] then
             listed[proc.aura] = true
+            -- Procs no ability uses up (Eclipse) can't be wasted: only how often.
+            local consumed = false
+            for _, ability in pairs(RH.classData.abilities) do
+                if ability.freeWith == proc.aura or ability.instantWith == proc.aura
+                    or ability.usableWith == proc.aura then consumed = true end
+                for _, c in ipairs(ability.consumes or {}) do
+                    if c == proc.aura then consumed = true end
+                end
+            end
             summary.procs[#summary.procs + 1] = { aura = proc.aura, gained = round1(p.gained / runs),
-                used = round1(p.used / runs), wasted = round1((p.gained - p.used) / runs) }
+                used = round1(p.used / runs), wasted = consumed and round1((p.gained - p.used) / runs) or nil }
         end
     end
     summary.damage = Sim.EstimateDamage(total.casts, total.debuffUp, minutes)
@@ -313,7 +335,11 @@ function Sim.Format(summary)
     end
     for _, d in ipairs(summary.debuffs) do add(("  %s uptime: %.1f%%"):format(d.key, d.uptime)) end
     for _, p in ipairs(summary.procs) do
-        add(("  %s: %.1f per fight, %.1f used, %.1f wasted"):format(p.aura, p.gained, p.used, p.wasted))
+        if p.wasted then
+            add(("  %s: %.1f per fight, %.1f used, %.1f wasted"):format(p.aura, p.gained, p.used, p.wasted))
+        else
+            add(("  %s: %.1f per fight"):format(p.aura, p.gained))
+        end
     end
     local casts = {}
     for _, c in ipairs(summary.casts) do casts[#casts + 1] = ("%s %.1f"):format(c.key, c.perMinute) end

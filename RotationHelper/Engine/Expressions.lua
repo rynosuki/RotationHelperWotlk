@@ -264,6 +264,17 @@ local function ActionGetter(parts, classData)
     return nil, "unknown action field '" .. tostring(field) .. "' (use cast_time or execute_time)"
 end
 
+-- last.KEY: 1 if KEY is the most recent buff of the class's lastAuraGroup
+-- (Balance: last.lunar_eclipse after Lunar Eclipse, even once it ran out).
+local function LastGetter(parts, classData)
+    local key = parts[2]
+    local group = classData.lastAuraGroup
+    local known = false
+    for _, k in ipairs(group or {}) do if k == key then known = true end end
+    if #parts ~= 2 or not known then return nil, "use last.NAME with one of: " .. table.concat(group or {}, ", ") end
+    return function(s) return B(s.lastAura == key) end
+end
+
 -- target.type.NAME: the target's creature type, e.g. target.type.undead.
 local function TargetGetter(parts)
     if #parts == 3 and parts[2] == "type" then
@@ -286,6 +297,7 @@ local PREFIXES = {
     target = TargetGetter,
     totem = TotemGetter,
     action = ActionGetter,
+    last = LastGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.
