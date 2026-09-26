@@ -31,7 +31,10 @@ cooldown, keeps Unstable Affliction, Corruption (kept going by Everlasting Affli
 of Agony up, and fills with Shadow Bolt (Drain Soul below 25%), with Life Tap for mana and
 while moving. **Destruction Warlock** keeps Immolate up, uses Conflagrate (its Backdraft makes the
 next three casts faster) and Chaos Bolt on cooldown, Curse of Doom on long fights (else Curse of
-Agony), and fills with Incinerate. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+Agony), and fills with Incinerate. **Elemental Shaman** keeps Totem of Wrath and Flame Shock up,
+casts Lava Burst while Flame Shock will still be up when it lands, Chain Lightning on several
+targets and Lightning Bolt otherwise, with Thunderstorm for mana and Earth Shock while moving.
+Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

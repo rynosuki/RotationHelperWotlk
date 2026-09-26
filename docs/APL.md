@@ -182,7 +182,10 @@ swing: they're off the GCD and not suggested again while one is queued.
 Shaman: `stormstrike`, `lava_lash`, `earth_shock`, `flame_shock` (`dot.flame_shock`), `frost_shock`
 (the shocks share a cooldown), `lightning_bolt` and `chain_lightning` (use them with
 `buff.maelstrom_weapon.stack=5`), `fire_nova` (needs `totem.fire.up`), `magma_totem`,
-`searing_totem`, `lightning_shield`, `feral_spirit`, `shamanistic_rage`, `wind_shear`.
+`searing_totem`, `lightning_shield`, `feral_spirit`, `shamanistic_rage`, `wind_shear`, `lava_burst`,
+`thunderstorm`, `elemental_mastery`, `totem_of_wrath`, `fire_elemental_totem`, `water_shield`.
+Lightning Bolt and Chain Lightning are casts (Lightning Mastery shortens them), instant with 5
+Maelstrom Weapon stacks.
 
 Priest: `vampiric_touch`, `shadow_word_pain`, `devouring_plague` (all `dot.*`), `mind_blast`,
 `mind_flay`, `mind_sear`, `shadow_word_death`, `shadowfiend`, `dispersion`, `shadowform`,

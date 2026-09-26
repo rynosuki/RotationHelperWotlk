@@ -44,7 +44,7 @@ Legend: role · power · engine features needed · notes.
 ### Shaman — mana
 
 - [ ] **Enhancement** (DPS) · E1, E6, E8 · implemented in 1.19.0 (totems, shared shock cooldown, stacking procs in the simulator, imbue checklist), waiting on an in-game check · Stormstrike, Lava Lash, shocks, Maelstrom Weapon at 5 stacks, Magma Totem, Shamanistic Rage.
-- [ ] **Elemental** (DPS) · E1, E2, E7 · Flame Shock upkeep, Lava Burst, Chain Lightning, Lightning Bolt, Thunderstorm.
+- [ ] **Elemental** (DPS) · E1, E2, E7 · implemented in 1.25.0, waiting on an in-game check · Flame Shock upkeep, Lava Burst, Chain Lightning, Lightning Bolt, Thunderstorm.
 
 ### Rogue — energy + combo points
 
@@ -86,7 +86,7 @@ Legend: role · power · engine features needed · notes.
 3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
-   Affliction (done)/Destruction (done) Warlock, Elemental, Balance).
+   Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
 8. Niche specs (Subtlety Rogue, Frost Mage).

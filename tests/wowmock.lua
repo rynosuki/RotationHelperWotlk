@@ -405,6 +405,9 @@ function Mock.NewSession(opts)
         [58704] = { "Searing Totem", "i" }, [49281] = { "Lightning Shield", "i" }, [324] = { "Lightning Shield", "i" },
         [51533] = { "Feral Spirit", "i" }, [30823] = { "Shamanistic Rage", "i" }, [57994] = { "Wind Shear", "i" },
         [53817] = { "Maelstrom Weapon", "i" },
+        [49276] = { "Lesser Healing Wave", "i" }, [60043] = { "Lava Burst", "i" }, [59159] = { "Thunderstorm", "i" },
+        [16166] = { "Elemental Mastery", "i" }, [57722] = { "Totem of Wrath", "i" }, [2894] = { "Fire Elemental Totem", "i" },
+        [57960] = { "Water Shield", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },

@@ -46,12 +46,15 @@ end
 ---------------------------------------------------------------------------
 function Sim.NewState(opts)
     local classData = RH.classData
+    -- The class's power for a fresh fight, or one per spec ({ elemental = {...} }).
+    local power = classData.simPower
+    if power and not power.type then power = power[ns.Spec.key] end
     local s = {
         now = 0, runes = {}, buffs = {}, debuffs = {}, cooldowns = {}, variables = {}, lastCast = {},
-        runeRegen = 10, powerType = classData.simPower and classData.simPower.type or "runic_power",
-        power = classData.simPower and classData.simPower.start or 0,
-        powerRegen = classData.simPower and classData.simPower.regen, powerTime = 0,
-        powerMax = opts.powerMax or (classData.simPower and classData.simPower.max) or 130,
+        runeRegen = 10, powerType = power and power.type or "runic_power",
+        power = power and power.start or 0,
+        powerRegen = power and power.regen, powerTime = 0,
+        powerMax = opts.powerMax or (power and power.max) or 130,
         gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, castEnd = 0, hasteFactor = 1, realGcdEnd = 0, realCastRemains = 0,
         lookahead = 0, inCombat = true, combatStart = 0, moving = false, petAlive = true,
         cooldownsEnabled = opts.cooldowns ~= false, shortCooldownsEnabled = opts.cooldowns ~= false,

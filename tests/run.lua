@@ -18,6 +18,7 @@ local SUITES = {
     "test_retribution",
     "test_fury",
     "test_arms",
+    "test_elemental",
     "test_enhancement",
     "test_shadow",
     "test_fire",

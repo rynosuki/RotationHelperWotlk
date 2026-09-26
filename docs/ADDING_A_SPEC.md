@@ -85,7 +85,7 @@ reading, but fix it anyway. `partOf = "group"` makes an aura also count as a gro
 (declared as `group = {}`): every Paladin seal is `partOf = "seal"`, so `buff.seal.up` means any seal.
 
 A new class also needs `gcdSpell` (a spell with no cooldown of its own), and for the simulator
-`simPower = { type, max, start, regen }` when it doesn't start at 0 runic power
+`simPower = { type, max, start, regen }` when it doesn't start at 0 runic power (or one per spec: `{ elemental = {...}, enhancement = {...} }`)
 ([Classes/Paladin.lua](../RotationHelper/Classes/Paladin.lua) is the example).
 
 ### 2. Write the APL
