@@ -388,6 +388,13 @@ function Mock.NewSession(opts)
         [53736] = { "Seal of Corruption", "i" }, [20375] = { "Seal of Command", "i" }, [21084] = { "Seal of Righteousness", "i" },
         [20165] = { "Seal of Light", "i" }, [20166] = { "Seal of Wisdom", "i" }, [20164] = { "Seal of Justice", "i" },
         [59578] = { "The Art of War", "i" }, [53489] = { "The Art of War", "i" }, [19740] = { "Blessing of Might", "i" },
+        -- Warrior
+        [23881] = { "Bloodthirst", "i" }, [1680] = { "Whirlwind", "i" }, [47475] = { "Slam", "i" }, [47471] = { "Execute", "i" },
+        [47450] = { "Heroic Strike", "i" }, [47520] = { "Cleave", "i" }, [47436] = { "Battle Shout", "i" },
+        [47440] = { "Commanding Shout", "i" }, [2687] = { "Bloodrage", "i" }, [18499] = { "Berserker Rage", "i" },
+        [12292] = { "Death Wish", "i" }, [1719] = { "Recklessness", "i" }, [6552] = { "Pummel", "i" },
+        [34428] = { "Victory Rush", "i" }, [1715] = { "Hamstring", "i" }, [46916] = { "Slam!", "i" },
+        [48932] = { "Blessing of Might", "i" }, [48934] = { "Greater Blessing of Might", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells
@@ -476,6 +483,8 @@ function Mock.NewSession(opts)
     env.IsUsableSpell = function(name) return session.usable[name] or false, false end
     env.IsCurrentSpell = function(name) return session.current[name] or false end
     env.UnitLevel = function(unit) return unit == "target" and session.target.level or 80 end
+    session.form = 0 -- GetShapeshiftForm (warrior stance)
+    env.GetShapeshiftForm = function() return session.form end
     env.UnitCreatureType = function(unit) return unit == "target" and session.target.creatureType or nil end
     env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
     -- The target's cast/channel: session.targetCast / targetChannel =

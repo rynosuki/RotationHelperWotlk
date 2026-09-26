@@ -10,7 +10,10 @@ Strike after dodges and parries, Rune Tap and Vampiric Blood when you're hurt, r
 for Rune Strike). **Retribution Paladin** plays the classic first-come-first-served priority
 (Judgement, Hammer of Wrath, Crusader Strike, Divine Storm, Consecration, Exorcism with The Art
 of War, Holy Wrath on undead and demons) and keeps your seal up; which Judgement it suggests is
-set on the General tab. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+set on the General tab. **Fury Warrior** plays Bloodthirst, Whirlwind, Slam with Bloodsurge and
+Execute, with Heroic Strike (Cleave on several targets) on the next swing when there's rage to
+spare. When you're short on rage, the icon counts down to when your rage income (learned during
+the fight) will cover it. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

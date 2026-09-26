@@ -103,17 +103,31 @@ end
 ---------------------------------------------------------------------------
 -- Everything else
 ---------------------------------------------------------------------------
+-- The class's power (runic power, mana, rage) at the moment being checked.
+local function Power(s) return ns.Resources.PowerAt(s, s.now) end
+local function PowerDeficit(s) return s.powerMax - ns.Resources.PowerAt(s, s.now) end
+local function PowerMax(s) return s.powerMax end
+local function PowerPct(s) return s.powerMax > 0 and ns.Resources.PowerAt(s, s.now) / s.powerMax * 100 or 0 end
+
 -- Names with no parameters, e.g. "gcd.remains".
 local SIMPLE = {
-    runic_power = function(s) return s.power end,
-    ["runic_power.deficit"] = function(s) return s.powerMax - s.power end,
-    ["runic_power.max"] = function(s) return s.powerMax end,
-    ["runic_power.pct"] = function(s) return s.powerMax > 0 and s.power / s.powerMax * 100 or 0 end,
-    -- Mana (the same numbers; for classes that use mana).
-    mana = function(s) return s.power end,
-    ["mana.deficit"] = function(s) return s.powerMax - s.power end,
-    ["mana.max"] = function(s) return s.powerMax end,
-    ["mana.pct"] = function(s) return s.powerMax > 0 and s.power / s.powerMax * 100 or 0 end,
+    runic_power = Power,
+    ["runic_power.deficit"] = PowerDeficit,
+    ["runic_power.max"] = PowerMax,
+    ["runic_power.pct"] = PowerPct,
+    -- Mana and rage: the same numbers, for classes that use them. Rage
+    -- counts the expected income up to the moment the condition is checked.
+    mana = Power,
+    ["mana.deficit"] = PowerDeficit,
+    ["mana.max"] = PowerMax,
+    ["mana.pct"] = PowerPct,
+    rage = Power,
+    ["rage.deficit"] = PowerDeficit,
+    ["rage.max"] = PowerMax,
+    -- Warrior stances (GetShapeshiftForm: 1 battle, 2 defensive, 3 berserker).
+    ["stance.battle"] = function(s) return B(s.form == 1) end,
+    ["stance.defensive"] = function(s) return B(s.form == 2) end,
+    ["stance.berserker"] = function(s) return B(s.form == 3) end,
     gcd = function(s) return s.gcdDuration end,
     ["gcd.remains"] = function(s) return max(0, s.gcdEnd - s.now) end,
     time = function(s) return s.combatStart and max(0, s.now - s.combatStart) or 0 end,

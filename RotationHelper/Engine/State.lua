@@ -29,6 +29,7 @@ State.real = {
     otherDots = {},      -- dot key -> enemies other than the target with it (Engine/Dots.lua)
     otherDotsUntil = {}, -- dot key -> when those run out (math.huge: until the log says so)
     usable = {},         -- reactive ability key -> usable right now (Rune Strike)
+    queued = {},         -- on-next-swing ability key -> queued right now (Heroic Strike)
 }
 
 local function ReadTarget(t)
@@ -79,9 +80,11 @@ function State:Reset(now)
     now = now or GetTime()
     s.now = now
     s.inCombat = RH.inCombat or false
+    if s.inCombat and s.combatStart ~= RH.combatStart then ns.Resources.ResetIncome(now) end
     s.combatStart = RH.combatStart
     s.petAlive = (UnitExists("pet") and not UnitIsDead("pet")) and true or false
     s.moving = GetUnitSpeed and GetUnitSpeed("player") > 0 or false
+    s.form = GetShapeshiftForm and GetShapeshiftForm() or 0 -- warrior stances, druid forms
     local healthMax = UnitHealthMax("player")
     s.healthPct = healthMax > 0 and UnitHealth("player") / healthMax * 100 or 100
     -- Reactive abilities: usable (after a dodge or parry) and not already
@@ -90,6 +93,9 @@ function State:Reset(now)
         if ability.reactive then
             local name = ability.name
             s.usable[key] = (name and IsUsableSpell(name) and not IsCurrentSpell(name)) and true or false
+        end
+        if ability.nextSwing then
+            s.queued[key] = (ability.name and IsCurrentSpell(ability.name)) and true or false
         end
     end
     local toggles = RH.db.profile.toggles
@@ -187,6 +193,7 @@ State.virtual = {
     otherDots = {},
     otherDotsUntil = {},
     usable = {},
+    queued = {},
 }
 
 local function CopyAuras(dst, src)
@@ -238,6 +245,7 @@ function State.CopyInto(dst, src)
     CopyMap(dst.otherDots, src.otherDots)
     CopyMap(dst.otherDotsUntil, src.otherDotsUntil)
     CopyMap(dst.usable, src.usable)
+    CopyMap(dst.queued, src.queued)
     wipe(dst.variables)
     dst.target = src.target
     return dst

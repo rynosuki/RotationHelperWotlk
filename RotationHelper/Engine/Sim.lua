@@ -50,7 +50,7 @@ function Sim.NewState(opts)
         now = 0, runes = {}, buffs = {}, debuffs = {}, cooldowns = {}, variables = {}, lastCast = {},
         runeRegen = 10, powerType = classData.simPower and classData.simPower.type or "runic_power",
         power = classData.simPower and classData.simPower.start or 0,
-        powerRegen = classData.simPower and classData.simPower.regen,
+        powerRegen = classData.simPower and classData.simPower.regen, powerTime = 0,
         powerMax = opts.powerMax or (classData.simPower and classData.simPower.max) or 130,
         gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, realGcdEnd = 0, realCastRemains = 0,
         lookahead = 0, inCombat = true, combatStart = 0, moving = false, petAlive = true,
@@ -73,7 +73,7 @@ function Sim.NewState(opts)
     -- The other enemies start without diseases; Pestilence spreads them.
     s.otherDots, s.otherDotsUntil, s.otherDiseased, s.otherDiseasedUntil = {}, {}, 0, 0
     -- Full health, and no dodges or parries (Rune Strike never comes up).
-    s.healthPct, s.usable = 100, {}
+    s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, classData.simForm or 0
     return s
 end
 
@@ -92,8 +92,7 @@ local function Measure(s, m, t0, t1)
         end
     end
     if s.powerType == "runic_power" and s.power >= s.powerMax then m.rpCapped = m.rpCapped + (t1 - t0) end
-    -- Passive mana regeneration (classData.simPower.regen per second).
-    if s.powerRegen then s.power = min(s.powerMax, s.power + s.powerRegen * (t1 - t0)) end
+
     for key, up in pairs(m.debuffUp) do
         local rec = s.debuffs[key]
         if rec and rec.expires > t0 then m.debuffUp[key] = up + (min(t1, rec.expires) - t0) end
@@ -138,9 +137,17 @@ function Sim.Run(apl, opts)
     end
 
     local t, steps, maxSteps = 0, 0, seconds * 20
+    local swingAt = {} -- on-next-swing ability -> when its swing lands (it's queued until then)
+    local swing = classData.simSwing or 2.5
     while t < seconds and steps < maxSteps do
         steps = steps + 1
         s.now = t
+        for key, at in pairs(swingAt) do
+            if at <= t then
+                s.queued[key] = false
+                swingAt[key] = nil
+            end
+        end
         local action, readyAt = Recommender:Evaluate(s, nil, context, apl)
         local nextTime = action and readyAt or (t + IDLE_STEP)
 
@@ -171,6 +178,7 @@ function Sim.Run(apl, opts)
                 local after = s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)
                 if after > s.powerMax then m.rpLost = m.rpLost + (after - s.powerMax) end
                 Abilities.Apply(s, key, t)
+                if ability.nextSwing then swingAt[key] = t + swing end
                 if not ability.offGcd then m.busy = m.busy + min(s.gcdDuration, seconds - t) end
                 m.casts[key] = (m.casts[key] or 0) + 1
                 for _, proc in ipairs(procs) do

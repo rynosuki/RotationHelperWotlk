@@ -18,6 +18,7 @@ local Utils = ns.Utils
 local ipairs, pairs, sort, min, max = ipairs, pairs, table.sort, math.min, math.max
 
 local NUM_RUNES = 6
+local function PowerAt(state, t) return ns.Resources.PowerAt(state, t) end
 
 -- Scratch tables, reused to avoid garbage on every evaluation.
 local readyCount = { blood = 0, unholy = 0, frost = 0, death = 0 }
@@ -64,6 +65,8 @@ end
 -- cost read from the client, `manaCost`, when there is one).
 function Abilities.PowerCost(ability)
     if ability.rpCost then return ability.rpCost(ns.Spec) end
+    if ability.rageCost then return ability.rageCost(ns.Spec) end
+    if ability.rage then return ability.rage end
     if ability.mana then
         return ability.manaCost or (ability.mana / 100 * (RH.classData.baseMana or 0))
     end
@@ -74,6 +77,7 @@ end
 function Abilities.PowerGain(ability)
     local gain = ability.rp and ability.rp < 0 and -ability.rp or 0
     if ability.rpGain then gain = gain + ability.rpGain(ns.Spec) end
+    if ability.rageGain then gain = gain + ability.rageGain(ns.Spec) end
     return gain
 end
 
@@ -101,6 +105,8 @@ function Abilities.ReadyAt(state, key)
     if ability.consumable and state.consumablesAllowed == false then return nil, "consumables off" end
     -- Reactive abilities (Rune Strike after a dodge or parry) only while the game allows them.
     if ability.reactive and not (state.usable and state.usable[key]) then return nil, "not usable" end
+    -- On-next-swing attacks (Heroic Strike, Cleave): not again while one is queued.
+    if ability.nextSwing and state.queued and state.queued[key] then return nil, "queued" end
 
     local t, limitedBy = state.now, nil
     local castEnd = state.now + (state.castRemains or 0)
@@ -111,8 +117,14 @@ function Abilities.ReadyAt(state, key)
     if cd and cd.readyAt > t then t, limitedBy = cd.readyAt, "cooldown" end
 
     local cost = Abilities.PowerCost(ability)
-    if cost > 0 and state.power < cost then
-        return nil, state.powerType == "mana" and "mana" or "runic power"
+    if cost > 0 and PowerAt(state, t) < cost then
+        -- Rage keeps coming in: wait for it. Other power doesn't.
+        local regen = state.powerRegen
+        if regen and regen > 0 then
+            t, limitedBy = state.powerTime + (cost - state.power) / regen, state.powerType
+        else
+            return nil, state.powerType == "runic_power" and "runic power" or state.powerType
+        end
     end
 
     if ability.runes and not (ability.freeWith and BuffUpAt(state, ability.freeWith, t)) then
@@ -288,6 +300,7 @@ function Abilities.Apply(s, key, t)
     s.castRemains = 0
     if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
     if ability.reactive and s.usable then s.usable[key] = false end -- queued / used up
+    if ability.nextSwing and s.queued then s.queued[key] = true end
 
     local cd = s.cooldowns[key]
     if cd then
@@ -300,7 +313,8 @@ function Abilities.Apply(s, key, t)
     if ability.runes and not free then SpendRunes(s, ability) end
     if free then Effects.RemoveBuff(s, ability.freeWith) end
 
-    s.power = max(0, min(s.powerMax, s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)))
+    s.power = max(0, min(s.powerMax, PowerAt(s, t) - Abilities.PowerCost(ability) + Abilities.PowerGain(ability)))
+    s.powerTime = t
 
     if ability.consumes then
         for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end

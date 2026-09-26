@@ -51,6 +51,9 @@ function PrePull:Check(s, settings)
     local wanted = PRESENCES[settings.presence[ns.Spec.key or ""] or "any"]
     if wanted and not Up(s, wanted.aura) then missing[#missing + 1] = wanted.label end
     if ns.Spec.key == "unholy" and not s.petAlive then missing[#missing + 1] = "Ghoul" end
+    -- Stance or form the spec wants (Fury: Berserker Stance).
+    local form = RH.classData.prepullForm and RH.classData.prepullForm[ns.Spec.key or ""]
+    if form and s.form ~= form.form then missing[#missing + 1] = form.label end
 
     return #missing > 0 and missing or nil
 end

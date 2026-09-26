@@ -204,7 +204,8 @@ end
 ---------------------------------------------------------------------------
 local SIMPLE_NAMES = {
     "runic_power", "runic_power.deficit", "runic_power.max", "runic_power.pct",
-    "mana", "mana.deficit", "mana.max", "mana.pct",
+    "mana", "mana.deficit", "mana.max", "mana.pct", "rage", "rage.deficit",
+    "stance.battle", "stance.defensive", "stance.berserker",
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
     "target.health.pct", "target.time_to_die", "toggle.cooldowns", "toggle.short_cooldowns", "toggle.consumables",
     "pull.active", "pull.remains", "burst.active", "burst.remains",
@@ -248,7 +249,9 @@ function APLText.Names(classData)
     for _, name in ipairs(SIMPLE_NAMES) do
         -- Only the power names of this class (runic power or mana).
         local isRunic, isMana = name:find("^runic_power") ~= nil, name:find("^mana") ~= nil
-        if not (isRunic and not classData.usesRunes) and not (isMana and not classData.baseMana) then
+        local isRage = name:find("^rage") ~= nil or name:find("^stance") ~= nil
+        if not (isRunic and not classData.usesRunes) and not (isMana and not classData.baseMana)
+            and not (isRage and not classData.rageIncome) then
             add(name, "name")
         end
     end

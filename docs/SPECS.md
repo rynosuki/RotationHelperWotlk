@@ -14,8 +14,8 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 |---|---|---|---|
 | E1 | **Mana costs** (done) | most non-DK specs | `mana = <% of base mana>` in class data; the client's real cost is used in game. No regen in the prediction (abilities can add some, e.g. Divine Plea); the simulator has `simPower.regen`. |
 | E2 | **Cast times and channels** | all casters | A cast delays the next action by its cast time (hasted), not the GCD. Channels (Mind Flay, Arcane Missiles) likewise. |
-| E3 | **Rage** | Warrior | Costs like runic power; rage income can't be predicted, so no regen. |
-| E4 | **"On next swing" abilities** | Warrior | Heroic Strike and Cleave are off-GCD queued attacks; recommend them alongside the GCD ability. |
+| E3 | **Rage** (done) | Warrior | Costs like runic power; rage income can't be predicted, so no regen. |
+| E4 | **"On next swing" abilities** (done) | Warrior | Heroic Strike and Cleave are off-GCD queued attacks; recommend them alongside the GCD ability. |
 | E5 | **Energy regen + combo points** | Rogue, Cat | Energy comes back at 10/s: `ReadyAt` must predict when there's enough. Finishers use combo points. |
 | E6 | **Buff stacks as a resource** | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
 | E7 | **DoT refresh rules** | Affliction, Shadow, Balance, Feral | Refresh at the right time without clipping the last tick; haste-dependent tick times. |
@@ -38,7 +38,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Warrior — rage
 
-- [ ] **Fury** (DPS) · E3, E4 · Bloodthirst, Whirlwind, Slam with Bloodsurge, Heroic Strike rage dumping.
+- [ ] **Fury** (DPS) · E3, E4 · implemented in 1.17.0 (rage income learned in combat, `nextSwing` abilities, stances), waiting on an in-game check · Bloodthirst, Whirlwind, Slam with Bloodsurge, Heroic Strike rage dumping.
 - [ ] **Arms** (DPS) · E3, E4 · Mortal Strike, Overpower, Execute and Sudden Death, Rend upkeep.
 
 ### Shaman — mana
@@ -83,7 +83,7 @@ Legend: role · power · engine features needed · notes.
 
 1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
 2. **E1 mana costs** (done) → **Retribution Paladin** (done).
-3. **E3 + E4 rage** → **Fury**, **Arms**.
+3. **E3 + E4 rage** (done) → **Fury** (done), **Arms**.
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
 5. **E2 cast times + E7 DoTs** → **Shadow Priest**, then the other casters (Fire/Arcane Mage,
    Affliction/Destruction Warlock, Elemental, Balance).

@@ -53,6 +53,8 @@ Ability fields (all optional except `id`):
 | `mana` | mana cost in % of base mana (set `baseMana` in the class data); in game the client's real cost is used |
 | `cooldownFn(spec)` | the cooldown with talents or glyphs, e.g. Improved Judgements; used by the prediction |
 | `variants` + `variant` | several spells behind one key, chosen in the options (Judgement of Light / Wisdom / Justice); every variant counts as a cast |
+| `rage` / `rageCost(spec)` / `rageGain(spec)` | rage cost and gain (set `rageIncome` in the class data: rage per second until the fight shows the real income) |
+| `nextSwing` | an on-next-swing attack (Heroic Strike): not suggested again while queued (`IsCurrentSpell`) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 

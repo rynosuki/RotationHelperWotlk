@@ -115,6 +115,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `runic_power` | current runic power |
 | `runic_power.deficit` / `.max` / `.pct` | missing, maximum, percent |
 | `mana`, `mana.deficit` / `.max` / `.pct` | the same for mana users (Paladin) |
+| `rage`, `rage.deficit` / `.max` | rage (Warrior), including the expected income up to the moment the condition is checked |
+| `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
 
 `rune.` works the same as `runes.`.
 
@@ -164,6 +166,11 @@ Paladin: `crusader_strike`, `divine_storm`, `judgement` (Light, Wisdom or Justic
 General tab), `consecration`, `exorcism`, `hammer_of_wrath`, `holy_wrath`, `avenging_wrath`,
 `divine_plea`, `seal_of_vengeance`, `seal_of_corruption`, `seal_of_command`,
 `seal_of_righteousness`. `buff.seal.up` is 1 while any seal is up.
+
+Warrior: `bloodthirst`, `whirlwind`, `slam` (use it with `buff.bloodsurge.up`), `execute`,
+`heroic_strike`, `cleave`, `battle_shout`, `commanding_shout`, `bloodrage`, `berserker_rage`,
+`death_wish`, `recklessness`, `pummel`, `victory_rush`. Heroic Strike and Cleave are on the next
+swing: they're off the GCD and not suggested again while one is queued.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),
