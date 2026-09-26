@@ -73,7 +73,9 @@ function Sim.NewState(opts)
     -- The other enemies start without diseases; Pestilence spreads them.
     s.otherDots, s.otherDotsUntil, s.otherDiseased, s.otherDiseasedUntil = {}, {}, 0, 0
     -- Full health, and no dodges or parries (Rune Strike never comes up).
-    s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, classData.simForm or 0
+    local form = classData.simForm or 0
+    if type(form) == "table" then form = form[ns.Spec.key] or 0 end
+    s.healthPct, s.usable, s.queued, s.form = 100, {}, {}, form
     return s
 end
 
@@ -124,7 +126,7 @@ function Sim.Run(apl, opts)
     local s = Sim.NewState(opts)
     local m = { seconds = seconds, busy = 0, runeWaste = 0, rpCapped = 0, rpLost = 0, casts = {},
         debuffUp = {}, procs = {} }
-    for _, key in ipairs(classData.reviewDebuffs or {}) do m.debuffUp[key] = 0 end
+    for _, key in ipairs(RH:ReviewDebuffs()) do m.debuffUp[key] = 0 end
 
     local procs = classData.simProcs or {}
     local nextProc, rates = {}, {}
@@ -139,6 +141,7 @@ function Sim.Run(apl, opts)
     local t, steps, maxSteps = 0, 0, seconds * 20
     local swingAt = {} -- on-next-swing ability -> when its swing lands (it's queued until then)
     local swing = classData.simSwing or 2.5
+    if type(swing) == "table" then swing = swing[ns.Spec.key] or 2.5 end
     while t < seconds and steps < maxSteps do
         steps = steps + 1
         s.now = t
@@ -235,7 +238,7 @@ function Sim.Summarize(apl, opts, runs)
         if a.perMinute ~= b.perMinute then return a.perMinute > b.perMinute end
         return a.key < b.key
     end)
-    for _, key in ipairs(RH.classData.reviewDebuffs or {}) do
+    for _, key in ipairs(RH:ReviewDebuffs()) do
         summary.debuffs[#summary.debuffs + 1] = { key = key, uptime = round1((total.debuffUp[key] or 0) / (seconds * runs) * 100) }
     end
     for _, proc in ipairs(RH.classData.simProcs or {}) do

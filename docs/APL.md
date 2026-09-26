@@ -169,7 +169,10 @@ General tab), `consecration`, `exorcism`, `hammer_of_wrath`, `holy_wrath`, `aven
 
 Warrior: `bloodthirst`, `whirlwind`, `slam` (use it with `buff.bloodsurge.up`), `execute`,
 `heroic_strike`, `cleave`, `battle_shout`, `commanding_shout`, `bloodrage`, `berserker_rage`,
-`death_wish`, `recklessness`, `pummel`, `victory_rush`. Heroic Strike and Cleave are on the next
+`death_wish`, `recklessness`, `pummel`, `victory_rush`, `mortal_strike`, `rend` (`dot.rend`),
+`overpower` (after a dodge or with `buff.taste_for_blood`), `bladestorm`, `sweeping_strikes`.
+Abilities that need a stance (Overpower: Battle; Whirlwind, Pummel, Recklessness: Berserker) are
+skipped in the wrong one. Heroic Strike and Cleave are on the next
 swing: they're off the GCD and not suggested again while one is queued.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps

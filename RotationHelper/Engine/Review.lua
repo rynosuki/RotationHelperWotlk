@@ -73,7 +73,7 @@ function Review:Sample(s, recs)
     local gcdFree = now >= (s.realGcdEnd or s.gcdEnd) and (s.realCastRemains or s.castRemains) <= 0
     if main and gcdFree and main.wait <= 0.05 then fight.idle = fight.idle + dt end
 
-    for _, key in ipairs(classData.reviewDebuffs or {}) do
+    for _, key in ipairs(RH:ReviewDebuffs()) do
         local rec = s.debuffs[key]
         if rec and rec.expires > now then fight.debuffs[key] = (fight.debuffs[key] or 0) + dt end
     end
@@ -143,7 +143,7 @@ function Review:Summarize(f, now)
         mistakes = TopMistakes(f.mistakes),
         mistakeCount = #f.mistakes,
     }
-    for _, key in ipairs(RH.classData.reviewDebuffs or {}) do
+    for _, key in ipairs(RH:ReviewDebuffs()) do
         summary.debuffs[#summary.debuffs + 1] = { key = key, uptime = Percent(f.debuffs[key] or 0, f.targetTime) }
     end
     for _, key in ipairs(RH.classData.majorCooldowns or {}) do

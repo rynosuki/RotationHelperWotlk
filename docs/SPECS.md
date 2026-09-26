@@ -39,7 +39,7 @@ Legend: role · power · engine features needed · notes.
 ### Warrior — rage
 
 - [ ] **Fury** (DPS) · E3, E4 · implemented in 1.17.0 (rage income learned in combat, `nextSwing` abilities, stances), waiting on an in-game check · Bloodthirst, Whirlwind, Slam with Bloodsurge, Heroic Strike rage dumping.
-- [ ] **Arms** (DPS) · E3, E4 · Mortal Strike, Overpower, Execute and Sudden Death, Rend upkeep.
+- [ ] **Arms** (DPS) · E3, E4 · implemented in 1.18.0 (stance requirements, `usableWith` for Taste for Blood, per-spec review debuffs), waiting on an in-game check · Mortal Strike, Overpower, Execute and Sudden Death, Rend upkeep.
 
 ### Shaman — mana
 
@@ -83,7 +83,7 @@ Legend: role · power · engine features needed · notes.
 
 1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
 2. **E1 mana costs** (done) → **Retribution Paladin** (done).
-3. **E3 + E4 rage** (done) → **Fury** (done), **Arms**.
+3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
 5. **E2 cast times + E7 DoTs** → **Shadow Priest**, then the other casters (Fire/Arcane Mage,
    Affliction/Destruction Warlock, Elemental, Balance).

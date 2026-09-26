@@ -34,6 +34,7 @@ function Interrupt:GetEntry(s, now)
     local key = RH.classData.interrupt
     local ability = key and RH.classData.abilities[key]
     if not (ability and ns.Spec.known[key]) then return nil end
+    if ability.requiresForm and s.form ~= ability.requiresForm then return nil end -- Pummel: Berserker Stance
 
     local castRemains
     if ns.Display.testMode or not ns.Display.db.locked then

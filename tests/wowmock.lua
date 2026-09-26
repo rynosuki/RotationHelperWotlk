@@ -395,6 +395,9 @@ function Mock.NewSession(opts)
         [12292] = { "Death Wish", "i" }, [1719] = { "Recklessness", "i" }, [6552] = { "Pummel", "i" },
         [34428] = { "Victory Rush", "i" }, [1715] = { "Hamstring", "i" }, [46916] = { "Slam!", "i" },
         [48932] = { "Blessing of Might", "i" }, [48934] = { "Greater Blessing of Might", "i" },
+        [47486] = { "Mortal Strike", "i" }, [47465] = { "Rend", "i" }, [7384] = { "Overpower", "i" },
+        [46924] = { "Bladestorm", "i" }, [12328] = { "Sweeping Strikes", "i" }, [60503] = { "Taste for Blood", "i" },
+        [52437] = { "Sudden Death", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells

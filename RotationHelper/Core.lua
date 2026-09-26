@@ -355,6 +355,16 @@ function RH:OnTalentsChanged()
     self:Invalidate()
 end
 
+-- Debuffs whose uptime the review and simulator report: classData.reviewDebuffs,
+-- either one list for the class or one per spec ({ arms = { "rend" } }).
+local NO_DEBUFFS = {}
+function RH:ReviewDebuffs()
+    local list = self.classData and self.classData.reviewDebuffs
+    if not list then return NO_DEBUFFS end
+    if list[1] then return list end
+    return list[ns.Spec and ns.Spec.key or ""] or NO_DEBUFFS
+end
+
 function RH:OnConfigChanged()
     if ns.Burst then ns.Burst.built = false end -- the burst list may have changed
     if ns.Bosses then ns.Bosses.built = false end -- and the extra boss names

@@ -104,7 +104,14 @@ function Abilities.ReadyAt(state, key)
     if ability.requiresPet and not state.petAlive then return nil, "no pet" end
     if ability.consumable and state.consumablesAllowed == false then return nil, "consumables off" end
     -- Reactive abilities (Rune Strike after a dodge or parry) only while the game allows them.
-    if ability.reactive and not (state.usable and state.usable[key]) then return nil, "not usable" end
+    -- Stance or form (Overpower: Battle Stance; Pummel: Berserker Stance).
+    if ability.requiresForm and state.form ~= ability.requiresForm then return nil, "wrong stance" end
+    -- Reactive abilities (Rune Strike, Overpower) only while the game allows
+    -- them, or while a buff that allows them is up (Taste for Blood).
+    if ability.reactive and not (state.usable and state.usable[key])
+        and not (ability.usableWith and BuffUpAt(state, ability.usableWith, state.now)) then
+        return nil, "not usable"
+    end
     -- On-next-swing attacks (Heroic Strike, Cleave): not again while one is queued.
     if ability.nextSwing and state.queued and state.queued[key] then return nil, "queued" end
 

@@ -55,6 +55,8 @@ Ability fields (all optional except `id`):
 | `variants` + `variant` | several spells behind one key, chosen in the options (Judgement of Light / Wisdom / Justice); every variant counts as a cast |
 | `rage` / `rageCost(spec)` / `rageGain(spec)` | rage cost and gain (set `rageIncome` in the class data: rage per second until the fight shows the real income) |
 | `nextSwing` | an on-next-swing attack (Heroic Strike): not suggested again while queued (`IsCurrentSpell`) |
+| `requiresForm` | the stance or form it needs (`GetShapeshiftForm()` index); skipped otherwise |
+| `usableWith` | a buff that also makes a `reactive` ability usable (Overpower with Taste for Blood) |
 | `reactive` | `true` if it's only usable when the game says so (`IsUsableSpell`), like Rune Strike after a dodge or parry; using it makes it unusable in the prediction |
 | `apply(state, spec, fx)` | other effects, for the prediction; see below |
 
@@ -130,6 +132,7 @@ that nothing important is under "Not in spellbook", and that the trace picks wha
 - Compare versions side by side: `lua tests/sim.lua unholy default my_version.apl`. Look for
   higher time spent casting, less rune and runic power waste, diseases near 100%, and few wasted
   procs. The class data's `reviewDebuffs` lists the debuffs whose uptime is reported.
+- `reviewDebuffs` can also be per spec: `{ arms = { "rend" } }`.
 - `spreadDots` lists the dots tracked on other enemies (`active_dot.X`, `diseased_enemies`);
   an ability's `apply` calls `fx.SpreadDots(s, duration)` to spread them in the prediction.
 

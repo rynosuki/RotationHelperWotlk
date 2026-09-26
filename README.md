@@ -13,7 +13,9 @@ of War, Holy Wrath on undead and demons) and keeps your seal up; which Judgement
 set on the General tab. **Fury Warrior** plays Bloodthirst, Whirlwind, Slam with Bloodsurge and
 Execute, with Heroic Strike (Cleave on several targets) on the next swing when there's rage to
 spare. When you're short on rage, the icon counts down to when your rage income (learned during
-the fight) will cover it. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+the fight) will cover it. **Arms Warrior** keeps Rend up and plays Overpower (Taste for Blood or a
+dodge), Mortal Strike, Execute (Sudden Death or below 20%), Bladestorm and Slam. The checklist
+flags the wrong stance for your spec. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install
