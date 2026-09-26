@@ -75,6 +75,7 @@ update as soon as one happens.
 | `/rh snapshot` | Print everything the addon reads from the game, its prediction and why. |
 | `/rh why <ability>` | Why an ability is or isn't recommended right now, e.g. `/rh why frost strike`. |
 | `/rh review [n]` | Show the last fight review, or saved fight n. |
+| `/rh damage` | Your damage per ability from the combat log. `/rh damage reset` starts over. |
 | `/rh pull <seconds>` | Start a pull timer for the rotation (0 cancels). DBM and BigWigs pull timers work too. |
 | `/rh sim [seconds]` | Simulate the active rotation (5 fights, 300s by default). |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
@@ -120,6 +121,10 @@ title bar browse them, and `/rh review 3` opens a specific one.
 
 ## AoE detection
 
+With several enemies, the status line shows how many carry your diseases, e.g. `2/4 DIS`
+(yellow while some lack them). The AoE rotations only suggest Pestilence when an enemy is missing
+them. Other enemies' diseases are tracked from the combat log.
+
 3.3.5 doesn't let addons read nameplates as units, so enemies are counted from the combat log.
 An enemy counts while you or your pet hit it (disease ticks included), it hits you, or you put a
 debuff on it. It stops counting 6 seconds after the last of these, or when it dies. With 3 or more
@@ -153,8 +158,14 @@ actions+=/frost_strike,if=buff.killing_machine.up|runic_power.deficit<25
 The **Simulate** button on the Rotation tab (or `/rh sim`) plays the rotation for 5 fights of
 5 minutes against a target that never dies, with your talents and glyphs and random Killing
 Machine and Rime procs. It reports time spent casting, rune pairs sitting full, runic power
-capped and lost, disease uptime, procs used and wasted, and casts per minute. There's no damage
-model: use it to compare versions of a rotation, e.g. before and after moving a line up.
+capped and lost, disease uptime, procs used and wasted, and casts per minute. Use it to compare
+versions of a rotation, e.g. before and after moving a line up.
+
+Once you've fought a bit, it also estimates **damage per minute** from your own damage log:
+`/rh damage` shows what each ability hits for with your gear (per cast, per rune, per runic
+power, crit rate, share of your damage; diseases per tick). The log is kept per character; reset
+it after a big gear change (`/rh damage reset` or the General tab). Abilities cast fewer than 5
+times aren't used yet and are listed as "no data".
 
 For developers, `lua tests/sim.lua frost [--runs N] [--seconds N] [--enemies N] default my.apl`
 compares rotations side by side outside the game.

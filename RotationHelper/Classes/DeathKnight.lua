@@ -49,6 +49,8 @@ ns.RegisterClass("DEATHKNIGHT", {
     -- debuffs whose uptime on the target is measured.
     majorCooldowns = { "unbreakable_armor", "empower_rune_weapon", "summon_gargoyle", "deathchill" },
     reviewDebuffs = { "frost_fever", "blood_plague" },
+    -- Diseases Pestilence spreads; tracked on other enemies (Engine/Dots.lua).
+    spreadDots = { "frost_fever", "blood_plague" },
 
     -- Random procs for the simulator (Engine/Sim.lua). Either `on` (a chance
     -- when one of those abilities is used) or `perMinute` (random times).
@@ -92,8 +94,10 @@ ns.RegisterClass("DEATHKNIGHT", {
                 if spec:TalentRank("desolation") > 0 then fx.ApplyBuff(s, "desolation", 20) end
             end },
         pestilence = { id = 50842, runes = { blood = 1 }, rp = -10, convert = BLOOD_TO_DEATH,
-            -- Glyph of Disease: refreshes both diseases on the target.
+            -- Spreads the target's diseases to the other enemies; with Glyph
+            -- of Disease it also refreshes them on the target.
             apply = function(s, spec, fx)
+                fx.SpreadDots(s, DiseaseDuration(spec))
                 if spec:HasGlyph("disease") then
                     for _, key in ipairs({ "frost_fever", "blood_plague" }) do
                         if fx.DebuffUp(s, key) then fx.ApplyDebuff(s, key, DiseaseDuration(spec)) end

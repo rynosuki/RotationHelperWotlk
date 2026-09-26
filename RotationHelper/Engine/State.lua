@@ -25,6 +25,8 @@ State.real = {
     variables = {}, -- APL variables, reset for every evaluation
     lastCast = {},  -- ability key -> GetTime() of our last successful cast
     readySince = {}, -- ability key -> when its cooldown last became ready
+    otherDots = {},      -- dot key -> enemies other than the target with it (Engine/Dots.lua)
+    otherDotsUntil = {}, -- dot key -> when those run out (math.huge: until the log says so)
 }
 
 local function ReadTarget(t)
@@ -81,6 +83,7 @@ function State:Reset(now)
     local Targets = ns.Targets
     s.activeEnemies = Targets:ActiveEnemies(now, toggles.aoeMode, t.exists and t.canAttack and not t.dead)
     t.timeToDie = t.exists and Targets:TimeToDie(now) or Targets.TTD_UNKNOWN
+    ns.Dots:Read(s, now)
 
     local pullRemains = ns.PullTimer:Remains(now)
     s.pullAt = pullRemains and (now + pullRemains) or nil
@@ -150,6 +153,8 @@ State.virtual = {
     variables = {},
     lastCast = {},
     readySince = {},
+    otherDots = {},
+    otherDotsUntil = {},
 }
 
 local function CopyAuras(dst, src)
@@ -198,6 +203,8 @@ function State.CopyInto(dst, src)
 
     CopyMap(dst.lastCast, src.lastCast)
     CopyMap(dst.readySince, src.readySince)
+    CopyMap(dst.otherDots, src.otherDots)
+    CopyMap(dst.otherDotsUntil, src.otherDotsUntil)
     wipe(dst.variables)
     dst.target = src.target
     return dst

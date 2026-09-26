@@ -125,6 +125,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `gcd.remains` | seconds left on the current GCD |
 | `time` | seconds since combat started |
 | `active_enemies` | enemies counted (see AoE detection in the README) |
+| `active_dot.NAME` | enemies with that dot of yours, the target included (other enemies tracked from the combat log), e.g. `active_dot.frost_fever` |
+| `diseased_enemies` | enemies with all of your spreadable diseases (Frost Fever and Blood Plague), the target included. `diseased_enemies<active_enemies` means Pestilence has someone to spread to. |
 | `moving` | 1 while moving |
 | `pet.alive` | 1 while your pet (ghoul) is out and alive |
 | `target.health.pct` | target health percent |

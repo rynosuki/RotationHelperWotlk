@@ -207,6 +207,7 @@ local SIMPLE_NAMES = {
     "gcd", "gcd.remains", "time", "active_enemies", "moving", "pet.alive",
     "target.health.pct", "target.time_to_die", "toggle.cooldowns",
     "pull.active", "pull.remains", "burst.active", "burst.remains",
+    "diseased_enemies",
 }
 local ACTION_TEMPLATES = {
     "call_action_list,name=", "run_action_list,name=", "variable,name=,value=", "wait,sec=",
@@ -234,6 +235,7 @@ function APLText.Names(classData)
     for key, def in pairs(classData.auras) do
         local prefix = def.debuff and "dot." or "buff."
         for _, field in ipairs({ "up", "down", "remains", "stack" }) do add(prefix .. key .. "." .. field, "name") end
+        if def.debuff then add("active_dot." .. key, "name") end
     end
     if classData.usesRunes then
         for _, rune in ipairs({ "blood", "unholy", "frost", "death", "total" }) do

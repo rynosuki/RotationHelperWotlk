@@ -127,7 +127,26 @@ local SIMPLE = {
     -- 3600 when unknown or the target isn't losing health.
     ["target.time_to_die"] = function(s) return s.target.timeToDie end,
     ["toggle.cooldowns"] = function(s) return B(s.cooldownsEnabled) end,
+    -- Enemies with all of the class's spreadable dots (diseases), the
+    -- target included (Engine/Dots.lua).
+    diseased_enemies = function(s) return ns.Dots.Diseased(s) end,
 }
+
+-- active_dot.KEY: enemies with that dot, the target included.
+local function ActiveDotGetter(parts, classData)
+    local key = parts[2]
+    local aura = key and classData.auras[key]
+    if #parts ~= 2 or not (aura and aura.debuff) then
+        return nil, "use active_dot.NAME with a dot, e.g. active_dot.frost_fever"
+    end
+    return function(s)
+        local n = 0
+        if s.otherDots and (s.otherDotsUntil[key] or 0) > s.now then n = s.otherDots[key] or 0 end
+        local rec = s.debuffs[key]
+        if rec and rec.expires > s.now then n = n + 1 end
+        return n
+    end
+end
 
 local function CooldownGetter(parts, classData)
     local key, field = parts[2], parts[3]
@@ -189,6 +208,7 @@ local PREFIXES = {
     rune = RuneGetter,
     talent = TalentGetter,
     glyph = GlyphGetter,
+    active_dot = ActiveDotGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.

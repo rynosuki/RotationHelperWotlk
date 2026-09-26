@@ -66,6 +66,8 @@ function Sim.NewState(opts)
         end
     end
     s.burstUntil = 0 -- no burst buffs (and no pull timer) in a simulation
+    -- The other enemies start without diseases; Pestilence spreads them.
+    s.otherDots, s.otherDotsUntil, s.otherDiseased, s.otherDiseasedUntil = {}, {}, 0, 0
     return s
 end
 
@@ -227,7 +229,36 @@ function Sim.Summarize(apl, opts, runs)
                 used = round1(p.used / runs), wasted = round1((p.gained - p.used) / runs) }
         end
     end
+    summary.damage = Sim.EstimateDamage(total.casts, total.debuffUp, minutes)
     return summary
+end
+
+-- Damage per minute from the player's damage log (Engine/DamageLog.lua):
+-- casts x damage per cast, plus the diseases' ticks (one every 3 seconds
+-- of uptime). Returns { perMinute, missing = { key, ... } }, or nil
+-- without any data. Abilities cast but never seen doing damage count as 0
+-- and are listed in `missing`, unless the log has seen them cast often
+-- without damage (buffs, cooldowns).
+function Sim.EstimateDamage(casts, debuffUp, minutes)
+    local log = ns.DamageLog
+    if not (log and RH.db and RH.db.char.damage and RH.db.char.damage.total > 0) then return nil end
+    local recorded = RH.db.char.damage.abilities
+    local damage, missing = 0, {}
+    for key, n in pairs(casts) do
+        local perCast = log:PerCast(key)
+        if perCast then
+            damage = damage + n * perCast
+        else
+            missing[#missing + 1] = key
+        end
+    end
+    for key, up in pairs(debuffUp) do
+        local perTick = log:PerTick(key)
+        if perTick then damage = damage + up / 3 * perTick
+        elseif not (recorded[key] and recorded[key].hits > 0) then missing[#missing + 1] = key end
+    end
+    table.sort(missing)
+    return { perMinute = damage / minutes, missing = missing }
 end
 
 -- The summary as text lines, for chat, the options panel or the console.
@@ -245,5 +276,12 @@ function Sim.Format(summary)
     local casts = {}
     for _, c in ipairs(summary.casts) do casts[#casts + 1] = ("%s %.1f"):format(c.key, c.perMinute) end
     add("  Casts per minute: " .. table.concat(casts, ", "))
+    local damage = summary.damage
+    if damage then
+        local line = ("  Estimated damage (from your damage log): %s per minute"):format(
+            ns.DamageLog.Thousands(damage.perMinute))
+        if #damage.missing > 0 then line = line .. " (no data for " .. table.concat(damage.missing, ", ") .. ")" end
+        add(line)
+    end
     return lines
 end

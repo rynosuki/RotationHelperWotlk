@@ -223,7 +223,17 @@ function Options:BuildOptionsTable()
         end
     end
 
-    general.args.burstHeader = { type = "header", name = "Burst windows", order = 50 }
+    general.args.damageHeader = { type = "header", name = "Damage log", order = 60 }
+    general.args.damageInfo = { type = "description", order = 61, fontSize = "medium",
+        name = "Your damage per ability, learned from the combat log with your gear. The simulator uses it to "
+            .. "estimate a rotation's damage. Reset it after a big gear change." }
+    general.args.damageShow = { type = "execute", name = "Print to chat", order = 62,
+        func = function() RH:PrintDamage("") end }
+    general.args.damageReset = { type = "execute", name = "Reset", order = 63,
+        confirm = true, confirmText = "Forget all recorded damage for this character?",
+        func = function() RH:PrintDamage("reset") end }
+
+    general.args.burstHeader ={ type = "header", name = "Burst windows", order = 50 }
     general.args.burstInfo = { type = "description", order = 51, fontSize = "medium",
         name = "Rotations can hold cooldowns for burst.active: Bloodlust/Heroism, Hyperspeed Acceleration, "
             .. "racials, Potion of Speed and common trinket procs are built in." }

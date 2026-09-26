@@ -223,6 +223,9 @@ function Display:CreateFrames()
     f.aoeChip:SetPoint("LEFT", f.cdChip, "RIGHT", CHIP_GAP, 0)
     f.wasteText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     f.wasteText:SetPoint("LEFT", f.aoeChip, "RIGHT", CHIP_GAP, 0)
+    -- "3/5 DIS": enemies with our diseases, with several enemies around.
+    f.dotText = status:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    f.dotText:SetPoint("LEFT", f.wasteText, "RIGHT", CHIP_GAP, 0)
 
     -- Pre-pull checklist, e.g. "Missing: Flask, Food" (out of combat only,
     -- so it can share the space of the in-range alternative icon).
@@ -537,7 +540,37 @@ function Display:UpdateStatus()
         f.wasteText:ClearAllPoints()
         f.wasteText:SetPoint("LEFT", anchor, "RIGHT", CHIP_GAP, 0)
     end
+    self:UpdateDotText(enemies)
     f.status:Show()
+end
+
+-- "diseased/enemies DIS", yellow while some enemy lacks them. The strings
+-- are cached per pair so updates don't create garbage.
+local dotTexts = {}
+function Display:UpdateDotText(enemies)
+    local f, text = self.frame, ""
+    local s = ns.State.real
+    if enemies > 1 and RH.classData.spreadDots and RH.inCombat then
+        local diseased = math.min(ns.Dots.Diseased(s), enemies)
+        local key = diseased * 1000 + enemies
+        text = dotTexts[key]
+        if not text then
+            text = (diseased < enemies and "|cffffd100%d/%d DIS|r" or "|cff40ff40%d/%d DIS|r"):format(diseased, enemies)
+            dotTexts[key] = text
+        end
+    end
+    if f.dotText.lastText ~= text then
+        f.dotText.lastText = text
+        f.dotText:SetText(text)
+    end
+    -- Moves left when there are no waste labels.
+    local anchor = f.wasteText.lastText ~= "" and f.wasteText
+        or (f.aoeChip:IsShown() and f.aoeChip or f.cdChip)
+    if f.dotText.anchor ~= anchor then
+        f.dotText.anchor = anchor
+        f.dotText:ClearAllPoints()
+        f.dotText:SetPoint("LEFT", anchor, "RIGHT", CHIP_GAP, 0)
+    end
 end
 
 -- "Missing: Flask, Food"; the text is only rebuilt when the list changes.
@@ -560,7 +593,8 @@ end
 function Display:GetStatusText()
     local f, parts = self.frame, {}
     if not f.status:IsShown() then return "" end
-    for _, fs in ipairs({ f.cdChip:IsShown() and f.cdChip.text, f.aoeChip:IsShown() and f.aoeChip.text, f.wasteText }) do
+    for _, fs in ipairs({ f.cdChip:IsShown() and f.cdChip.text, f.aoeChip:IsShown() and f.aoeChip.text, f.wasteText,
+        f.dotText }) do
         local text = fs and fs:GetText()
         if text and text ~= "" then parts[#parts + 1] = (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end
     end

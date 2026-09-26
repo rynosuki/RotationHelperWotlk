@@ -76,6 +76,12 @@ function Targets:CountEnemies(now)
     return n
 end
 
+-- Whether `guid` is still counted as an enemy.
+function Targets:IsActive(guid, now)
+    local seen = lastSeen[guid]
+    return seen ~= nil and now - seen <= ENEMY_TIMEOUT
+end
+
 -- The count the APL sees as active_enemies. `targetHostile` makes it at
 -- least 1, since our target is an enemy even before anyone hits it.
 function Targets:ActiveEnemies(now, aoeMode, targetHostile)

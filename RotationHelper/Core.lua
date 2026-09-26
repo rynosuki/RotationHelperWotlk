@@ -63,6 +63,7 @@ local defaults = {
     char = {
         specProfiles = {}, -- [talent group] = profile name (SpecProfiles.lua)
         reviews = {},      -- fight review summaries, newest last (Engine/Review.lua)
+        damage = { abilities = {}, total = 0 }, -- damage per ability (Engine/DamageLog.lua)
     },
     profile = {
         enabled = true,
@@ -467,6 +468,7 @@ local HELP = {
     { "why <ability>", "why an ability is or isn't recommended right now" },
     { "review [n]", "show the last fight review (or saved fight n)" },
     { "sim [seconds]", "simulate the active rotation (5 fights, 300s by default)" },
+    { "damage", "your damage per ability from the combat log (/rh damage reset to start over)" },
     { "pull <seconds>", "start a pull timer for the rotation (DBM/BigWigs timers work too; 0 cancels)" },
     { "perf", "show CPU and memory use (/rh perf reset to start over)" },
     { "errors", "show recorded errors (/rh errors clear to empty the list)" },
@@ -514,6 +516,7 @@ local commands = {
     why = "PrintWhy",
     review = "ShowReview",
     sim = "PrintSim",
+    damage = "PrintDamage",
     pull = "StartPullTimer",
     scale = "SetScale",
     icons = "SetIconCount",

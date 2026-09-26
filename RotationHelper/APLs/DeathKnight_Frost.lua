@@ -52,7 +52,8 @@ actions.cooldowns+=/arcane_torrent,if=runic_power.deficit>=20
 ## 3+ targets
 actions.aoe=icy_touch,if=!dot.frost_fever.up
 actions.aoe+=/plague_strike,if=!dot.blood_plague.up
-actions.aoe+=/pestilence,if=dot.frost_fever.up&dot.blood_plague.up,line_cd=20
+# Spread the diseases when an enemy lacks them (tracked from the combat log).
+actions.aoe+=/pestilence,if=dot.frost_fever.up&dot.blood_plague.up&diseased_enemies<active_enemies,line_cd=10
 actions.aoe+=/howling_blast
 actions.aoe+=/death_and_decay
 actions.aoe+=/frost_strike,if=buff.killing_machine.up|runic_power.deficit<25

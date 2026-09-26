@@ -287,12 +287,19 @@ offline tests and has been checked in game.
 
 ## Phase G — Experimental (L)
 
-- [ ] **G1 Tracking diseases on several targets**
-  - Which GUIDs carry our diseases, taken from the combat log.
-  - Provides `diseased_enemies` for better Pestilence decisions, and a "3 of 5 diseased" hint.
-- [ ] **G2 Learning from the combat log**
-  - Average damage per ability for the player's own gear.
-  - Used to suggest rotation thresholds (e.g. the runic power level for Frost Strike).
+- [ ] **G1 Tracking diseases on several targets** — *implemented in 1.13.0, waiting on the in-game check*
+  - `Engine/Dots.lua`: which enemies carry our `spreadDots` (applied/refreshed/ticking until
+    removed, dead, or 6s without a tick), limited to enemies Targets still counts.
+  - `active_dot.X` and `diseased_enemies`; Pestilence spreads them in the prediction and the
+    simulator. The AoE lists only Pestilence when `diseased_enemies<active_enemies`.
+  - `2/4 DIS` on the status line with several enemies.
+- [ ] **G2 Learning from the combat log** — *implemented in 1.13.0, waiting on the in-game check*
+  - `Engine/DamageLog.lua`: damage per cast / rune / runic power, crits, dot ticks and melee,
+    per character. `/rh damage` prints it.
+  - The simulator estimates damage per minute from it, so rotations can be compared by damage.
+  - Not done: suggesting thresholds automatically. The numbers are there to compare by hand
+    (e.g. damage per rune of Obliterate vs Blood Strike); a sound suggestion needs a damage model
+    that the log alone doesn't give.
 
 ## How items are verified
 

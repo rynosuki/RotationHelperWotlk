@@ -166,6 +166,27 @@ function Effects.RemoveBuff(s, key)
     end
 end
 
+-- Pestilence: every other enemy gets the target's spreadable dots (the
+-- class's spreadDots) for `duration` seconds.
+function Effects.SpreadDots(s, duration)
+    local keys = RH.classData.spreadDots
+    local others = (s.activeEnemies or 1) - 1
+    if not keys or others <= 0 or not s.otherDots then return end
+    local all = true
+    for _, key in ipairs(keys) do
+        if Effects.DebuffUp(s, key) then
+            s.otherDots[key] = others
+            s.otherDotsUntil[key] = s.now + duration
+        else
+            all = false
+        end
+    end
+    if all then
+        s.otherDiseased = others
+        s.otherDiseasedUntil = s.now + duration
+    end
+end
+
 function Effects.SummonPet(s)
     s.petAlive = true
 end
