@@ -263,3 +263,8 @@ lua tests/run.lua
 To add a spec or class, see [docs/ADDING_A_SPEC.md](docs/ADDING_A_SPEC.md). Planned specs
 and the engine work they need are tracked in [docs/SPECS.md](docs/SPECS.md), and planned
 enhancements (fight review, simulator, latency compensation, ...) in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## License
+
+MIT License: see [LICENSE](LICENSE). The bundled Ace3 libraries have their own license
+([RotationHelper/Libs/Ace3-LICENSE.txt](RotationHelper/Libs/Ace3-LICENSE.txt)).

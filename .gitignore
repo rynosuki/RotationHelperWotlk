@@ -7,3 +7,6 @@ WTF/
 .idea/
 Thumbs.db
 desktop.ini
+
+# Release zips
+*.zip
