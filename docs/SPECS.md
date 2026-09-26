@@ -1,6 +1,6 @@
 # Spec roadmap
 
-Every WotLK 3.3.5a spec, what it needs from the engine, and a suggested order.
+Every WotLK 3.3.5a DPS spec, what it needs from the engine, and a suggested order.
 Enhancements planned before more specs (fight review, simulator, ...) are in [ROADMAP.md](ROADMAP.md).
 Tick a spec off when it has a default APL, scenario tests, and has been checked in game.
 
@@ -14,8 +14,8 @@ Most specs need something the engine doesn't do yet. Each feature is built once 
 |---|---|---|---|
 | E1 | **Mana costs** (done) | most non-DK specs | `mana = <% of base mana>` in class data; the client's real cost is used in game. No regen in the prediction (abilities can add some, e.g. Divine Plea); the simulator has `simPower.regen`. |
 | E2 | **Cast times and channels** | all casters | A cast delays the next action by its cast time (hasted), not the GCD. Channels (Mind Flay, Arcane Missiles) likewise. |
-| E3 | **Rage** | Warrior, Bear | Costs like runic power; rage income can't be predicted, so no regen. |
-| E4 | **"On next swing" abilities** | Warrior, Bear | Heroic Strike, Cleave, Maul are off-GCD queued attacks; recommend them alongside the GCD ability. |
+| E3 | **Rage** | Warrior | Costs like runic power; rage income can't be predicted, so no regen. |
+| E4 | **"On next swing" abilities** | Warrior | Heroic Strike and Cleave are off-GCD queued attacks; recommend them alongside the GCD ability. |
 | E5 | **Energy regen + combo points** | Rogue, Cat | Energy comes back at 10/s: `ReadyAt` must predict when there's enough. Finishers use combo points. |
 | E6 | **Buff stacks as a resource** | Enhancement, Arcane, others | Maelstrom Weapon (5 stacks = instant cast), Arcane Blast stacks, Sudden Death, etc. |
 | E7 | **DoT refresh rules** | Affliction, Shadow, Balance, Feral | Refresh at the right time without clipping the last tick; haste-dependent tick times. |
@@ -35,20 +35,16 @@ Legend: role · power · engine features needed · notes.
 ### Paladin — mana
 
 - [ ] **Retribution** (DPS) · E1 · implemented in 1.16.0 (mana costs, variants for Judgement, `target.type.X`, group auras for seals), waiting on an in-game check · Famous "first come, first served" priority (Judgement, Divine Storm, Crusader Strike, Consecration, Exorcism with Art of War, Hammer of Wrath). The best first non-DK spec: only needs mana costs.
-- [ ] **Protection** (tank) · E1 · The 9-6-9-6 rotation (Shield of Righteousness, Hammer of the Righteous vs. Judgement, Consecration, Holy Shield).
-- [ ] **Holy** (healer) · out of scope, see below.
 
 ### Warrior — rage
 
 - [ ] **Fury** (DPS) · E3, E4 · Bloodthirst, Whirlwind, Slam with Bloodsurge, Heroic Strike rage dumping.
 - [ ] **Arms** (DPS) · E3, E4 · Mortal Strike, Overpower, Execute and Sudden Death, Rend upkeep.
-- [ ] **Protection** (tank) · E3, E4 · Shield Slam with Sword and Board, Revenge, Devastate.
 
 ### Shaman — mana
 
 - [ ] **Enhancement** (DPS) · E1, E6, E8 · Stormstrike, Lava Lash, shocks, Maelstrom Weapon at 5 stacks, Magma Totem, Shamanistic Rage.
 - [ ] **Elemental** (DPS) · E1, E2, E7 · Flame Shock upkeep, Lava Burst, Chain Lightning, Lightning Bolt, Thunderstorm.
-- [ ] **Restoration** (healer) · out of scope.
 
 ### Rogue — energy + combo points
 
@@ -59,9 +55,7 @@ Legend: role · power · engine features needed · notes.
 ### Druid
 
 - [ ] **Feral, cat** (DPS) · E5, E7, E8 · Savage Roar, Rip, Rake, Mangle upkeep, Shred, Tiger's Fury, Berserk. The hardest melee rotation.
-- [ ] **Feral, bear** (tank) · E3, E4, E8 · Mangle, Lacerate stacks, Maul, Swipe.
 - [ ] **Balance** (DPS) · E1, E2, E7 · Eclipse (Wrath/Starfire switching), Moonfire and Insect Swarm upkeep, Starfall.
-- [ ] **Restoration** (healer) · out of scope.
 
 ### Hunter — mana (focus only arrives in Cataclysm)
 
@@ -84,23 +78,25 @@ Legend: role · power · engine features needed · notes.
 ### Priest — mana
 
 - [ ] **Shadow** (DPS) · E1, E2, E7 · Vampiric Touch, Shadow Word: Pain, Devouring Plague upkeep, Mind Blast, Mind Flay filler, Shadowfiend.
-- [ ] **Discipline** (healer) · out of scope.
-- [ ] **Holy** (healer) · out of scope.
 
 ## Suggested order
 
 1. **Unholy DK** (done), **Blood DK** (done; needed reactive abilities and `health.pct`).
-2. **E1 mana costs** (done) → **Retribution Paladin** (done), then **Protection Paladin**.
-3. **E3 + E4 rage** → **Fury**, **Arms**, **Protection Warrior**.
+2. **E1 mana costs** (done) → **Retribution Paladin** (done).
+3. **E3 + E4 rage** → **Fury**, **Arms**.
 4. **E6 stacks + E8 totems** → **Enhancement Shaman**.
 5. **E2 cast times + E7 DoTs** → **Shadow Priest**, then the other casters (Fire/Arcane Mage,
    Affliction/Destruction Warlock, Elemental, Balance).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
-8. Remaining tanks and niche specs.
+8. Niche specs (Subtlety Rogue, Frost Mage).
 
-## Out of scope: healers
+## Out of scope for now: tanks and healers
 
-Holy Paladin, Restoration Shaman, Restoration Druid, Discipline and Holy Priest. Healing depends
-on the raid's health, not on a priority of your own resources, so a "press this next" helper
-doesn't fit. Hekili doesn't support healers either.
+The list covers DPS specs only, to start.
+
+- **Tanks** (Protection Paladin, Protection Warrior, Feral bear) may come later. Blood Death
+  Knight is the exception: its rotation already switches to a tank list in Frost Presence.
+- **Healers** (Holy Paladin, Restoration Shaman, Restoration Druid, Discipline and Holy Priest)
+  are out of scope. Healing depends on the raid's health, not on a priority of your own
+  resources, so a "press this next" helper doesn't fit. Hekili doesn't support healers either.
