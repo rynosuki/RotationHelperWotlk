@@ -433,6 +433,7 @@ function Mock.NewSession(opts)
         [3045] = { "Rapid Fire", "i" }, [23989] = { "Readiness", "i" }, [34026] = { "Kill Command", "i" },
         [61847] = { "Aspect of the Dragonhawk", "i" }, [34074] = { "Aspect of the Viper", "i" }, [75] = { "Auto Shot", "i" },
         [1130] = { "Hunter's Mark", "i" },
+        [60053] = { "Explosive Shot", "i" }, [63672] = { "Black Arrow", "i" }, [56453] = { "Lock and Load", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },

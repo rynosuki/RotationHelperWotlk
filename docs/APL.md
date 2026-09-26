@@ -223,7 +223,8 @@ at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `b
 Hunter: `steady_shot` (waits for an Auto Shot it would delay, when that's cheaper), `arcane_shot`,
 `chimera_shot` (refreshes Serpent Sting), `aimed_shot` and `multi_shot` (shared cooldown),
 `serpent_sting`, `kill_shot`, `hunters_mark` (anyone's counts), `silencing_shot`, `rapid_fire`,
-`readiness`, `kill_command`, `aspect_of_the_dragonhawk`, `aspect_of_the_viper`.
+`readiness`, `kill_command`, `aspect_of_the_dragonhawk`, `aspect_of_the_viper`, `explosive_shot`
+(free and without its cooldown with `buff.lock_and_load`, two charges), `black_arrow`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

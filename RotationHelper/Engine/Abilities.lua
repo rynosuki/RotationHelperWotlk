@@ -166,8 +166,10 @@ function Abilities.ReadyAt(state, key)
     if state.moving and cast > 0 then return nil, "moving" end
     if not ability.offGcd and state.gcdEnd > t then t, limitedBy = state.gcdEnd, "gcd" end
 
+    -- A buff can let an ability skip its cooldown (Lock and Load: Explosive Shot).
     local cd = state.cooldowns[key]
-    if cd and cd.readyAt > t then t, limitedBy = cd.readyAt, "cooldown" end
+    local skipsCooldown = ability.ignoreCooldownWith and BuffUpAt(state, ability.ignoreCooldownWith, t)
+    if cd and cd.readyAt > t and not skipsCooldown then t, limitedBy = cd.readyAt, "cooldown" end
 
     local cost = Abilities.PowerCost(ability, state)
     if cost > 0 and PowerAt(state, t) < cost then
@@ -217,7 +219,9 @@ function Abilities.SpendsProc(state, key, proc, t)
     local rec = state.buffs[proc]
     if not (rec and rec.expires > t) then return nil end
     local ability = RH.classData.abilities[key]
-    if ability.freeWith == proc or ability.instantWith == proc then return rec.expires end
+    if ability.freeWith == proc or ability.instantWith == proc or ability.ignoreCooldownWith == proc then
+        return rec.expires
+    end
     -- Clearcasting (classData.freeCostAura): any ability that costs something uses it.
     if proc == RH.classData.freeCostAura and BaseCost(ability, state) > 0 then return rec.expires end
     if ability.consumes then
@@ -392,6 +396,12 @@ function Abilities.Apply(s, key, t)
     if ability.nextSwing and s.queued then s.queued[key] = true end
 
     local cd = s.cooldowns[key]
+    -- Used with a buff that skips the cooldown: no cooldown, one charge used.
+    local skipped = ability.ignoreCooldownWith and BuffUpAt(s, ability.ignoreCooldownWith, t)
+    if skipped then
+        Effects.ConsumeStack(s, ability.ignoreCooldownWith)
+        cd = nil
+    end
     if cd then
         -- A potion can't be used again in the same combat.
         cd.readyAt = ability.oncePerCombat and math.huge or landsAt + (cd.duration or ability.cooldown)

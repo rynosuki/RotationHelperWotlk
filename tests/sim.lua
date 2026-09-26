@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,18 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    survival = {
+        class = "HUNTER", power = { type = 0, current = 22000, max = 22000 },
+        talents = {
+            { name = "Beast Mastery", talents = { { "Improved Aspect of the Hawk", 5 } } },
+            { name = "Marksmanship", talents = { { "Lethal Shots", 5 } } },
+            { name = "Survival", talents = { { "Lock and Load", 3 }, { "Explosive Shot", 1 }, { "Black Arrow", 1 },
+                { "Hunting Party", 5 }, { "Expose Weakness", 3 } } },
+        },
+        spells = { "Explosive Shot", "Black Arrow", "Steady Shot", "Arcane Shot", "Aimed Shot", "Multi-Shot", "Serpent Sting",
+            "Kill Shot", "Hunter's Mark", "Rapid Fire", "Kill Command", "Aspect of the Dragonhawk", "Aspect of the Viper",
+            "Auto Shot" },
+    },
     marksmanship = {
         class = "HUNTER", power = { type = 0, current = 22000, max = 22000 },
         talents = {
@@ -228,7 +240,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

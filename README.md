@@ -49,7 +49,9 @@ next ability free. **Marksmanship Hunter** keeps Hunter's Mark and Serpent Sting
 refreshes it), uses Kill Shot, Chimera Shot, Aimed Shot and Arcane Shot, and fills with Steady
 Shot timed around your Auto Shot: when a Steady Shot would delay the next Auto Shot, it waits for
 it if that costs less time. Rapid Fire with Readiness, Aspect of the Viper when mana runs out;
-the checklist wants your pet out. See [docs/SPECS.md](docs/SPECS.md) for
+the checklist wants your pet out. **Survival Hunter** uses Explosive Shot on cooldown (twice,
+free and without the cooldown, with Lock and Load), Black Arrow, Serpent Sting, Aimed Shot and
+Steady Shot, with the same Auto Shot timing. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

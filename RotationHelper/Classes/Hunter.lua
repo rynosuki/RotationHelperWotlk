@@ -22,16 +22,23 @@ ns.RegisterClass("HUNTER", {
     autoShot = true,
     interrupt = "silencing_shot",
     prepullPet = true, -- the checklist wants your pet out
+    procs = { "lock_and_load" },
     majorCooldowns = { "rapid_fire", "readiness" },
-    reviewDebuffs = { marksmanship = { "serpent_sting" } },
+    reviewDebuffs = { marksmanship = { "serpent_sting" }, survival = { "serpent_sting", "black_arrow" } },
 
     -- For the simulator: mana with ~120 per second of regen (Aspect of the
     -- Viper when low, Replenishment, Hunting Party), Auto Shot every 2.4
     -- seconds.
     simPower = { type = "mana", max = 22000, start = 22000, regen = 120 },
     simAutoShot = 2.4,
+    -- Lock and Load from Serpent Sting and Black Arrow ticks: about one a
+    -- minute per rank (22 second internal cooldown), two charges.
+    simProcs = {
+        { aura = "lock_and_load", duration = 12, stacks = 2, icd = 22,
+          perMinute = function(spec) return spec:TalentRank("lock_and_load") end },
+    },
 
-    specs = { beast_mastery = false, marksmanship = true, survival = false },
+    specs = { beast_mastery = false, marksmanship = true, survival = true },
 
     abilities = {
         -- A 2 second cast (hasted); waits for the Auto Shot it would clip.
@@ -68,6 +75,16 @@ ns.RegisterClass("HUNTER", {
                 end
             end },
         kill_command = { id = 34026, mana = 3, cooldown = 60, offGcd = true },
+        -- Survival
+        -- With Lock and Load: no cooldown and free (one of its two charges).
+        explosive_shot = { id = 60053, cooldown = 6, ignoreCooldownWith = "lock_and_load",
+            manaFn = function(spec, s, baseMana)
+                local rec = s.buffs.lock_and_load
+                return (rec and rec.expires > s.now) and 0 or 0.07 * baseMana
+            end,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "explosive_shot", 2) end },
+        black_arrow = { id = 63672, mana = 6, cooldown = 30,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "black_arrow", 15) end },
         aspect_of_the_dragonhawk = { id = 61847,
             apply = function(s, spec, fx)
                 fx.RemoveBuff(s, "aspect_of_the_viper")
@@ -85,6 +102,9 @@ ns.RegisterClass("HUNTER", {
         -- Anyone's Hunter's Mark counts.
         hunters_mark = { id = 53338, debuff = true, anySource = true },
         rapid_fire = { id = 3045 },
+        lock_and_load = { id = 56453 },
+        explosive_shot = { id = 60053, debuff = true },
+        black_arrow = { id = 63672, debuff = true },
         aspect_of_the_dragonhawk = { id = 61847 },
         aspect_of_the_viper = { id = 34074 },
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism

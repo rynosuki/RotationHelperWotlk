@@ -131,7 +131,7 @@ local function GainProc(s, proc, m)
     end
     local rec = s.buffs[proc.aura]
     local up = rec and rec.expires > s.now
-    local stacks = 1
+    local stacks = proc.stacks or 1 -- a proc with charges (Lock and Load: 2)
     if proc.maxStacks then
         stacks = up and math.min(proc.maxStacks, rec.stacks + 1) or 1
         if up and rec.stacks >= proc.maxStacks then stats.overwritten = stats.overwritten + 1 end
