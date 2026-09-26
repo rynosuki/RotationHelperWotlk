@@ -196,6 +196,11 @@ Mage: `fireball`, `pyroblast` (instant with `buff.hot_streak`), `living_bomb` (`
 with Presence of Mind), `arcane_missiles` (fast and free with `buff.missile_barrage`),
 `arcane_barrage`, `arcane_power`, `presence_of_mind`.
 
+Warlock: `haunt`, `corruption`, `unstable_affliction`, `curse_of_agony`, `curse_of_the_elements`
+(anyone's, or Earth and Moon / Ebon Plague, counts as `debuff.curse_of_the_elements`), `shadow_bolt`,
+`drain_soul` (treated one 3-second tick at a time), `seed_of_corruption`, `searing_pain`, `life_tap`,
+`fel_armor`.
+
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),
 `potion` (Potion of Speed, or Indestructible Potion, from your bags; once per combat),

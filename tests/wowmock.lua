@@ -421,6 +421,12 @@ function Mock.NewSession(opts)
         [42897] = { "Arcane Blast", "i" }, [36032] = { "Arcane Blast", "i" }, [42846] = { "Arcane Missiles", "i" },
         [44401] = { "Missile Barrage", "i" }, [44781] = { "Arcane Barrage", "i" }, [12042] = { "Arcane Power", "i" },
         [12043] = { "Presence of Mind", "i" },
+        -- Warlock
+        [59164] = { "Haunt", "i" }, [47813] = { "Corruption", "i" }, [47843] = { "Unstable Affliction", "i" },
+        [47864] = { "Curse of Agony", "i" }, [47865] = { "Curse of the Elements", "i" }, [47809] = { "Shadow Bolt", "i" },
+        [47855] = { "Drain Soul", "i" }, [47836] = { "Seed of Corruption", "i" }, [47815] = { "Searing Pain", "i" },
+        [57946] = { "Life Tap", "i" }, [47893] = { "Fel Armor", "i" }, [687] = { "Demon Skin", "i" },
+        [60433] = { "Earth and Moon", "i" }, [51735] = { "Ebon Plague", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells

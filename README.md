@@ -26,7 +26,10 @@ channels delay the next icon by their hasted time, and while you move only insta
 going, casts Pyroblast when Hot Streak makes it instant, and fills with Fireball; Fire Blast
 while moving. **Arcane Mage** spams Arcane Blast above 35% mana and below it builds 4 stacks and
 spends them with Arcane Missiles; Missile Barrage procs are used at 4 stacks, Presence of Mind
-makes an Arcane Blast instant, Arcane Barrage while moving. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+makes an Arcane Blast instant, Arcane Barrage while moving. **Affliction Warlock** casts Haunt on
+cooldown, keeps Unstable Affliction, Corruption (kept going by Everlasting Affliction) and Curse
+of Agony up, and fills with Shadow Bolt (Drain Soul below 25%), with Life Tap for mana and
+while moving. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

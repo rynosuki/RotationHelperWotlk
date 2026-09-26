@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.22.0
+## Version: 1.23.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -17,6 +17,7 @@ Classes\Mage.lua
 Classes\Paladin.lua
 Classes\Priest.lua
 Classes\Shaman.lua
+Classes\Warlock.lua
 Classes\Warrior.lua
 
 Engine\Spec.lua
@@ -51,6 +52,7 @@ APLs\Mage_Fire.lua
 APLs\Paladin_Retribution.lua
 APLs\Priest_Shadow.lua
 APLs\Shaman_Enhancement.lua
+APLs\Warlock_Affliction.lua
 APLs\Warrior_Arms.lua
 APLs\Warrior_Fury.lua
 

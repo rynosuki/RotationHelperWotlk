@@ -71,7 +71,7 @@ Legend: role · power · engine features needed · notes.
 
 ### Warlock — mana
 
-- [ ] **Affliction** (DPS) · E1, E2, E7 · Haunt, Corruption, Unstable Affliction, Curse of Agony, Drain Soul execute.
+- [ ] **Affliction** (DPS) · E1, E2, E7 · implemented in 1.23.0, waiting on an in-game check · Haunt, Corruption, Unstable Affliction, Curse of Agony, Drain Soul execute.
 - [ ] **Destruction** (DPS) · E1, E2, E7 · Immolate, Conflagrate, Chaos Bolt, Incinerate, Backdraft.
 - [ ] **Demonology** (DPS) · E1, E2, E7, E8 · Metamorphosis, Decimation (Soul Fire), Molten Core (Incinerate).
 
@@ -86,7 +86,7 @@ Legend: role · power · engine features needed · notes.
 3. **E3 + E4 rage** (done) → **Fury** (done), **Arms** (done).
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
-   Affliction/Destruction Warlock, Elemental, Balance).
+   Affliction (done)/Destruction Warlock, Elemental, Balance).
 6. **E5 energy + combo points** → **Combat/Assassination Rogue**, then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
 8. Niche specs (Subtlety Rogue, Frost Mage).
