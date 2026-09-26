@@ -18,8 +18,11 @@ dodge), Mortal Strike, Execute (Sudden Death or below 20%), Bladestorm and Slam.
 flags the wrong stance for your spec. **Enhancement Shaman** plays Lightning Bolt (Chain Lightning
 on several targets) at 5 Maelstrom Weapon stacks, Stormstrike, Flame Shock, Earth Shock (without
 letting Flame Shock drop), Magma Totem and Fire Nova, Lava Lash and Lightning Shield, with
-Shamanistic Rage when mana runs low; the checklist wants weapon imbues on. Other classes load
-but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+Shamanistic Rage when mana runs low; the checklist wants weapon imbues on. **Shadow Priest** keeps
+Vampiric Touch, Devouring Plague and Shadow Word: Pain up (refreshed before a Mind Flay would let
+them drop; Mind Flay keeps Shadow Word: Pain going), with Mind Blast and Mind Flay. Casts and
+channels delay the next icon by their hasted time, and while you move only instants are shown.
+Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

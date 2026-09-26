@@ -233,6 +233,10 @@ function APLText.Names(classData)
             add("cooldown." .. key .. ".remains", "name")
             add("cooldown." .. key .. ".ready_for", "name")
         end
+        if classData.abilities[key].castTime or classData.abilities[key].channel then
+            add("action." .. key .. ".cast_time", "name")
+            add("action." .. key .. ".execute_time", "name")
+        end
     end
     for key, def in pairs(classData.auras) do
         local prefix = def.debuff and "dot." or "buff."

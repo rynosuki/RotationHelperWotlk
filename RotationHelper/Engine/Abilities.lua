@@ -85,6 +85,15 @@ end
 Abilities.RunicPowerCost = Abilities.PowerCost
 Abilities.RunicPowerGain = Abilities.PowerGain
 
+-- How long using an ability keeps you busy casting or channelling (0 for
+-- instants): `castTime` or `channel`, in base seconds, shortened by spell
+-- haste (state.hasteFactor, see Engine/Cooldowns.lua).
+function Abilities.CastTime(state, ability)
+    local base = ability.castTime or ability.channel
+    if not base then return 0 end
+    return base * (state.hasteFactor or 1)
+end
+
 -- The cooldown after using an ability, with talents and glyphs (cooldownFn).
 function Abilities.CooldownDuration(ability)
     if ability.cooldownFn then return ability.cooldownFn(ns.Spec) end
@@ -116,8 +125,10 @@ function Abilities.ReadyAt(state, key)
     if ability.nextSwing and state.queued and state.queued[key] then return nil, "queued" end
 
     local t, limitedBy = state.now, nil
-    local castEnd = state.now + (state.castRemains or 0)
+    local castEnd = state.castEnd or (state.now + (state.castRemains or 0))
     if castEnd > t then t, limitedBy = castEnd, "cast" end
+    -- Casts and channels can't be started while moving.
+    if state.moving and Abilities.CastTime(state, ability) > 0 then return nil, "moving" end
     if not ability.offGcd and state.gcdEnd > t then t, limitedBy = state.gcdEnd, "gcd" end
 
     local cd = state.cooldowns[key]
@@ -304,7 +315,10 @@ end
 function Abilities.Apply(s, key, t)
     local ability = RH.classData.abilities[key]
     s.now = t
-    s.castRemains = 0
+    -- A cast or channel keeps you busy until it ends; its effects land then.
+    local cast = Abilities.CastTime(s, ability)
+    local landsAt = t + cast
+    s.castRemains, s.castEnd = cast, landsAt
     if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
     if ability.reactive and s.usable then s.usable[key] = false end -- queued / used up
     if ability.nextSwing and s.queued then s.queued[key] = true end
@@ -312,7 +326,7 @@ function Abilities.Apply(s, key, t)
     local cd = s.cooldowns[key]
     if cd then
         -- A potion can't be used again in the same combat.
-        cd.readyAt = ability.oncePerCombat and math.huge or t + (cd.duration or ability.cooldown)
+        cd.readyAt = ability.oncePerCombat and math.huge or landsAt + (cd.duration or ability.cooldown)
         if s.readySince then s.readySince[key] = nil end
         -- A shared cooldown (the Shaman shocks) starts for the whole group.
         local group = ability.cooldownGroup
@@ -339,6 +353,8 @@ function Abilities.Apply(s, key, t)
     if ability.consumes then
         for _, aura in ipairs(ability.consumes) do Effects.RemoveBuff(s, aura) end
     end
+    s.now = landsAt
     if ability.apply then ability.apply(s, ns.Spec, Effects) end
+    s.now = t
     s.lastCast[key] = t
 end

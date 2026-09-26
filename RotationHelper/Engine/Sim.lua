@@ -52,7 +52,7 @@ function Sim.NewState(opts)
         power = classData.simPower and classData.simPower.start or 0,
         powerRegen = classData.simPower and classData.simPower.regen, powerTime = 0,
         powerMax = opts.powerMax or (classData.simPower and classData.simPower.max) or 130,
-        gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, realGcdEnd = 0, realCastRemains = 0,
+        gcdDuration = 1.5, gcdEnd = 0, gcdRemains = 0, castRemains = 0, castEnd = 0, hasteFactor = 1, realGcdEnd = 0, realCastRemains = 0,
         lookahead = 0, inCombat = true, combatStart = 0, moving = false, petAlive = true,
         cooldownsEnabled = opts.cooldowns ~= false, shortCooldownsEnabled = opts.cooldowns ~= false,
         activeEnemies = opts.enemies or 1,
@@ -193,7 +193,9 @@ function Sim.Run(apl, opts)
                 if after > s.powerMax then m.rpLost = m.rpLost + (after - s.powerMax) end
                 Abilities.Apply(s, key, t)
                 if ability.nextSwing then swingAt[key] = t + swing end
-                if not ability.offGcd then m.busy = m.busy + min(s.gcdDuration, seconds - t) end
+                -- Busy for the GCD, or the whole cast or channel if longer.
+                local busy = max(ability.offGcd and 0 or s.gcdDuration, Abilities.CastTime(s, ability))
+                if busy > 0 then m.busy = m.busy + min(busy, seconds - t) end
                 m.casts[key] = (m.casts[key] or 0) + 1
                 for _, proc in ipairs(procs) do
                     if proc.on and proc.on[key] and random() < proc.chance(Spec) then GainProc(s, proc, m) end

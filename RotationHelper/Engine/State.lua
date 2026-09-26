@@ -200,10 +200,12 @@ function State:ApplyLookahead(s, now)
     s.lookahead, s.lookaheadSource = lookahead, source
     -- The unshifted values, for measuring (the fight review).
     s.realGcdEnd, s.realCastRemains = s.gcdEnd, s.castRemains
+    s.castEnd = now + s.castRemains
     if lookahead <= 0 then return end
     s.gcdEnd = math.max(now, s.gcdEnd - lookahead)
     s.gcdRemains = s.gcdEnd - now
     s.castRemains = math.max(0, s.castRemains - lookahead)
+    s.castEnd = now + s.castRemains
 end
 
 ---------------------------------------------------------------------------

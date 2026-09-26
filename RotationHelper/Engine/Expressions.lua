@@ -246,6 +246,24 @@ local function TotemGetter(parts, classData)
     return function(s) return B(Remains(s) > 0) end
 end
 
+-- action.KEY.cast_time: its (hasted) cast or channel time; execute_time:
+-- that or the GCD, whichever is longer. For refreshing a DoT just before it
+-- runs out: vampiric_touch,if=dot.vampiric_touch.remains<action.vampiric_touch.cast_time
+local function ActionGetter(parts, classData)
+    local key, field = parts[2], parts[3]
+    local ability = key and classData.abilities[key]
+    if not ability then return nil, "unknown ability '" .. tostring(key) .. "'" end
+    if #parts ~= 3 then return nil, "use action." .. key .. ".cast_time or .execute_time" end
+    if field == "cast_time" then
+        return function(s) return ns.Abilities.CastTime(s, ability) end
+    elseif field == "execute_time" then
+        return function(s)
+            return max(ability.offGcd and 0 or s.gcdDuration, ns.Abilities.CastTime(s, ability))
+        end
+    end
+    return nil, "unknown action field '" .. tostring(field) .. "' (use cast_time or execute_time)"
+end
+
 -- target.type.NAME: the target's creature type, e.g. target.type.undead.
 local function TargetGetter(parts)
     if #parts == 3 and parts[2] == "type" then
@@ -267,6 +285,7 @@ local PREFIXES = {
     active_dot = ActiveDotGetter,
     target = TargetGetter,
     totem = TotemGetter,
+    action = ActionGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.

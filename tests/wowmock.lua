@@ -405,6 +405,12 @@ function Mock.NewSession(opts)
         [58704] = { "Searing Totem", "i" }, [49281] = { "Lightning Shield", "i" }, [324] = { "Lightning Shield", "i" },
         [51533] = { "Feral Spirit", "i" }, [30823] = { "Shamanistic Rage", "i" }, [57994] = { "Wind Shear", "i" },
         [53817] = { "Maelstrom Weapon", "i" },
+        -- Priest
+        [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
+        [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },
+        [48158] = { "Shadow Word: Death", "i" }, [34433] = { "Shadowfiend", "i" }, [47585] = { "Dispersion", "i" },
+        [15473] = { "Shadowform", "i" }, [48168] = { "Inner Fire", "i" }, [15286] = { "Vampiric Embrace", "i" },
+        [15487] = { "Silence", "i" }, [15258] = { "Shadow Weaving", "i" }, [1243] = { "Power Word: Fortitude", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells
@@ -413,9 +419,12 @@ function Mock.NewSession(opts)
     -- Like the real client, a lookup by name only finds spells in the spellbook.
     session.known = {}
     session.spellCosts = {} -- name -> mana cost reported for a learned spell
+    session.castTimes = {} -- name -> cast time in ms reported for a learned spell (hasted)
     env.GetSpellInfo = function(idOrName)
         if type(idOrName) == "string" then
-            if session.known[idOrName] then return idOrName, "", "i", session.spellCosts[idOrName] or 0 end
+            if session.known[idOrName] then
+                return idOrName, "", "i", session.spellCosts[idOrName] or 0, nil, 0, session.castTimes[idOrName] or 0
+            end
             return nil
         end
         local s = session.spells[idOrName]

@@ -22,14 +22,29 @@ local function IsRuneCooldown(ability, duration, state)
     return ability.runes ~= nil and state.runeRegen ~= nil and abs(duration - state.runeRegen) < 0.05
 end
 
+-- Spell haste as a factor on cast times (1 = none, 0.8 = 25% haste), from
+-- the hasted cast time the client reports for classData.hasteProbe (an
+-- ability with a fixed `castTime`, e.g. Mind Blast).
+local GetSpellInfo = GetSpellInfo
+local function HasteFactor(classData)
+    local probe = classData.hasteProbe and classData.abilities[classData.hasteProbe]
+    if not (probe and probe.name and probe.castTime) then return 1 end
+    local _, _, _, _, _, _, castMs = GetSpellInfo(probe.name)
+    if not castMs or castMs <= 0 then return 1 end
+    return castMs / 1000 / probe.castTime
+end
+
 function Cooldowns.Read(state, classData, now)
+    state.hasteFactor = HasteFactor(classData)
     local start, duration = GetSpellCooldown(classData.gcdSpellName)
     if start and start > 0 and duration and duration > 0 and duration <= MAX_GCD then
         state.gcdRemains = start + duration - now
         state.gcdDuration = duration
     else
         state.gcdRemains = 0
-        state.gcdDuration = state.buffs.unholy_presence and 1.0 or BASE_GCD
+        -- Casters' GCD is shortened by spell haste, down to 1 second.
+        state.gcdDuration = state.buffs.unholy_presence and 1.0
+            or (classData.hasteProbe and math.max(1.0, BASE_GCD * state.hasteFactor)) or BASE_GCD
     end
     if state.gcdRemains < 0 then state.gcdRemains = 0 end
     state.gcdEnd = now + state.gcdRemains

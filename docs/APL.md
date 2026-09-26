@@ -119,6 +119,8 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
 | `totem.fire.up` / `.remains` (also `earth`, `water`, `air`) | your totem of that element |
 | `totem.NAME.up` / `.remains` | a specific totem, e.g. `totem.magma_totem.remains` |
+| `action.NAME.cast_time` | the ability's cast or channel time with your spell haste (0 for instants) |
+| `action.NAME.execute_time` | that, or the GCD if longer: how long using it keeps you busy |
 
 `rune.` works the same as `runes.`.
 
@@ -181,6 +183,11 @@ Shaman: `stormstrike`, `lava_lash`, `earth_shock`, `flame_shock` (`dot.flame_sho
 (the shocks share a cooldown), `lightning_bolt` and `chain_lightning` (use them with
 `buff.maelstrom_weapon.stack=5`), `fire_nova` (needs `totem.fire.up`), `magma_totem`,
 `searing_totem`, `lightning_shield`, `feral_spirit`, `shamanistic_rage`, `wind_shear`.
+
+Priest: `vampiric_touch`, `shadow_word_pain`, `devouring_plague` (all `dot.*`), `mind_blast`,
+`mind_flay`, `mind_sear`, `shadow_word_death`, `shadowfiend`, `dispersion`, `shadowform`,
+`inner_fire`, `vampiric_embrace`, `silence`. Abilities with a cast time aren't suggested while
+you're moving, and the next ability waits for the cast or channel to finish.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

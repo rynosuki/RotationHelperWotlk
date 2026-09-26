@@ -221,7 +221,7 @@ test("items: a potion once per combat, with Bloodlust", function()
     s:AddAura("player", { name = "Bloodlust", spellId = 2825, duration = 40, expires = s.time + 40 })
     eq(Recommend(s), "potion", "Bloodlust")
     local st = s.ns.State:Virtual()
-    s.ns.Abilities.Apply(st, "potion", RH.classData.abilities.potion)
+    s.ns.Abilities.Apply(st, "potion", st.now)
     eq(st.cooldowns.potion.readyAt, math.huge, "not again this combat")
 end)
 
