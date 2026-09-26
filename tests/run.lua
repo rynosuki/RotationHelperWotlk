@@ -32,6 +32,7 @@ local SUITES = {
     "test_beast_mastery",
     "test_combat",
     "test_assassination",
+    "test_subtlety",
     "test_predict",
     "test_targets",
     "test_options",

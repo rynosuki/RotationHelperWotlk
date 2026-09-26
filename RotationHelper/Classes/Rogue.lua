@@ -41,13 +41,19 @@ ns.RegisterClass("ROGUE", {
     energyBoost = { aura = "adrenaline_rush", factor = 2 },
     interrupt = "kick",
     prepullImbues = true, -- the checklist wants poisons on
-    majorCooldowns = { "adrenaline_rush", "killing_spree", "blade_flurry", "cold_blood" },
-    reviewDebuffs = { assassination = { "rupture" }, combat = { "rupture" } },
+    majorCooldowns = { "adrenaline_rush", "killing_spree", "blade_flurry", "cold_blood", "shadow_dance" },
+    reviewDebuffs = { assassination = { "rupture" }, combat = { "rupture" }, subtlety = { "rupture", "hemorrhage" } },
 
-    -- For the simulator: 100 energy, starting full.
+    -- For the simulator: 100 energy, starting full; Honor Among Thieves gives
+    -- a combo point from the group's crits, at most one per second (about 20
+    -- a minute at 3/3 in a raid).
     simPower = { type = "energy", max = 100, start = 100 },
+    simProcs = {
+        { aura = "honor_among_thieves", comboPoints = 1,
+          perMinute = function(spec) return 20 * spec:TalentRank("honor_among_thieves") / 3 end },
+    },
 
-    specs = { assassination = true, combat = true, subtlety = false },
+    specs = { assassination = true, combat = true, subtlety = true },
 
     abilities = {
         -- Improved Sinister Strike: -3 / -5 energy.
@@ -90,6 +96,23 @@ ns.RegisterClass("ROGUE", {
             apply = function(s, spec, fx) fx.ApplyBuff(s, "hunger_for_blood", 60) end },
         cold_blood = { id = 14177, cooldown = 180, offGcd = true,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "cold_blood") end },
+
+        -- Subtlety (Slaughter from the Shadows: -4 energy per rank on Backstab
+        -- and Ambush, -1 on Hemorrhage)
+        hemorrhage = { id = 48660, comboGain = 1,
+            energyCost = function(spec) return 35 - spec:TalentRank("slaughter_from_the_shadows") end,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "hemorrhage", 15, 10) end },
+        -- From behind the target.
+        backstab = { id = 48657, comboGain = 1,
+            energyCost = function(spec) return 60 - 4 * spec:TalentRank("slaughter_from_the_shadows") end },
+        -- From behind, only in stealth or during Shadow Dance.
+        ambush = { id = 48691, comboGain = 1, reactive = true, usableWith = "shadow_dance",
+            energyCost = function(spec) return 60 - 4 * spec:TalentRank("slaughter_from_the_shadows") end },
+        premeditation = { id = 14183, comboGain = 2, cooldown = 20, offGcd = true, reactive = true,
+            usableWith = "shadow_dance" },
+        -- Glyph of Shadow Dance: +2 seconds.
+        shadow_dance = { id = 51713, cooldown = 60, offGcd = true,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "shadow_dance", spec:HasGlyph("shadow_dance") and 8 or 6) end },
     },
 
     auras = {
@@ -98,6 +121,8 @@ ns.RegisterClass("ROGUE", {
         blade_flurry = { id = 13877 },
         rupture = { id = 48672, debuff = true },
         hunger_for_blood = { id = 63848 },
+        shadow_dance = { id = 51713 },
+        hemorrhage = { id = 48660, debuff = true },
         envenom = { id = 57993 },
         cold_blood = { id = 14177 },
         deadly_poison = { id = 57970, debuff = true },

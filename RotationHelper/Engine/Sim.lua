@@ -123,6 +123,12 @@ local function GainProc(s, proc, m)
         if last and s.now - last < proc.icd then return end
         s.procAt[proc.aura] = s.now
     end
+    -- A proc that gives combo points instead of a buff (Honor Among Thieves).
+    if proc.comboPoints then
+        s.comboPoints = math.min(5, (s.comboPoints or 0) + proc.comboPoints)
+        stats.gained = stats.gained + 1
+        return
+    end
     local group = RH.classData.lastAuraGroup
     if group then
         for _, key in ipairs(group) do

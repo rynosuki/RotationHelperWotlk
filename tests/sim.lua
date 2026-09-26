@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    subtlety = {
+        class = "ROGUE", power = { type = 3, current = 100, max = 100 },
+        talents = {
+            { name = "Assassination", talents = { { "Malice", 5 } } },
+            { name = "Combat", talents = { { "Precision", 5 } } },
+            { name = "Subtlety", talents = { { "Shadow Dance", 1 }, { "Premeditation", 1 }, { "Hemorrhage", 1 },
+                { "Slaughter from the Shadows", 5 }, { "Relentless Strikes", 5 }, { "Honor Among Thieves", 3 } } },
+        },
+        spells = { "Hemorrhage", "Backstab", "Ambush", "Premeditation", "Shadow Dance", "Slice and Dice", "Rupture",
+            "Eviscerate", "Kick", "Sinister Strike" },
+    },
     beast_mastery = {
         class = "HUNTER", power = { type = 0, current = 22000, max = 22000 },
         talents = {
@@ -251,7 +262,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination|feral_combat|marksmanship|survival|beast_mastery|subtlety> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end

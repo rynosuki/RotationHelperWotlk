@@ -50,7 +50,7 @@ Legend: role · power · engine features needed · notes.
 
 - [ ] **Combat** (DPS) · E5 · implemented in 1.27.0, waiting on an in-game check · Slice and Dice upkeep, Rupture, Sinister Strike, Killing Spree, Adrenaline Rush.
 - [ ] **Assassination** (DPS) · E5 · implemented in 1.28.0, waiting on an in-game check · Mutilate, Envenom with Hunger for Blood and SnD upkeep.
-- [ ] **Subtlety** (DPS) · E5 · Hemorrhage and Honor Among Thieves; rarely played for PvE.
+- [ ] **Subtlety** (DPS) · E5 · implemented in 1.33.0 (combo-point procs in the simulator for Honor Among Thieves), waiting on an in-game check · Hemorrhage and Honor Among Thieves; rarely played for PvE.
 
 ### Druid
 
@@ -89,7 +89,7 @@ Legend: role · power · engine features needed · notes.
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
 6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat** (done).
 7. **E9 Auto Shot timing** (done) → **Hunters** (done).
-8. Niche specs (Subtlety Rogue, Frost Mage).
+8. Niche specs: Subtlety Rogue (done), Frost Mage, Demonology Warlock.
 
 ## Out of scope for now: tanks and healers
 
