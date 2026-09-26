@@ -29,7 +29,9 @@ spends them with Arcane Missiles; Missile Barrage procs are used at 4 stacks, Pr
 makes an Arcane Blast instant, Arcane Barrage while moving. **Affliction Warlock** casts Haunt on
 cooldown, keeps Unstable Affliction, Corruption (kept going by Everlasting Affliction) and Curse
 of Agony up, and fills with Shadow Bolt (Drain Soul below 25%), with Life Tap for mana and
-while moving. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+while moving. **Destruction Warlock** keeps Immolate up, uses Conflagrate (its Backdraft makes the
+next three casts faster) and Chaos Bolt on cooldown, Curse of Doom on long fights (else Curse of
+Agony), and fills with Incinerate. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

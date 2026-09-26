@@ -249,6 +249,23 @@ function Effects.SpreadDots(s, duration)
     end
 end
 
+-- Uses one stack of a buff with charges (Backdraft); the last one removes it.
+function Effects.ConsumeStack(s, key)
+    local rec = s.buffs[key]
+    if not (rec and rec.expires > s.now) then return end
+    if rec.stacks > 1 then
+        rec.stacks = rec.stacks - 1
+    else
+        Effects.RemoveBuff(s, key)
+    end
+end
+
+-- Whether a buff with charges is up at the moment being checked.
+function Effects.BuffUp(s, key)
+    local rec = s.buffs[key]
+    return rec ~= nil and rec.expires > s.now
+end
+
 function Effects.SummonPet(s)
     s.petAlive = true
 end

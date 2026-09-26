@@ -12,19 +12,34 @@ local function EverlastingAffliction(s, spec, fx)
     end
 end
 
+-- Backdraft: after Conflagrate, the next 3 Destruction spells cast 10% faster
+-- per rank. Used by the cast time of Immolate, Incinerate and Chaos Bolt.
+local function Backdraft(spec, s, base)
+    local rec = s and s.buffs.backdraft
+    if rec and rec.expires > s.now then return base * (1 - 0.1 * spec:TalentRank("backdraft")) end
+    return base
+end
+
+local function UseBackdraft(s, spec, fx)
+    fx.ConsumeStack(s, "backdraft")
+end
+
 ns.RegisterClass("WARLOCK", {
     -- A spell with no cooldown; its cooldown is the GCD.
     gcdSpell = 687, -- Demon Skin
     baseMana = 3856, -- level 80
     hasteProbe = "searing_pain", -- a 1.5s cast no talent changes: its cast time in game gives the spell haste
     majorCooldowns = {},
-    reviewDebuffs = { affliction = { "haunt", "unstable_affliction", "corruption", "curse_of_agony" } },
+    reviewDebuffs = {
+        affliction = { "haunt", "unstable_affliction", "corruption", "curse_of_agony" },
+        destruction = { "immolate" },
+    },
 
     -- For the simulator: mana with ~120 per second of regen (Replenishment,
     -- Glyph of Life Tap); Life Tap in the rotation adds more.
     simPower = { type = "mana", max = 20000, start = 20000, regen = 120 },
 
-    specs = { affliction = true, demonology = false, destruction = false },
+    specs = { affliction = true, demonology = false, destruction = true },
 
     abilities = {
         -- Affliction
@@ -56,6 +71,35 @@ ns.RegisterClass("WARLOCK", {
             apply = function(s, spec, fx) s.power = math.min(s.powerMax, s.power + s.powerMax * 0.1) end },
         fel_armor = { id = 47893, mana = 28,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "fel_armor", 1800) end },
+
+        -- Destruction (Bane: -0.1 seconds per rank on Immolate and Chaos Bolt)
+        immolate = { id = 47811, mana = 17, castTime = 2,
+            castTimeFn = function(spec, s) return Backdraft(spec, s, 2 - 0.1 * spec:TalentRank("bane")) end,
+            apply = function(s, spec, fx)
+                UseBackdraft(s, spec, fx)
+                fx.ApplyDebuff(s, "immolate", 15)
+            end },
+        -- Needs Immolate on the target; uses it up unless glyphed. Starts Backdraft.
+        conflagrate = { id = 17962, mana = 16, cooldown = 10,
+            apply = function(s, spec, fx)
+                if not spec:HasGlyph("conflagrate") then
+                    local rec = s.debuffs.immolate
+                    if rec then rec.expires = s.now end
+                end
+                if spec:TalentRank("backdraft") > 0 then fx.ApplyBuff(s, "backdraft", 15, 3) end
+            end },
+        -- Glyph of Chaos Bolt: -2 seconds cooldown.
+        chaos_bolt = { id = 59172, mana = 7, castTime = 2.5, cooldown = 12,
+            cooldownFn = function(spec) return spec:HasGlyph("chaos_bolt") and 10 or 12 end,
+            castTimeFn = function(spec, s) return Backdraft(spec, s, 2.5 - 0.1 * spec:TalentRank("bane")) end,
+            apply = UseBackdraft },
+        -- Emberstorm: -0.05 seconds per rank.
+        incinerate = { id = 47838, mana = 14, castTime = 2.5,
+            castTimeFn = function(spec, s) return Backdraft(spec, s, 2.5 - 0.05 * spec:TalentRank("emberstorm")) end,
+            apply = UseBackdraft },
+        -- A minute long; only worth it on targets that live that long.
+        curse_of_doom = { id = 47867, mana = 15, cooldown = 60,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "curse_of_doom", 60) end },
     },
 
     auras = {
@@ -66,6 +110,9 @@ ns.RegisterClass("WARLOCK", {
         -- Anyone's (or a Moonkin's Earth and Moon, or an Unholy DK's Ebon Plague) counts.
         curse_of_the_elements = { ids = { 47865, 60433, 51735 }, debuff = true, anySource = true },
         fel_armor = { id = 47893 },
+        immolate = { id = 47811, debuff = true },
+        curse_of_doom = { id = 47867, debuff = true },
+        backdraft = { id = 54277 },
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
     },
 })

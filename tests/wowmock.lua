@@ -427,6 +427,8 @@ function Mock.NewSession(opts)
         [47855] = { "Drain Soul", "i" }, [47836] = { "Seed of Corruption", "i" }, [47815] = { "Searing Pain", "i" },
         [57946] = { "Life Tap", "i" }, [47893] = { "Fel Armor", "i" }, [687] = { "Demon Skin", "i" },
         [60433] = { "Earth and Moon", "i" }, [51735] = { "Ebon Plague", "i" },
+        [47811] = { "Immolate", "i" }, [17962] = { "Conflagrate", "i" }, [59172] = { "Chaos Bolt", "i" },
+        [47838] = { "Incinerate", "i" }, [47867] = { "Curse of Doom", "i" }, [54277] = { "Backdraft", "i" },
         [55262] = { "Heart Strike", "i" }, [56815] = { "Rune Strike", "i" }, [49028] = { "Dancing Rune Weapon", "i" },
         [49016] = { "Hysteria", "i" }, [48982] = { "Rune Tap", "i" }, [55233] = { "Vampiric Blood", "i" },
         -- glyph spells

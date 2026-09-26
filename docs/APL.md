@@ -199,7 +199,9 @@ with Presence of Mind), `arcane_missiles` (fast and free with `buff.missile_barr
 Warlock: `haunt`, `corruption`, `unstable_affliction`, `curse_of_agony`, `curse_of_the_elements`
 (anyone's, or Earth and Moon / Ebon Plague, counts as `debuff.curse_of_the_elements`), `shadow_bolt`,
 `drain_soul` (treated one 3-second tick at a time), `seed_of_corruption`, `searing_pain`, `life_tap`,
-`fel_armor`.
+`fel_armor`, `immolate`, `conflagrate` (needs `dot.immolate.up`; uses it up without Glyph of
+Conflagrate), `chaos_bolt`, `incinerate`, `curse_of_doom`. `buff.backdraft.stack` counts the faster
+casts left.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),
