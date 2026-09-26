@@ -1,0 +1,31 @@
+local ADDON_NAME, ns = ...
+
+-- Default Assassination (Mutilate) Rogue priority for 3.3.5a:
+--   Slice and Dice always up > Hunger for Blood (needs a bleed) > Rupture
+--   (only as the bleed for Hunger for Blood) > Envenom at 4+ points (Cold Blood first) >
+--   Mutilate to build points
+-- At 4+ points with Slice and Dice running low, refresh it first.
+ns.RegisterAPL("ROGUE", "assassination", "Assassination (default)", [[
+## Out of combat
+actions.precombat=potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
+
+## Main priority
+# Big cooldowns follow the CD toggle (bosses only by default).
+actions=call_action_list,name=cooldowns,if=toggle.cooldowns
+actions+=/slice_and_dice,if=!buff.slice_and_dice.up
+# Hunger for Blood needs a bleed on the target: your Rupture or anyone's.
+actions+=/hunger_for_blood,if=buff.hunger_for_blood.remains<3&(dot.rupture.up|debuff.bleed.up)
+# Rupture when Hunger for Blood will need a bleed and there is none; Envenom is the main finisher.
+actions+=/rupture,if=combo_points>=4&!dot.rupture.up&!debuff.bleed.up&buff.hunger_for_blood.remains<10&target.time_to_die>12
+actions+=/slice_and_dice,if=combo_points>=4&buff.slice_and_dice.remains<5
+actions+=/envenom,if=combo_points>=4
+actions+=/mutilate,if=combo_points<4
+
+## Cooldowns
+actions.cooldowns=cold_blood,if=combo_points>=4
+actions.cooldowns+=/blood_fury
+actions.cooldowns+=/berserking
+actions.cooldowns+=/trinket1
+actions.cooldowns+=/trinket2
+actions.cooldowns+=/potion,if=buff.bloodlust.up|target.time_to_die<30
+]])

@@ -8,8 +8,18 @@ local ADDON_NAME, ns = ...
 -- (`finisher = true`) need at least one and use them all; their effects can
 -- read how many from s.comboPointsSpent. The GCD is 1 second.
 
+-- Relentless Strikes: finishers have a 4% chance per rank per combo point to
+-- restore 25 energy; the prediction adds the average.
+local function RelentlessStrikes(s, spec)
+    local rank = spec:TalentRank("relentless_strikes")
+    if rank > 0 then
+        s.power = math.min(s.powerMax, s.power + 25 * 0.04 * rank * (s.comboPointsSpent or 0))
+    end
+end
+
 -- Improved Slice and Dice: +25% duration per rank; Glyph of Slice and Dice: +3 seconds.
 local function SliceAndDice(s, spec, fx)
+    RelentlessStrikes(s, spec)
     local cp = s.comboPointsSpent or 1
     local duration = (6 + 3 * cp) * (1 + 0.25 * spec:TalentRank("improved_slice_and_dice"))
     if spec:HasGlyph("slice_and_dice") then duration = duration + 3 end
@@ -21,21 +31,23 @@ ns.RegisterClass("ROGUE", {
     gcdSpell = 1752, -- Sinister Strike
     baseGcd = 1,
     -- 10 energy a second; Vitality +8/16/25%; Combat Potency adds roughly
-    -- 0.35 a second per rank from off-hand hits.
+    -- 0.35 a second per rank from off-hand hits, Focused Attacks roughly 0.4
+    -- per rank from crits.
     energyRegen = function(spec)
         local vitality = ({ 0.08, 0.16, 0.25 })[spec:TalentRank("vitality")] or 0
         return 10 * (1 + vitality) + 0.35 * spec:TalentRank("combat_potency")
+            + 0.4 * spec:TalentRank("focused_attacks")
     end,
     energyBoost = { aura = "adrenaline_rush", factor = 2 },
     interrupt = "kick",
     prepullImbues = true, -- the checklist wants poisons on
-    majorCooldowns = { "adrenaline_rush", "killing_spree", "blade_flurry" },
-    reviewDebuffs = { combat = { "rupture" } },
+    majorCooldowns = { "adrenaline_rush", "killing_spree", "blade_flurry", "cold_blood" },
+    reviewDebuffs = { assassination = { "rupture" }, combat = { "rupture" } },
 
     -- For the simulator: 100 energy, starting full.
     simPower = { type = "energy", max = 100, start = 100 },
 
-    specs = { assassination = false, combat = true, subtlety = false },
+    specs = { assassination = true, combat = true, subtlety = false },
 
     abilities = {
         -- Improved Sinister Strike: -3 / -5 energy.
@@ -48,8 +60,9 @@ ns.RegisterClass("ROGUE", {
                 local duration = 6 + 2 * (s.comboPointsSpent or 1)
                 if spec:HasGlyph("rupture") then duration = duration + 4 end
                 fx.ApplyDebuff(s, "rupture", duration)
+                RelentlessStrikes(s, spec)
             end },
-        eviscerate = { id = 48668, energy = 35, finisher = true },
+        eviscerate = { id = 48668, energy = 35, finisher = true, apply = RelentlessStrikes },
         -- Five attacks over 2 seconds; nothing else meanwhile.
         killing_spree = { id = 51690, cooldown = 120,
             apply = function(s, spec, fx) s.gcdEnd = math.max(s.gcdEnd, s.now + 2) end },
@@ -61,6 +74,22 @@ ns.RegisterClass("ROGUE", {
         blade_flurry = { id = 13877, energy = 25, cooldown = 120, offGcd = true,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "blade_flurry", 15) end },
         kick = { id = 1766, energy = 25, cooldown = 10, offGcd = true },
+
+        -- Assassination
+        -- Two combo points (more with Seal Fate crits, not predicted).
+        -- Glyph of Mutilate: -5 energy.
+        mutilate = { id = 48666, comboGain = 2,
+            energyCost = function(spec) return spec:HasGlyph("mutilate") and 55 or 60 end },
+        envenom = { id = 57993, energy = 35, finisher = true, consumes = { "cold_blood" },
+            apply = function(s, spec, fx)
+                fx.ApplyBuff(s, "envenom", 1 + (s.comboPointsSpent or 1))
+                RelentlessStrikes(s, spec)
+            end },
+        -- Needs a bleed on the target (anyone's): the rotation checks it.
+        hunger_for_blood = { id = 51662, energy = 15,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "hunger_for_blood", 60) end },
+        cold_blood = { id = 14177, cooldown = 180, offGcd = true,
+            apply = function(s, spec, fx) fx.ApplyBuff(s, "cold_blood") end },
     },
 
     auras = {
@@ -68,6 +97,13 @@ ns.RegisterClass("ROGUE", {
         adrenaline_rush = { id = 13750 },
         blade_flurry = { id = 13877 },
         rupture = { id = 48672, debuff = true },
+        hunger_for_blood = { id = 63848 },
+        envenom = { id = 57993 },
+        cold_blood = { id = 14177 },
+        deadly_poison = { id = 57970, debuff = true },
+        -- Any bleed on the target, anyone's (for Hunger for Blood): Deep Wounds,
+        -- Rend, Garrote, Rake, Rip, Lacerate.
+        bleed = { ids = { 43104, 47465, 48676, 48574, 49800, 48568 }, debuff = true, anySource = true },
         bloodlust = { ids = { 2825, 32182 } }, -- Bloodlust / Heroism
     },
 })

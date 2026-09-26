@@ -49,7 +49,7 @@ Legend: role · power · engine features needed · notes.
 ### Rogue — energy + combo points
 
 - [ ] **Combat** (DPS) · E5 · implemented in 1.27.0, waiting on an in-game check · Slice and Dice upkeep, Rupture, Sinister Strike, Killing Spree, Adrenaline Rush.
-- [ ] **Assassination** (DPS) · E5 · Mutilate, Envenom with Hunger for Blood and SnD upkeep.
+- [ ] **Assassination** (DPS) · E5 · implemented in 1.28.0, waiting on an in-game check · Mutilate, Envenom with Hunger for Blood and SnD upkeep.
 - [ ] **Subtlety** (DPS) · E5 · Hemorrhage and Honor Among Thieves; rarely played for PvE.
 
 ### Druid
@@ -87,7 +87,7 @@ Legend: role · power · engine features needed · notes.
 4. **E6 stacks + E8 totems** (done) → **Enhancement Shaman** (done).
 5. **E2 cast times + E7 DoTs** (done) → **Shadow Priest** (done), then the other casters (Fire Mage (done), Arcane Mage (done),
    Affliction (done)/Destruction (done) Warlock, Elemental (done), Balance (done)).
-6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue**, then **Feral cat**.
+6. **E5 energy + combo points** (done) → **Combat** (done)/**Assassination Rogue** (done), then **Feral cat**.
 7. **E9 Auto Shot timing** → **Hunters**.
 8. Niche specs (Subtlety Rogue, Frost Mage).
 

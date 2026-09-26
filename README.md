@@ -40,7 +40,9 @@ procs the other); Starfall on cooldown. **Combat Rogue** keeps Slice and Dice up
 points on Rupture and Eviscerate (refreshing Slice and Dice first when it's running low), builds
 with Sinister Strike, and uses Blade Flurry, Killing Spree (while low on energy) and Adrenaline
 Rush; short on energy, the icon counts down to when you'll have enough. The checklist wants
-poisons on. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
+poisons on. **Assassination Rogue** keeps Slice and Dice and Hunger for Blood up (with Rupture as
+its bleed when nobody else has one on the target), spends 4+ points on Envenom (Cold Blood
+first) and builds with Mutilate. Other classes load but stay idle. See [docs/SPECS.md](docs/SPECS.md) for
 what's planned.
 
 ## Install

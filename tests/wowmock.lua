@@ -418,6 +418,10 @@ function Mock.NewSession(opts)
         [48638] = { "Sinister Strike", "i" }, [6774] = { "Slice and Dice", "i" }, [48672] = { "Rupture", "i" },
         [48668] = { "Eviscerate", "i" }, [51690] = { "Killing Spree", "i" }, [13750] = { "Adrenaline Rush", "i" },
         [13877] = { "Blade Flurry", "i" }, [1766] = { "Kick", "i" }, [1752] = { "Sinister Strike", "i" },
+        [48666] = { "Mutilate", "i" }, [57993] = { "Envenom", "i" }, [51662] = { "Hunger for Blood", "i" },
+        [63848] = { "Hunger For Blood", "i" }, [14177] = { "Cold Blood", "i" }, [57970] = { "Deadly Poison", "i" },
+        [43104] = { "Deep Wounds", "i" }, [48676] = { "Garrote", "i" }, [48574] = { "Rake", "i" }, [49800] = { "Rip", "i" },
+        [48568] = { "Lacerate", "i" },
         -- Priest
         [48160] = { "Vampiric Touch", "i" }, [48125] = { "Shadow Word: Pain", "i" }, [48300] = { "Devouring Plague", "i" },
         [48127] = { "Mind Blast", "i" }, [48156] = { "Mind Flay", "i" }, [53023] = { "Mind Sear", "i" },

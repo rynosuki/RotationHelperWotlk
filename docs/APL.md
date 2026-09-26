@@ -213,7 +213,9 @@ Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfi
 `faerie_fire` (anyone's counts), `starfall`, `force_of_nature`, `hurricane`, `moonkin_form`.
 
 Rogue: `sinister_strike`, `slice_and_dice`, `rupture` (`dot.rupture`), `eviscerate` (finishers need
-at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`.
+at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`,
+`mutilate` (2 points), `envenom`, `hunger_for_blood` (needs a bleed: `dot.rupture.up` or
+`debuff.bleed.up`, anyone's), `cold_blood`.
 
 Every class: `trinket1` / `trinket2` (the trinket in slot 13 / 14, only if its use effect helps
 damage, unless changed under General > Trinkets),

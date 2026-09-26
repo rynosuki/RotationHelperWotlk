@@ -1,7 +1,7 @@
 ## Interface: 30300
 ## Title: RotationHelper
 ## Notes: Hekili-style rotation helper for WotLK 3.3.5a
-## Version: 1.27.0
+## Version: 1.28.0
 ## SavedVariables: RotationHelperDB
 ## OptionalDeps: Ace3
 
@@ -54,6 +54,7 @@ APLs\Mage_Arcane.lua
 APLs\Mage_Fire.lua
 APLs\Paladin_Retribution.lua
 APLs\Priest_Shadow.lua
+APLs\Rogue_Assassination.lua
 APLs\Rogue_Combat.lua
 APLs\Shaman_Elemental.lua
 APLs\Shaman_Enhancement.lua

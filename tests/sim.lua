@@ -1,6 +1,6 @@
 -- Offline rotation simulator: compares rotations side by side.
 --
---   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat> [options] [rotation files...]
+--   lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination> [options] [rotation files...]
 --
 -- Without files it simulates the spec's default rotation. With files, each
 -- file is simulated (add "default" to include the default for comparison).
@@ -17,6 +17,17 @@ package.path = "./tests/?.lua;" .. package.path
 local Mock = require("wowmock")
 
 local BUILDS = {
+    assassination = {
+        class = "ROGUE", power = { type = 3, current = 100, max = 100 },
+        talents = {
+            { name = "Assassination", talents = { { "Mutilate", 1 }, { "Seal Fate", 5 }, { "Cold Blood", 1 },
+                { "Hunger for Blood", 1 }, { "Focused Attacks", 3 }, { "Improved Slice and Dice", 2 }, { "Malice", 5 } } },
+            { name = "Combat", talents = { { "Precision", 5 } } },
+            { name = "Subtlety", talents = { { "Relentless Strikes", 5 } } },
+        },
+        spells = { "Mutilate", "Envenom", "Hunger for Blood", "Cold Blood", "Slice and Dice", "Rupture", "Eviscerate",
+            "Kick", "Sinister Strike" },
+    },
     combat = {
         class = "ROGUE", power = { type = 3, current = 100, max = 100 },
         talents = {
@@ -194,7 +205,7 @@ local BUILDS = {
 
 local function Usage(message)
     if message then print(message) end
-    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat> [--seconds N] [--runs N] [--enemies N] [--seed N] "
+    print("usage: lua tests/sim.lua <blood|frost|unholy|retribution|arms|fury|enhancement|shadow|fire|arcane|affliction|destruction|elemental|balance|combat|assassination> [--seconds N] [--runs N] [--enemies N] [--seed N] "
         .. "[--no-cooldowns] [default] [rotation files...]")
     os.exit(1)
 end
