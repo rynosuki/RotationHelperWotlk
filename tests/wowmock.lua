@@ -46,13 +46,20 @@ function RegionMethods:SetPoint(point, rel, relPoint, x, y)
     if type(rel) == "number" or rel == nil then
         rel, relPoint, x, y = self.parent, point, rel or 0, relPoint or 0
     end
+    -- Like the client, setting a point that's already set moves it.
+    for _, p in ipairs(self.points) do
+        if p[1] == point then
+            p[2], p[3], p[4], p[5] = rel, relPoint, x, y
+            return
+        end
+    end
     self.points[#self.points + 1] = { point, rel, relPoint, x, y }
 end
 function RegionMethods:GetPoint(i)
     local p = self.points[i or 1]
     if p then return p[1], p[2], p[3], p[4], p[5] end
 end
-function RegionMethods:ClearAllPoints() self.points = {} end
+function RegionMethods:ClearAllPoints() for i = #self.points, 1, -1 do self.points[i] = nil end end
 function RegionMethods:SetAllPoints(rel) self.points = { { "ALL", rel or self.parent } } end
 function RegionMethods:SetWidth(w) self.width = w end
 function RegionMethods:SetHeight(h) self.height = h end

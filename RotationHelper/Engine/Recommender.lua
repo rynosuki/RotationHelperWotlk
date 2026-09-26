@@ -46,6 +46,7 @@ end
 Recommender.context = context -- for the simulator
 
 local MAX_PREDICTIONS = 5
+Recommender.predictedRunes = {} -- [slot] = { type, readyAt } after the predicted actions
 
 -- Reused so updates don't create garbage.
 local recommendations = {}
@@ -215,6 +216,13 @@ function Recommender:Predict(count, trace)
         Abilities.Apply(v, action.name, readyAt)
     end
     for i = n + 1, #recommendations do recommendations[i] = nil end
+    -- The runes once the predicted actions are used (the rune bar, F1).
+    local predicted = self.predictedRunes
+    for i, rune in ipairs(v.runes) do
+        local p = predicted[i] or {}
+        predicted[i] = p
+        p.type, p.readyAt = rune.type, rune.readyAt
+    end
     return recommendations, n
 end
 

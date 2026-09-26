@@ -242,6 +242,8 @@ function Display:CreateFrames()
     -- Per frame, only while the display is shown: times the flash exactly,
     -- since the GCD ending fires no event and updates run at most 20/s.
     f:SetScript("OnUpdate", function() Display:Animate(GetTime()) end)
+
+    self:CreateExtras(f) -- UI/DisplayExtras.lua
 end
 
 function Display:StartFlash(b, now)
@@ -317,6 +319,7 @@ function Display:ApplySettings()
     Display.SetButtonSize(alt, queueSize)
     alt.tint = nil
 
+    self:ApplyExtras()
     self:Refresh()
 end
 
@@ -458,6 +461,7 @@ function Display:Refresh()
         self.altButton:Hide()
     end
     self:UpdateProcs(entries, count)
+    self:UpdateExtras(entries, count, now)
     self:UpdateStatus()
     self.frame:Show()
 end

@@ -37,6 +37,8 @@ what's planned.
 | `RUNES` / `COOLDOWN` / `CAST` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
 | Small icon below the status line | The big icon's ability is out of range; this is the best thing you can do from where you are. |
 | Steady red border, `THREAT` on the status line | In a group: you're close to pulling aggro (default 90%). |
+| Six small bars above the icons | Your runes: color = type (purple = death), dim with seconds while recharging. The strip under each shows the rune once the queued abilities are used: its type then, dimmed if the queue spends it. |
+| Small icons above the runes | Major cooldowns and trinkets: grey with the time left while on cooldown. |
 | `Missing: ...` under the icons | Out of combat with a boss or elite targeted: what you still need before the pull (flask, food, Horn of Winter, presence, ghoul). |
 | Blue icon | Waiting on runes. |
 | Red icon | Your target is out of range for it. |
@@ -45,6 +47,10 @@ what's planned.
 | `ST` / `AOE` / a number under the big icon | The AoE mode is forced to single target / AoE, or (auto mode) how many enemies are counted. |
 
 Colors can be changed under Display > Colors, including a color-blind friendly preset.
+
+**Timeline** (Display > Extras): the queued icons are placed by when they can be used, with the
+time under each and a tick every second. Back-to-back GCDs sit next to each other as usual; a gap
+means waiting, usually on runes. The rune bar and cooldown strip can be turned off there too.
 
 Hold **Shift** over the (locked) display to hover an icon for a tooltip explaining why it's
 recommended (which rotation line, what it's waiting on), and to click `CD` or the AoE mode to

@@ -269,14 +269,19 @@ offline tests and has been checked in game.
 
 ## Phase F — Display extras (S–M)
 
-- [ ] **F1 Predicted rune bar**
-  - Under the icons: the current runes plus their predicted types and ready times, from the
-    virtual state.
-- [ ] **F2 Cooldown strip**
-  - The major cooldowns with their remaining time.
-- [ ] **F3 Timeline mode**
-  - An alternative layout: icons placed along a horizontal time axis by predicted time, so gaps
-    are visible.
+- [ ] **F1 Predicted rune bar** — *implemented in 1.12.0, waiting on the in-game check*
+  - Above the icons (`UI/DisplayExtras.lua`): the six runes colored by type, dim and partly
+    filled with seconds left while recharging.
+  - A strip under each rune shows it after the queued abilities (`Recommender.predictedRunes`,
+    from the virtual state): its type then (e.g. blood becoming death), dimmed if the queue
+    spends it.
+- [ ] **F2 Cooldown strip** — *implemented in 1.12.0, waiting on the in-game check*
+  - The class's `majorCooldowns` plus trinkets, when known: swipe, grey and time left while on
+    cooldown.
+- [ ] **F3 Timeline mode** — *implemented in 1.12.0, waiting on the in-game check*
+  - Off by default. Queued icons are placed by the time they're usable; the scale makes one GCD
+    one icon plus spacing, so waits show as gaps and icons never overlap (off-GCD cooldowns go
+    side by side). Time under each icon, an axis with a tick per second.
 - *Check in game:* the rune bar matches the default rune frame; the timeline spacing matches
   the queue's waits.
 

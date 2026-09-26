@@ -282,7 +282,8 @@ function Options:BuildOptionsTable()
             queueScale = { type = "range", name = "Queue icon size", order = 14, min = 0.4, max = 1, step = 0.05,
                 isPercent = true, desc = "Queued icons relative to the main icon." },
             spacing = { type = "range", name = "Spacing", order = 15, min = 0, max = 20, step = 1 },
-            direction = { type = "select", name = "Queue direction", order = 16, values = DIRECTIONS },
+            direction = { type = "select", name = "Queue direction", order = 16, values = DIRECTIONS,
+                disabled = function() return RH.db.profile.display.timeline end },
             visibility = { type = "header", name = "Visibility", order = 20 },
             hideOutOfCombat = { type = "toggle", name = "Hide out of combat", order = 21 },
             showStatus = { type = "toggle", name = "Show toggle status", order = 22,
@@ -333,6 +334,17 @@ function Options:BuildOptionsTable()
         desc = "When the main ability is more than a GCD away, label it RUNES, COOLDOWN, CAST or WAIT." }
     display.args.alternative = { type = "toggle", name = "In-range alternative", order = 29,
         desc = "When the main ability is out of range, show the best in-range one below it." }
+
+    display.args.extrasHeader = { type = "header", name = "Extras", order = 35 }
+    display.args.runeBar = { type = "toggle", name = "Rune bar", order = 36,
+        hidden = function() return not (RH.classData and RH.classData.usesRunes) end,
+        desc = "Your runes above the icons. The strip under each rune shows its type once the queued "
+            .. "abilities are used, dimmed if they spend it." }
+    display.args.cooldownStrip = { type = "toggle", name = "Cooldown strip", order = 37,
+        desc = "Major cooldowns and trinkets above the icons, with the time left." }
+    display.args.timeline = { type = "toggle", name = "Timeline", order = 38,
+        desc = "Place the queued icons by when they can be used, with a second under each: a gap means "
+            .. "waiting (on runes, usually). Always grows to the right." }
 
     -- Colors, with presets.
     local function ColorOption(key, name, order)

@@ -31,6 +31,7 @@ local SUITES = {
     "test_apltext",
     "test_apleditor",
     "test_phase_e",
+    "test_phase_f",
 }
 
 for _, suite in ipairs(SUITES) do
