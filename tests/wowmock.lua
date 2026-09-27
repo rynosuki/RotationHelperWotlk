@@ -422,6 +422,7 @@ function Mock.NewSession(opts)
         [63848] = { "Hunger For Blood", "i" }, [14177] = { "Cold Blood", "i" }, [57970] = { "Deadly Poison", "i" },
         [43104] = { "Deep Wounds", "i" }, [48676] = { "Garrote", "i" }, [48574] = { "Rake", "i" }, [49800] = { "Rip", "i" },
         [48568] = { "Lacerate", "i" },
+        [26889] = { "Vanish", "i" }, [58427] = { "Overkill", "i" },
         [48660] = { "Hemorrhage", "i" }, [48657] = { "Backstab", "i" }, [48691] = { "Ambush", "i" },
         [14183] = { "Premeditation", "i" }, [51713] = { "Shadow Dance", "i" },
         [768] = { "Cat Form", "i" }, [48566] = { "Mangle (Cat)", "i" }, [48564] = { "Mangle (Bear)", "i" },

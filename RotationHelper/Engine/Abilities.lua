@@ -289,6 +289,18 @@ function Effects.SpreadDots(s, duration)
     end
 end
 
+-- Power regeneration `factor` times faster until `until` (Adrenaline Rush,
+-- Overkill). Only one boosted window is modelled: overlapping boosts multiply
+-- until the first one ends (a little less than the truth after that).
+function Effects.BoostRegen(s, factor, untilTime)
+    if s.regenBoostUntil and s.regenBoostUntil > s.now then
+        s.regenBoost = (s.regenBoost or 1) * factor
+        if untilTime < s.regenBoostUntil then s.regenBoostUntil = untilTime end
+    else
+        s.regenBoost, s.regenBoostUntil = factor, untilTime
+    end
+end
+
 -- Uses one stack of a buff with charges (Backdraft); the last one removes it.
 function Effects.ConsumeStack(s, key)
     local rec = s.buffs[key]

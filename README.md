@@ -46,7 +46,7 @@ with Sinister Strike, and uses Blade Flurry, Killing Spree (while low on energy)
 Rush; short on energy, the icon counts down to when you'll have enough. The checklist wants
 poisons on. **Assassination Rogue** keeps Slice and Dice and Hunger for Blood up (with Rupture as
 its bleed when nobody else has one on the target), spends 4+ points on Envenom (Cold Blood
-first) and builds with Mutilate. **Subtlety Rogue** uses Shadow Dance on cooldown for Premeditation
+first) and builds with Mutilate; Vanish for Overkill's faster energy when energy is low. **Subtlety Rogue** uses Shadow Dance on cooldown for Premeditation
 and Ambush, keeps Hemorrhage's debuff, Slice and Dice and Rupture up, spends on Eviscerate and
 builds with Backstab (Honor Among Thieves points arrive as they come). **Feral cat Druid** keeps Faerie Fire and Mangle up (anyone's
 count), Savage Roar, Rip at 5 points and Rake, Ferocious Bite when both have long left, and

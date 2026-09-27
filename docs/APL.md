@@ -222,7 +222,7 @@ Druid: `wrath`, `starfire` (`buff.lunar_eclipse`, `buff.solar_eclipse`), `moonfi
 Rogue: `sinister_strike`, `slice_and_dice`, `rupture` (`dot.rupture`), `eviscerate` (finishers need
 at least 1 combo point and use them all), `killing_spree`, `adrenaline_rush`, `blade_flurry`, `kick`,
 `mutilate` (2 points), `envenom`, `hunger_for_blood` (needs a bleed: `dot.rupture.up` or
-`debuff.bleed.up`, anyone's), `cold_blood`, `hemorrhage` (`debuff.hemorrhage`), `backstab`, `ambush`
+`debuff.bleed.up`, anyone's), `cold_blood`, `vanish` (with Overkill: `buff.overkill`, 30% faster energy), `hemorrhage` (`debuff.hemorrhage`), `backstab`, `ambush`
 and `premeditation` (in stealth or during `buff.shadow_dance`), `shadow_dance`.
 
 Hunter: `steady_shot` (waits for an Auto Shot it would delay, when that's cheaper), `arcane_shot`,

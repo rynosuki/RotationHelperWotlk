@@ -4,7 +4,7 @@ local ADDON_NAME, ns = ...
 --
 -- Energy (`energy`): costs are checked like rage, and energy comes back at
 -- a known rate (energyRegen), twice as fast during Adrenaline Rush
--- (energyBoost). Combo points: builders add `comboGain`, finishers
+-- (energyBoosts; Overkill: 30% faster). Combo points: builders add `comboGain`, finishers
 -- (`finisher = true`) need at least one and use them all; their effects can
 -- read how many from s.comboPointsSpent. The GCD is 1 second.
 
@@ -38,7 +38,11 @@ ns.RegisterClass("ROGUE", {
         return 10 * (1 + vitality) + 0.35 * spec:TalentRank("combat_potency")
             + 0.4 * spec:TalentRank("focused_attacks")
     end,
-    energyBoost = { aura = "adrenaline_rush", factor = 2 },
+    energyBoosts = {
+        { aura = "adrenaline_rush", factor = 2 },
+        -- Overkill (Assassination): while stealthed and for 20 seconds after.
+        { aura = "overkill", factor = 1.3 },
+    },
     interrupt = "kick",
     prepullImbues = true, -- the checklist wants poisons on
     majorCooldowns = { "adrenaline_rush", "killing_spree", "blade_flurry", "cold_blood", "shadow_dance" },
@@ -75,7 +79,7 @@ ns.RegisterClass("ROGUE", {
         adrenaline_rush = { id = 13750, cooldown = 180, offGcd = true,
             apply = function(s, spec, fx)
                 fx.ApplyBuff(s, "adrenaline_rush", 15)
-                s.regenBoost, s.regenBoostUntil = 2, s.now + 15
+                fx.BoostRegen(s, 2, s.now + 15)
             end },
         blade_flurry = { id = 13877, energy = 25, cooldown = 120, offGcd = true,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "blade_flurry", 15) end },
@@ -96,6 +100,16 @@ ns.RegisterClass("ROGUE", {
             apply = function(s, spec, fx) fx.ApplyBuff(s, "hunger_for_blood", 60) end },
         cold_blood = { id = 14177, cooldown = 180, offGcd = true,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "cold_blood") end },
+        -- With Overkill: 30% faster energy for 20 seconds after (a DPS cooldown
+        -- for Assassination). Elusiveness: -30 seconds cooldown per rank.
+        vanish = { id = 26889, cooldown = 180, offGcd = true,
+            cooldownFn = function(spec) return 180 - 30 * spec:TalentRank("elusiveness") end,
+            apply = function(s, spec, fx)
+                if spec:TalentRank("overkill") > 0 then
+                    fx.ApplyBuff(s, "overkill", 20)
+                    fx.BoostRegen(s, 1.3, s.now + 20)
+                end
+            end },
 
         -- Subtlety (Slaughter from the Shadows: -4 energy per rank on Backstab
         -- and Ambush, -1 on Hemorrhage)
@@ -121,6 +135,7 @@ ns.RegisterClass("ROGUE", {
         blade_flurry = { id = 13877 },
         rupture = { id = 48672, debuff = true },
         hunger_for_blood = { id = 63848 },
+        overkill = { id = 58427 },
         shadow_dance = { id = 51713 },
         hemorrhage = { id = 48660, debuff = true },
         envenom = { id = 57993 },

@@ -4,7 +4,8 @@ local ADDON_NAME, ns = ...
 --   Slice and Dice always up > Hunger for Blood (needs a bleed) > Rupture
 --   (only as the bleed for Hunger for Blood) > Envenom at 4+ points (Cold Blood first) >
 --   Mutilate to build points
--- At 4+ points with Slice and Dice running low, refresh it first.
+-- At 4+ points with Slice and Dice running low, refresh it first. Vanish
+-- with the big cooldowns, for Overkill's energy.
 ns.RegisterAPL("ROGUE", "assassination", "Assassination (default)", [[
 ## Out of combat
 actions.precombat=potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
@@ -23,6 +24,9 @@ actions+=/mutilate,if=combo_points<4
 
 ## Cooldowns
 actions.cooldowns=cold_blood,if=combo_points>=4
+# Vanish for Overkill: 30% faster energy for 20 seconds, best while energy is low.
+# (It can briefly count you as out of combat; a boss puts you straight back in.)
+actions.cooldowns+=/vanish,if=talent.overkill.enabled&energy<50&!buff.overkill.up
 actions.cooldowns+=/blood_fury
 actions.cooldowns+=/berserking
 actions.cooldowns+=/trinket1

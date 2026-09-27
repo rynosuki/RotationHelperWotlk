@@ -63,7 +63,7 @@ Ability fields (all optional except `id`):
 | `castTimeFn(spec, state)` | the base cast time when talents or buffs change it (Improved Fireball; Missile Barrage) |
 | `manaFn(spec, state, baseMana)` | a mana cost that depends on the state (Arcane Blast stacks) |
 | `instantWith` | a buff that makes the cast instant and is used up (Hot Streak for Pyroblast) |
-| `energy` / `energyCost(spec)` | energy cost (set `energyRegen(spec)` in the class data, and `energyBoost = { aura, factor }` for buffs that speed it up; `baseGcd = 1` for a 1 second GCD) |
+| `energy` / `energyCost(spec)` | energy cost (set `energyRegen(spec)` in the class data, and `energyBoosts = { { aura, factor }, ... }` for buffs that speed it up (overlapping ones multiply); `baseGcd = 1` for a 1 second GCD) |
 | `energyGain(spec)` | energy it gives (Tiger's Fury); set `freeCostAura` (Clearcasting: the next ability is free) and `costBuff = { aura, factor }` (Berserk) in the class data for class-wide cost changes |
 | `comboGain` / `finisher` | builders add combo points; finishers need one and use them all (`s.comboPointsSpent` in their `apply`) |
 | `avoidAutoClip` | a cast that waits for the next Auto Shot rather than delaying it, when waiting is cheaper (set `autoShot = true` in the class data) |

@@ -4,7 +4,7 @@ local T = require("testlib")
 local test, eq, truthy, falsy, newAddon = T.test, T.eq, T.truthy, T.falsy, T.newAddon
 
 local SPELLS = { "Mutilate", "Envenom", "Hunger for Blood", "Cold Blood", "Slice and Dice", "Rupture", "Eviscerate",
-    "Kick", "Sinister Strike" }
+    "Kick", "Sinister Strike", "Vanish" }
 
 local function near(actual, expected, what, tolerance)
     if type(actual) ~= "number" or math.abs(actual - expected) > (tolerance or 1e-6) then
@@ -21,8 +21,9 @@ local function Fight(opts)
         { name = "Assassination", talents = { { "Mutilate", 1 }, { "Seal Fate", 5 }, { "Cold Blood", 1 },
             { "Hunger for Blood", 1 }, { "Focused Attacks", 3 }, { "Improved Slice and Dice", 2 }, { "Malice", 5 } } },
         { name = "Combat", talents = { { "Precision", 5 } } },
-        { name = "Subtlety", talents = { { "Relentless Strikes", 5 } } },
+        { name = "Subtlety", talents = { { "Relentless Strikes", 5 }, { "Elusiveness", 2 } } },
     }
+    if opts.overkill then table.insert(s.talentTabs[1].talents, { "Overkill", 1 }) end
     s.power = { type = 3, current = opts.energy or 100, max = 100 }
     s.combo = opts.combo or 0
     s:Learn(unpack(SPELLS))
@@ -100,4 +101,46 @@ test("simulator: Assassination", function()
     truthy((casts.mutilate or 0) > 8, "Mutilate per minute " .. tostring(casts.mutilate))
     truthy((casts.envenom or 0) > 1.5, "Envenom per minute " .. tostring(casts.envenom))
     truthy((casts.hunger_for_blood or 0) >= 0.9, "Hunger for Blood per minute " .. tostring(casts.hunger_for_blood))
+end)
+
+---------------------------------------------------------------------------
+-- Vanish for Overkill
+---------------------------------------------------------------------------
+test("Vanish with Overkill when energy is low (a big cooldown)", function()
+    local s, RH = Fight({ setUp = true, combo = 2, energy = 30, overkill = true, cooldowns = true })
+    s.cooldowns["Cold Blood"] = { s.time, 180 }
+    eq(Queue(s, 1), "vanish", "30 energy: Vanish")
+    near(s.ns.Abilities.CooldownDuration(RH.classData.abilities.vanish), 120, "Elusiveness 2/2")
+    s = Fight({ setUp = true, combo = 2, energy = 80, overkill = true, cooldowns = true })
+    falsy(Queue(s, 1) == "vanish", "plenty of energy: not now")
+    s = Fight({ setUp = true, combo = 2, energy = 30, cooldowns = true })
+    falsy(Queue(s, 3):find("vanish", 1, true), "no Overkill talent")
+    s = Fight({ setUp = true, combo = 2, energy = 30, overkill = true })
+    falsy(Queue(s, 3):find("vanish", 1, true), "cooldowns off")
+end)
+
+test("Overkill: 30% faster energy, in the game and in the prediction", function()
+    local s, RH = Fight({ setUp = true, energy = 0, overkill = true })
+    local base = s.ns.State:Reset().powerRegen
+    s:AddAura("player", { name = "Overkill", spellId = 58427, duration = 20, expires = s.time + 20 })
+    local st = s.ns.State:Reset()
+    eq(st.regenBoost, 1.3, "boost read from the buff")
+    near(s.ns.Resources.PowerAt(st, st.now + 2), base * 1.3 * 2, "2 seconds of Overkill")
+    s = Fight({ setUp = true, energy = 0, overkill = true })
+    s.ns.State:Reset()
+    local v = s.ns.State:Virtual()
+    s.ns.Abilities.Apply(v, "vanish", v.now)
+    eq(v.buffs.overkill ~= nil, true, "Vanish starts Overkill")
+    near(v.regenBoostUntil, v.now + 20, "for 20 seconds")
+end)
+
+test("overlapping energy boosts multiply until the first one ends", function()
+    local s = Fight({ energy = 0 })
+    s.ns.State:Reset()
+    local v = s.ns.State:Virtual()
+    local fx = s.ns.Abilities.Effects
+    fx.BoostRegen(v, 2, v.now + 15)   -- Adrenaline Rush
+    fx.BoostRegen(v, 1.3, v.now + 20) -- Overkill
+    near(v.regenBoost, 2.6, "both")
+    near(v.regenBoostUntil, v.now + 15, "until the shorter one ends")
 end)

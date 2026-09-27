@@ -37,6 +37,7 @@ State.real = {
 -- GetTotemInfo slots.
 State.TOTEM_ELEMENTS = { "fire", "earth", "water", "air" }
 local totemKeyByName = {} -- "Magma Totem VII" -> "magma_totem" (cached)
+local NO_BOOSTS = {}
 
 local function TotemKey(name, classData)
     local key = totemKeyByName[name]
@@ -130,13 +131,15 @@ function State:Reset(now)
     ns.Resources.Read(s, classData, now)
     ns.Auras.Read(s, classData)
     -- Energy regenerates at a known rate (classData.energyRegen), faster with
-    -- some buffs (regenBoost, e.g. Adrenaline Rush); combo points on the target.
+    -- some buffs (classData.energyBoosts: Adrenaline Rush, Overkill); combo
+    -- points on the target.
     s.regenBoost, s.regenBoostUntil = nil, nil
     if s.powerType == "energy" then
         s.powerRegen = classData.energyRegen and classData.energyRegen(ns.Spec) or 10
-        local boost = classData.energyBoost
-        local rec = boost and s.buffs[boost.aura]
-        if rec and rec.expires > now then s.regenBoost, s.regenBoostUntil = boost.factor, rec.expires end
+        for _, boost in ipairs(classData.energyBoosts or NO_BOOSTS) do
+            local rec = s.buffs[boost.aura]
+            if rec and rec.expires > now then ns.Abilities.Effects.BoostRegen(s, boost.factor, rec.expires) end
+        end
     end
     s.comboPoints = GetComboPoints and GetComboPoints("player", "target") or 0
     -- The most recent of a group of buffs (Eclipse: Lunar or Solar), kept
