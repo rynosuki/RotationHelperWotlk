@@ -84,10 +84,16 @@ function Recommender:GetSource(specKey)
     return default, default
 end
 
-function Recommender:Compile(text)
-    local abilities = RH.classData.abilities
+-- Compiles `text` for a spec (default: the current one), whose rotation
+-- settings it can read as option.KEY.
+function Recommender:Compile(text, specKey)
+    local abilities, resolver = RH.classData.abilities, self.resolver
+    specKey = specKey or ns.Spec.key
     return Compiler.CompileAPL(text, {
-        resolve = self.resolver,
+        resolve = function(name)
+            if name:find("^option%.") then return ns.APLOptions.Getter(specKey, name) end
+            return resolver(name)
+        end,
         isAction = function(name) return abilities[name] ~= nil end,
     })
 end
@@ -111,7 +117,7 @@ function Recommender:GetAPL()
         return nil
     end
 
-    local apl = self:Compile(source.text)
+    local apl = self:Compile(source.text, specKey)
     apl.name, apl.custom = source.name, source.custom
     if #apl.errors > 0 then
         if source.custom and default then
@@ -120,7 +126,7 @@ function Recommender:GetAPL()
             RH:Print(("Your custom rotation '%s' has %d problem(s); using the default until it's fixed (/rh apl):")
                 :format(apl.name, #apl.errors))
             PrintErrors(apl)
-            apl = self:Compile(default.text)
+            apl = self:Compile(default.text, specKey)
             apl.name = default.name
         else
             RH:Print(("%d problem(s) in action list '%s' (those lines are skipped):"):format(#apl.errors, apl.name))

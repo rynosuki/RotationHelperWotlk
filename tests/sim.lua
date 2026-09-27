@@ -332,7 +332,7 @@ for _, file in ipairs(files) do
         text = f:read("*a")
         f:close()
     end
-    local apl = ns.Recommender:Compile(text)
+    local apl = ns.Recommender:Compile(text, treeKey)
     if #apl.errors > 0 then
         print(file .. " has errors:")
         for _, err in ipairs(apl.errors) do print("  " .. ns.APL.Compiler.FormatError(err)) end

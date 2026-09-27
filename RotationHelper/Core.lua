@@ -59,11 +59,22 @@ function ns.RegisterClass(classToken, data)
 end
 
 -- Default action lists registered by APLs/*.lua: ns.APLs[class][spec].
+-- `options` lists the rotation's settings (Engine/APLOptions.lua).
 ns.APLs = {}
 
-function ns.RegisterAPL(classToken, specKey, name, text)
+local OPTION_TYPES = { range = true, toggle = true, select = true }
+
+function ns.RegisterAPL(classToken, specKey, name, text, options)
+    for _, decl in ipairs(options or {}) do
+        local where = classToken .. " " .. specKey .. " option " .. tostring(decl.key)
+        assert(type(decl.key) == "string" and decl.key:match("^[%w_]+$"), where .. ": bad key")
+        assert(OPTION_TYPES[decl.type], where .. ": type must be range, toggle or select")
+        assert(decl.name and decl.default ~= nil, where .. ": needs a name and a default")
+        assert(decl.type ~= "select" or (decl.values and decl.values[decl.default]), where .. ": default not in values")
+        assert(decl.type ~= "range" or (decl.min and decl.max), where .. ": needs min and max")
+    end
     ns.APLs[classToken] = ns.APLs[classToken] or {}
-    ns.APLs[classToken][specKey] = { name = name, text = text }
+    ns.APLs[classToken][specKey] = { name = name, text = text, options = options }
 end
 
 local AOE_MODES = { "auto", "single", "aoe" }
@@ -90,6 +101,7 @@ local defaults = {
             aoeMode = "auto", -- auto | single | aoe
         },
         customAPLs = {}, -- [class][spec] = APL text edited in the options
+        aplOptions = {}, -- [class][spec][key] = rotation setting (Engine/APLOptions.lua)
         variants = {},   -- [ability key] = chosen variant, e.g. judgement = "wisdom"
         editor = {
             syntaxColors = true,

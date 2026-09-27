@@ -313,8 +313,13 @@ offline tests and has been checked in game.
   - `/rh report` (and a General tab button): version, class, spec, rotation (with the text if
     custom), settings, the `/rh snapshot`, recent errors and the last review, in a window to copy.
   - GitHub issue template asking for it; [TESTING.md](TESTING.md) lists what to check per spec.
-- [ ] **H3 Easier tuning without the editor** — *planned for 1.40.0*: rotation options
-  (`option.KEY`) shown on the Rotation tab; thresholds in the default rotations become options.
+- [x] **H3 Easier tuning without the editor** — *1.40.0*
+  - Rotations declare settings (`ns.RegisterAPL(..., options)`), read as `option.NAME` /
+    `option.NAME.VALUE`, checked when compiling, shown on the Rotation tab with a reset button,
+    listed by Names and in `/rh report`.
+  - Settings in the default rotations: Heroic Strike / Cleave rage, Arcane Blast mana %, the
+    warlock curse, Envenom combo points, not behind the target (Feral, Subtlety), Blood tank
+    health %, Gargoyle wait, hunter aspect mana %. The defaults simulate the same as before.
 - [ ] **H4 More rotation smarts** — *planned for 1.41.0*: clipping channels, energy / rage pooling
   (`energy.time_to_N`), Backdraft shortening the GCD, multi-DoT hints.
 

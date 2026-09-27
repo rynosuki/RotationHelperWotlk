@@ -35,6 +35,7 @@ function Report.Build()
     local source = RH.classSupported and spec and ns.Recommender:GetSource(spec)
     Add(format("Spec: %s; rotation: %s", tostring(spec),
         source and source.name or "none"))
+    if source then Add("Rotation settings: " .. ns.APLOptions.Describe(spec)) end
     local t = p.toggles
     Add(format("Settings: cooldowns %s%s, consumables %s, AoE mode %s, latency %s, display %s, %d icons",
         OnOff(t.cooldowns), t.cooldownsBossOnly and " (bosses only)" or "", OnOff(t.consumables),

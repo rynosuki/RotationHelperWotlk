@@ -154,9 +154,28 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `burst.active` | 1 while a burst buff is on you: Bloodlust/Heroism, Hyperspeed Acceleration, racials, Potion of Speed, common trinket procs, plus any added in the options |
 | `burst.remains` | seconds left on the longest burst buff |
 | `variable.NAME` | a variable set by a `variable` action (0 if unset) |
+| `option.NAME` | a setting of the spec's rotation (Rotation tab > Settings): a number, or 1/0 for a checkbox |
+| `option.NAME.VALUE` | 1 if a choice setting is set to VALUE, e.g. `option.curse.elements` |
 
 Talent and glyph names are the in-game names in lowercase, with spaces and punctuation replaced
 by `_`. `/rh snapshot` lists your talents and glyphs in exactly this form.
+
+### Settings
+
+The default rotations declare settings (a rage threshold, which curse to use) that players change
+on the Rotation tab without touching the rotation. A custom rotation for the same spec can read
+them too. Unknown names are compile errors listing the known ones. The settings per spec:
+
+| Spec | Settings |
+|---|---|
+| Fury, Arms | `hs_rage`, `cleave_rage`: Heroic Strike / Cleave from this much rage |
+| Arcane | `blast_above`: keep casting Arcane Blast above this mana %; `evocation_below` |
+| Affliction, Destruction, Demonology | `curse`: `auto` (Doom on long fights, else Agony), `agony`, `doom`, `elements`, `none` |
+| Assassination | `finish_at`: finishers at 3–5 combo points |
+| Feral, Subtlety | `not_behind`: Mangle instead of Shred / Hemorrhage instead of Backstab and Ambush |
+| Blood | `rune_tap_health`, `vampiric_blood_health` (tanking) |
+| Unholy | `gargoyle_wait`: how long a ready Gargoyle waits for a burst window |
+| Hunters | `viper_below`, `dragonhawk_above`: aspect switching by mana % |
 
 ### Abilities
 

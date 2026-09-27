@@ -18,6 +18,7 @@ If something is off: `/rh report` right when it happens, and paste it into a
 - [ ] Cooldowns follow the CD toggle, and only show against bosses (skull, boss frames or a known
       boss name) unless that's turned off.
 - [ ] After a fight of 20+ seconds, `/rh review` has sensible numbers.
+- [ ] If the spec has settings (Rotation tab > Settings), changing one changes the icons right away.
 
 ## Per spec
 

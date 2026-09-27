@@ -97,7 +97,7 @@ function Options:SaveRotation(specKey, text)
         return self:RevertRotation(specKey)
     end
 
-    local apl = ns.Recommender:Compile(text)
+    local apl = ns.Recommender:Compile(text, specKey)
     if #apl.errors > 0 then
         local lines = {}
         for i, err in ipairs(apl.errors) do lines[i] = ns.APL.Compiler.FormatError(err) end
@@ -133,7 +133,7 @@ Options.simResults = {}
 local SIM_SECONDS, SIM_RUNS = 300, 5
 
 function Options:Simulate(specKey)
-    local apl = ns.Recommender:Compile(self:RotationText(specKey))
+    local apl = ns.Recommender:Compile(self:RotationText(specKey), specKey)
     if #apl.errors > 0 then
         self.simResults[specKey] = "|cffff4040Fix the rotation's errors first (Accept shows them).|r"
         return
@@ -558,6 +558,8 @@ function Options:BuildOptionsTable()
         },
     }
 
+    self:AddRotationSettings(rotation.args)
+
     local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(RH.db)
     profiles.order = 4
     self:AddSpecProfileOptions(profiles)
@@ -566,6 +568,40 @@ function Options:BuildOptionsTable()
         type = "group", name = "RotationHelper " .. RH.version, childGroups = "tab",
         args = { general = general, display = display, rotation = rotation, profiles = profiles },
     }
+end
+
+-- The rotation's settings (Engine/APLOptions.lua), above the editor: one
+-- widget per declared option of every spec, shown for the edited spec.
+local SETTINGS_ORDER = 2.1
+
+function Options:AddRotationSettings(args)
+    local APLOptions = ns.APLOptions
+    local function NoSettings() return #APLOptions.Declared(Options:EditSpec()) == 0 end
+    args.settingsHeader = { type = "header", name = "Settings", order = SETTINGS_ORDER, hidden = NoSettings }
+    args.settingsInfo = { type = "description", order = SETTINGS_ORDER + 0.01, fontSize = "medium",
+        hidden = NoSettings,
+        name = "Apply right away, to the default rotation and to custom ones that read them "
+            .. "(option.NAME; the Names button lists them)." }
+    local specs = {}
+    for specKey in pairs(ns.APLs[RH.playerClass] or {}) do specs[#specs + 1] = specKey end
+    table.sort(specs)
+    for _, specKey in ipairs(specs) do
+        for i, decl in ipairs(APLOptions.Declared(specKey)) do
+            args["setting_" .. specKey .. "_" .. decl.key] = {
+                type = decl.type, name = decl.name, desc = decl.desc, order = SETTINGS_ORDER + 0.02 + i * 0.001,
+                min = decl.min, max = decl.max, step = decl.step, values = decl.values,
+                width = decl.type == "toggle" and "double" or nil,
+                hidden = function() return Options:EditSpec() ~= specKey end,
+                get = function() return APLOptions.Get(specKey, decl.key) end,
+                set = function(_, value) APLOptions.Set(specKey, decl.key, value) end,
+            }
+        end
+    end
+    args.settingsReset = { type = "execute", name = "Default settings", order = SETTINGS_ORDER + 0.9,
+        hidden = NoSettings,
+        disabled = function() return not APLOptions.Changed(Options:EditSpec()) end,
+        func = function() APLOptions.Reset(Options:EditSpec()) end }
+    args.editorHeader = { type = "header", name = "Rotation", order = SETTINGS_ORDER + 0.95, hidden = NoSettings }
 end
 
 -- "Per talent spec" section on the Profiles tab (see SpecProfiles.lua).

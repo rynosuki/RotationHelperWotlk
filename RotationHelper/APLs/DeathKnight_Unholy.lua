@@ -41,8 +41,8 @@ actions+=/raise_dead,if=!pet.alive
 
 ## Cooldowns
 # The Gargoyle keeps the attack power and haste you had when it was summoned.
-# Hold it for a burst window (Bloodlust, trinket procs, ...), but no more than 15s.
-actions.cooldowns=summon_gargoyle,if=dot.frost_fever.up&dot.blood_plague.up&(burst.active|cooldown.summon_gargoyle.ready_for>=15|target.time_to_die<40)
+# Hold it for a burst window (Bloodlust, trinket procs, ...), but no more than 15s (a setting).
+actions.cooldowns=summon_gargoyle,if=dot.frost_fever.up&dot.blood_plague.up&(burst.active|cooldown.summon_gargoyle.ready_for>=option.gargoyle_wait|target.time_to_die<40)
 actions.cooldowns+=/empower_rune_weapon,if=runes.total=0&runes.total.time_to_1>2&target.time_to_die>10
 # Racials right after the Gargoyle, or when it's more than 45s away (or not talented).
 actions.cooldowns+=/blood_fury,if=cooldown.summon_gargoyle.remains>45|!talent.summon_gargoyle.enabled
@@ -64,4 +64,8 @@ actions.aoe+=/scourge_strike
 actions.aoe+=/blood_boil,if=runes.blood>=1
 actions.aoe+=/death_coil
 actions.aoe+=/horn_of_winter,if=!buff.horn_of_winter.up
-]])
+]], {
+    { key = "gargoyle_wait", name = "Hold Gargoyle for a burst window (seconds)", type = "range", default = 15,
+      min = 0, max = 60, step = 5,
+      desc = "How long a ready Gargoyle waits for Bloodlust, a trinket proc and the like. 0: on cooldown." },
+})

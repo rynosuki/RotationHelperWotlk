@@ -19,9 +19,10 @@ actions+=/run_action_list,name=aoe,if=active_enemies>=4
 actions+=/immolate,if=dot.immolate.remains<action.immolate.cast_time&target.time_to_die>6
 actions+=/conflagrate,if=dot.immolate.up
 actions+=/chaos_bolt
-# One curse per target: Doom when the target lives long enough, else Agony.
-actions+=/curse_of_doom,if=!dot.curse_of_doom.up&target.time_to_die>60
-actions+=/curse_of_agony,if=!dot.curse_of_agony.up&!dot.curse_of_doom.up&target.time_to_die>15
+# One curse per target (a setting). By default Doom when the target lives long enough, else Agony.
+actions+=/curse_of_the_elements,if=option.curse.elements&!dot.curse_of_the_elements.up&target.time_to_die>15
+actions+=/curse_of_doom,if=(option.curse.auto|option.curse.doom)&!dot.curse_of_doom.up&target.time_to_die>60
+actions+=/curse_of_agony,if=(option.curse.agony|option.curse.auto&!dot.curse_of_doom.up)&!dot.curse_of_agony.up&target.time_to_die>15
 # While moving, Life Tap instead of standing still.
 actions+=/life_tap,if=moving&mana.pct<80
 actions+=/incinerate
@@ -34,4 +35,9 @@ actions.cooldowns+=/potion,if=buff.bloodlust.up|target.time_to_die<30
 
 ## 4+ targets
 actions.aoe=seed_of_corruption
-]])
+]], {
+    { key = "curse", name = "Curse", type = "select", default = "auto",
+      values = { auto = "Doom on long fights, else Agony", agony = "Curse of Agony",
+          doom = "Curse of Doom", elements = "Curse of the Elements", none = "None (someone else curses)" },
+      desc = "Pick Curse of the Elements if you're the raid's Elements warlock." },
+})

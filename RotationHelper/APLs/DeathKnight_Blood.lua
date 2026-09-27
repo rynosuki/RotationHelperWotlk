@@ -60,8 +60,8 @@ actions.aoe+=/horn_of_winter,if=!buff.horn_of_winter.up
 # Rune Strike whenever a dodge or parry allows it: off the GCD, it hits with the next swing.
 actions.tank=rune_strike
 # Defensives when you're hurt.
-actions.tank+=/rune_tap,if=health.pct<75
-actions.tank+=/vampiric_blood,if=health.pct<45
+actions.tank+=/rune_tap,if=health.pct<option.rune_tap_health
+actions.tank+=/vampiric_blood,if=health.pct<option.vampiric_blood_health
 actions.tank+=/dancing_rune_weapon,if=toggle.cooldowns
 actions.tank+=/icy_touch,if=dot.frost_fever.remains<2
 actions.tank+=/plague_strike,if=dot.blood_plague.remains<2
@@ -75,4 +75,9 @@ actions.tank+=/death_coil,if=runic_power.deficit<25
 actions.tank+=/death_strike
 actions.tank+=/heart_strike
 actions.tank+=/horn_of_winter,if=!buff.horn_of_winter.up
-]])
+]], {
+    { key = "rune_tap_health", name = "Rune Tap below health %", type = "range", default = 75, min = 10, max = 100, step = 5,
+      desc = "Tanking (Frost Presence) only." },
+    { key = "vampiric_blood_health", name = "Vampiric Blood below health %", type = "range", default = 45,
+      min = 10, max = 100, step = 5, desc = "Tanking (Frost Presence) only." },
+})

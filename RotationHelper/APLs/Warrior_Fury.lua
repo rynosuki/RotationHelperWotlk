@@ -19,8 +19,8 @@ actions=call_action_list,name=cooldowns,if=toggle.cooldowns
 actions+=/berserker_rage,if=toggle.short_cooldowns&rage<60
 actions+=/bloodrage,if=toggle.short_cooldowns&rage<50
 # Spare rage goes into the next swing.
-actions+=/heroic_strike,if=active_enemies<2&rage>=50
-actions+=/cleave,if=active_enemies>=2&rage>=50
+actions+=/heroic_strike,if=active_enemies<2&rage>=option.hs_rage
+actions+=/cleave,if=active_enemies>=2&rage>=option.cleave_rage
 actions+=/whirlwind,if=active_enemies>=2
 actions+=/bloodthirst
 actions+=/whirlwind
@@ -37,4 +37,9 @@ actions.cooldowns+=/berserking,if=buff.death_wish.up|cooldown.death_wish.remains
 actions.cooldowns+=/trinket1
 actions.cooldowns+=/trinket2
 actions.cooldowns+=/potion,if=buff.bloodlust.up|buff.death_wish.up|target.time_to_die<30
-]])
+]], {
+    { key = "hs_rage", name = "Heroic Strike at rage", type = "range", default = 50, min = 20, max = 100, step = 5,
+      desc = "Queue Heroic Strike (one target) from this much rage. Lower with lots of rage coming in." },
+    { key = "cleave_rage", name = "Cleave at rage", type = "range", default = 50, min = 20, max = 100, step = 5,
+      desc = "Queue Cleave (two or more targets) from this much rage." },
+})

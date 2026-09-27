@@ -4,8 +4,8 @@ local ADDON_NAME, ns = ...
 --   Haunt on cooldown > Unstable Affliction (refreshed as it runs out) >
 --   Corruption (once; Everlasting Affliction keeps it going) > Curse of
 --   Agony > Drain Soul below 25% > Shadow Bolt
--- Life Tap for mana (and while moving). If you're the raid's Curse of the
--- Elements warlock, replace the Curse of Agony line with curse_of_the_elements.
+-- Life Tap for mana (and while moving). The curse is a setting (Curse of the
+-- Elements if you're the raid's Elements warlock).
 ns.RegisterAPL("WARLOCK", "affliction", "Affliction (default)", [[
 ## Out of combat
 actions.precombat=fel_armor,if=!buff.fel_armor.up
@@ -20,7 +20,9 @@ actions+=/haunt
 # Recast so the new one lands as the old one runs out.
 actions+=/unstable_affliction,if=dot.unstable_affliction.remains<action.unstable_affliction.cast_time&target.time_to_die>8
 actions+=/corruption,if=!dot.corruption.up&target.time_to_die>10
-actions+=/curse_of_agony,if=!dot.curse_of_agony.up&target.time_to_die>15
+actions+=/curse_of_the_elements,if=option.curse.elements&!dot.curse_of_the_elements.up&target.time_to_die>15
+actions+=/curse_of_doom,if=(option.curse.auto|option.curse.doom)&!dot.curse_of_doom.up&target.time_to_die>60
+actions+=/curse_of_agony,if=(option.curse.agony|option.curse.auto&!dot.curse_of_doom.up)&!dot.curse_of_agony.up&target.time_to_die>15
 actions+=/drain_soul,if=target.health.pct<25
 # While moving, Life Tap instead of standing still.
 actions+=/life_tap,if=moving&mana.pct<80
@@ -35,4 +37,9 @@ actions.cooldowns+=/potion,if=buff.bloodlust.up|target.time_to_die<30
 ## 4+ targets
 actions.aoe=corruption,if=!dot.corruption.up&target.time_to_die>10
 actions.aoe+=/seed_of_corruption
-]])
+]], {
+    { key = "curse", name = "Curse", type = "select", default = "agony",
+      values = { auto = "Doom on long fights, else Agony", agony = "Curse of Agony",
+          doom = "Curse of Doom", elements = "Curse of the Elements", none = "None (someone else curses)" },
+      desc = "Pick Curse of the Elements if you're the raid's Elements warlock." },
+})

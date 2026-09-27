@@ -208,6 +208,10 @@ enemies the AoE priority takes over. `/rh aoe` can force single target or AoE in
 
 ## Editing the rotation
 
+Many rotations have **settings** at the top of the Rotation tab: Heroic Strike rage, which curse
+to use, Envenom at 4 or 5 points, "not behind the target" for Feral and Subtlety, and more.
+They apply right away, no editing needed, and are stored per profile.
+
 `/rh apl` opens the editor. The rotation is a SimC-style action priority list; see
 [docs/APL.md](docs/APL.md) for the full reference. A short example:
 

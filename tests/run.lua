@@ -56,6 +56,7 @@ local SUITES = {
     "test_phase_g",
     "test_versioncheck",
     "test_report",
+    "test_apl_options",
     "test_consumables",
 }
 

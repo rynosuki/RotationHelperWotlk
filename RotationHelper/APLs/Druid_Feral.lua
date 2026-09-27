@@ -4,6 +4,7 @@ local ADDON_NAME, ns = ...
 --   Faerie Fire and Mangle debuffs (anyone's count) > Savage Roar (even at 1
 --   point) > Rip at 5 points > Rake > Ferocious Bite at 5 points when Rip and
 --   Savage Roar have long left > Shred to build points (and to not cap energy)
+-- Mangle instead of Shred when you can't get behind (a setting).
 -- Tiger's Fury when low on energy, Berserk with the big cooldowns.
 ns.RegisterAPL("DRUID", "feral_combat", "Feral cat (default)", [[
 ## Out of combat
@@ -22,9 +23,11 @@ actions+=/savage_roar,if=buff.savage_roar.remains<2
 actions+=/rip,if=combo_points=5&dot.rip.remains<2&target.time_to_die>10
 actions+=/rake,if=dot.rake.remains<1&target.time_to_die>9
 actions+=/ferocious_bite,if=combo_points=5&dot.rip.remains>8&buff.savage_roar.remains>8
-actions+=/shred,if=combo_points<5
+actions+=/shred,if=!option.not_behind&combo_points<5
+actions+=/mangle_cat,if=option.not_behind&combo_points<5
 # At 5 points waiting on Rip or Savage Roar: Shred rather than capping energy.
-actions+=/shred,if=energy>80
+actions+=/shred,if=!option.not_behind&energy>80
+actions+=/mangle_cat,if=option.not_behind&energy>80
 
 ## Cooldowns
 actions.cooldowns=berserk,if=buff.tigers_fury.up|cooldown.tigers_fury.remains>15
@@ -32,4 +35,7 @@ actions.cooldowns+=/berserking
 actions.cooldowns+=/trinket1
 actions.cooldowns+=/trinket2
 actions.cooldowns+=/potion,if=buff.bloodlust.up|buff.berserk.up|target.time_to_die<30
-]])
+]], {
+    { key = "not_behind", name = "Not behind the target", type = "toggle", default = false,
+      desc = "Mangle instead of Shred, e.g. when tanking or on a boss you can't get behind." },
+})

@@ -114,6 +114,19 @@ actions+=/death_coil,if=runic_power.deficit<20
 The spec key is the talent tree's name in lowercase (`blood`, `frost`, `unholy`). Add the file to
 `RotationHelper.toc` next to the other APLs, and set `specs.blood = true` in the class data.
 
+Thresholds players may want to change become settings: pass a list as the fifth argument and
+read them as `option.NAME` (see [APL.md](APL.md#settings)). They appear on the Rotation tab.
+
+```lua
+ns.RegisterAPL("WARRIOR", "fury", "Fury (default)", [[
+actions+=/heroic_strike,if=rage>=option.hs_rage
+]], {
+    { key = "hs_rage", name = "Heroic Strike at rage", type = "range", default = 50, min = 20, max = 100, step = 5,
+      desc = "Shown as the tooltip." },
+    -- type = "toggle" (default true/false) or "select" (values = { key = "Label", ... })
+})
+```
+
 The fastest way to develop the list is the in-game editor (`/rh apl`, pick the spec): it compiles
 on Accept and shows errors with line and column. Paste the result into the file when it works.
 See [APL.md](APL.md) for the syntax and every name you can use.

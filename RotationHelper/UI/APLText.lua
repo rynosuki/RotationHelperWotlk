@@ -218,8 +218,9 @@ local ACTION_TEMPLATES = {
 }
 
 -- Every name the language knows for this class and your current talents
--- and glyphs, sorted. Each entry: { text = "buff.killing_machine.up", kind = "name" }.
-function APLText.Names(classData)
+-- and glyphs (and the settings of spec `specKey`), sorted. Each entry:
+-- { text = "buff.killing_machine.up", kind = "name" }.
+function APLText.Names(classData, specKey)
     local names, seen = {}, {}
     local function add(text, kind)
         if not seen[text] then
@@ -266,6 +267,9 @@ function APLText.Names(classData)
         add("talent." .. key .. ".rank", "name")
     end
     for key in pairs(ns.Spec.glyphs) do add("glyph." .. key .. ".enabled", "name") end
+    if specKey then
+        for _, name in ipairs(ns.APLOptions.Names(specKey)) do add(name, "name") end
+    end
     for _, text in ipairs(ACTION_TEMPLATES) do add(text, "template") end
     sort(names, function(a, b) return a.text < b.text end)
     return names

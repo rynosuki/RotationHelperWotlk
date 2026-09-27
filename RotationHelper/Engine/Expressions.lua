@@ -16,6 +16,7 @@ local ADDON_NAME, ns = ...
 --   target.health.pct, target.time_to_die
 --   talent.KEY.enabled|rank, glyph.KEY.enabled
 --   toggle.cooldowns
+--   option.KEY(.VALUE)                         (rotation settings; Recommender:Compile, Engine/APLOptions.lua)
 local Expressions = {}
 ns.Expressions = Expressions
 

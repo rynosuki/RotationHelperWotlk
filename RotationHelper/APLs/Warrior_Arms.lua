@@ -20,8 +20,8 @@ actions+=/berserker_rage,if=toggle.short_cooldowns&rage<60
 actions+=/bloodrage,if=toggle.short_cooldowns&rage<50
 actions+=/sweeping_strikes,if=active_enemies>=2
 # Spare rage goes into the next swing.
-actions+=/heroic_strike,if=active_enemies<2&rage>=60
-actions+=/cleave,if=active_enemies>=2&rage>=50
+actions+=/heroic_strike,if=active_enemies<2&rage>=option.hs_rage
+actions+=/cleave,if=active_enemies>=2&rage>=option.cleave_rage
 # Rend feeds Taste for Blood; refresh it just before it runs out.
 actions+=/rend,if=dot.rend.remains<3&target.time_to_die>10
 actions+=/overpower
@@ -38,4 +38,9 @@ actions.cooldowns+=/berserking
 actions.cooldowns+=/trinket1
 actions.cooldowns+=/trinket2
 actions.cooldowns+=/potion,if=buff.bloodlust.up|target.time_to_die<30
-]])
+]], {
+    { key = "hs_rage", name = "Heroic Strike at rage", type = "range", default = 60, min = 20, max = 100, step = 5,
+      desc = "Queue Heroic Strike (one target) from this much rage. Lower with lots of rage coming in." },
+    { key = "cleave_rage", name = "Cleave at rage", type = "range", default = 50, min = 20, max = 100, step = 5,
+      desc = "Queue Cleave (two or more targets) from this much rage." },
+})

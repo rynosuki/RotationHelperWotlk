@@ -75,6 +75,7 @@ end
 
 local function IsName(word)
     if word:find("^variable%.") then return true end
+    if word:find("^option%.") then return ns.APLOptions.Getter(ns.Options:EditSpec(), word) ~= nil end
     local resolver = ns.Recommender.resolver
     return resolver ~= nil and resolver(word) ~= nil
 end
@@ -169,7 +170,7 @@ function methods:Refresh(plain)
     local editBox = self.editBox
     plain = plain or APLText.Strip(editBox:GetText())
 
-    local apl = ns.Recommender:Compile(plain)
+    local apl = ns.Recommender:Compile(plain, ns.Options:EditSpec())
     local T = Theme()
     self.errorLines = self.errorLines or {}
     for k in pairs(self.errorLines) do self.errorLines[k] = nil end
@@ -265,7 +266,7 @@ function methods:TogglePicker()
     if picker:IsShown() then
         picker:Hide()
     else
-        picker.names = APLText.Names(RH.classData)
+        picker.names = APLText.Names(RH.classData, ns.Options:EditSpec())
         picker.search:SetText("")
         picker.offset = 0
         self:FillPicker()

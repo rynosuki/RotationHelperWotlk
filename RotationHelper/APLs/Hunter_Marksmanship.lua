@@ -14,8 +14,8 @@ actions.precombat+=/potion,if=toggle.cooldowns&pull.active&pull.remains<=1.5
 ## Main priority
 # Big cooldowns follow the CD toggle (bosses only by default).
 actions=call_action_list,name=cooldowns,if=toggle.cooldowns
-actions+=/aspect_of_the_viper,if=mana.pct<10&!buff.aspect_of_the_viper.up
-actions+=/aspect_of_the_dragonhawk,if=mana.pct>40&!buff.aspect_of_the_dragonhawk.up
+actions+=/aspect_of_the_viper,if=mana.pct<option.viper_below&!buff.aspect_of_the_viper.up
+actions+=/aspect_of_the_dragonhawk,if=mana.pct>option.dragonhawk_above&!buff.aspect_of_the_dragonhawk.up
 actions+=/hunters_mark,if=!debuff.hunters_mark.up&target.time_to_die>15
 actions+=/kill_shot,if=target.health.pct<20
 actions+=/serpent_sting,if=!dot.serpent_sting.up&target.time_to_die>8
@@ -36,4 +36,9 @@ actions.cooldowns+=/berserking
 actions.cooldowns+=/trinket1
 actions.cooldowns+=/trinket2
 actions.cooldowns+=/potion,if=buff.bloodlust.up|buff.rapid_fire.up|target.time_to_die<30
-]])
+]], {
+    { key = "viper_below", name = "Aspect of the Viper below mana %", type = "range", default = 10,
+      min = 0, max = 50, step = 5 },
+    { key = "dragonhawk_above", name = "Back to Dragonhawk above mana %", type = "range", default = 40,
+      min = 10, max = 100, step = 5 },
+})
