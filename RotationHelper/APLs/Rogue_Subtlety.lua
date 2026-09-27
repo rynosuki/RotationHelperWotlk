@@ -4,7 +4,7 @@ local ADDON_NAME, ns = ...
 --   Slice and Dice always up > Shadow Dance on cooldown, then
 --   Premeditation and Ambush during it > Rupture and Eviscerate at 5 points
 --   > Hemorrhage (keep its debuff up) > Backstab to build points
--- Backstab and Ambush need you behind the target (a setting: Hemorrhage instead). Honor Among Thieves combo
+-- Energy is pooled for Shadow Dance. Backstab and Ambush need you behind the target (a setting: Hemorrhage instead). Honor Among Thieves combo
 -- points come from your group's crits and aren't predicted.
 ns.RegisterAPL("ROGUE", "subtlety", "Subtlety (default)", [[
 ## Out of combat
@@ -22,6 +22,9 @@ actions+=/slice_and_dice,if=combo_points=5&buff.slice_and_dice.remains<6
 actions+=/rupture,if=combo_points=5&!dot.rupture.up&target.time_to_die>12
 actions+=/eviscerate,if=combo_points=5
 actions+=/hemorrhage,if=!debuff.hemorrhage.up&combo_points<5
+# Pool energy for Shadow Dance: when it's back before energy would reach 90,
+# stop building (Hemorrhage's debuff still gets refreshed).
+actions+=/wait,sec=cooldown.shadow_dance.remains,if=toggle.short_cooldowns&cooldown.shadow_dance.remains<energy.time_to_90
 actions+=/backstab,if=!option.not_behind&combo_points<5
 actions+=/hemorrhage,if=option.not_behind&combo_points<5
 

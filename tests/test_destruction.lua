@@ -68,7 +68,7 @@ end)
 
 test("opener: Immolate, Conflagrate (uses Immolate up), Immolate again, Chaos Bolt", function()
     local s = Fight()
-    eq(Queue(s, 4), "immolate, conflagrate +1.5, immolate +3.0, chaos_bolt +4.5", "opener")
+    eq(Queue(s, 4), "immolate, conflagrate +1.5, immolate +3.0, chaos_bolt +4.0", "opener")
 end)
 
 test("Glyph of Conflagrate keeps Immolate", function()
@@ -90,6 +90,23 @@ test("Backdraft: three faster casts after Conflagrate", function()
         s.ns.Abilities.Apply(st, "incinerate", st.castEnd)
     end
     eq(st.buffs.backdraft, nil, "used up after three")
+end)
+
+test("Backdraft shortens the GCD too, to no less than a second", function()
+    local s, RH = Fight({ setUp = true })
+    local Abilities, incinerate = s.ns.Abilities, RH.classData.abilities.incinerate
+    local st = s.ns.State:Reset()
+    near(Abilities.Gcd(st, incinerate), 1.5, "without")
+    s:AddAura("player", { name = "Backdraft", spellId = 54277, count = 3, duration = 15, expires = s.time + 15 })
+    st = s.ns.State:Reset()
+    near(Abilities.Gcd(st, incinerate), 1.05, "30% shorter")
+    near(Eval(s, "action.incinerate.execute_time"), 2.25 * 0.7, "the cast is still longer")
+    eq(Abilities.Gcd(st, RH.classData.abilities.conflagrate), 1.5, "not Conflagrate")
+    local v = s.ns.State:Virtual()
+    Abilities.Apply(v, "incinerate", v.now)
+    near(v.gcdEnd - v.now, 1.05, "applied")
+    st.gcdDuration = 1.2 -- lots of haste
+    near(Abilities.Gcd(st, incinerate), 1, "floor")
 end)
 
 test("curses: Doom when the target lives a minute, else Agony", function()

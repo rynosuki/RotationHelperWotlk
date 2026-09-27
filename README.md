@@ -198,6 +198,7 @@ title bar browse them, and `/rh review 3` opens a specific one.
 ## AoE detection
 
 With several enemies, the status line shows how many carry your diseases, e.g. `2/4 DIS`
+(Affliction warlocks: Corruption, `2/4 CORR`)
 (yellow while some lack them). The AoE rotations only suggest Pestilence when an enemy is missing
 them. Other enemies' diseases are tracked from the combat log.
 

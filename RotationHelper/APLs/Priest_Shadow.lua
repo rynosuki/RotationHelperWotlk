@@ -3,8 +3,8 @@ local ADDON_NAME, ns = ...
 -- Default Shadow Priest priority for 3.3.5a:
 --   Vampiric Touch (refreshed as it runs out) > Devouring Plague > Mind Blast >
 --   Shadow Word: Pain (Mind Flay keeps it up with Pain and Suffering) > Mind Flay
--- Casts and channels wait for the cast before; while moving only instants
--- are suggested (Shadow Word: Death).
+-- Casts wait for the cast before; Mind Flay is cut short after a tick for
+-- anything above it. While moving only instants are suggested (Shadow Word: Death).
 ns.RegisterAPL("PRIEST", "shadow", "Shadow (default)", [[
 ## Out of combat
 actions.precombat=shadowform,if=!buff.shadowform.up
@@ -20,9 +20,10 @@ actions+=/call_action_list,name=cooldowns,if=toggle.cooldowns
 actions+=/shadowfiend,if=mana.pct<50
 actions+=/dispersion,if=mana.pct<10
 actions+=/run_action_list,name=aoe,if=active_enemies>=4
-# Refresh the DoTs if they'd run out during the next Mind Flay (a channel
-# isn't cut short here): Vampiric Touch so the new one lands in time.
-actions+=/vampiric_touch,if=dot.vampiric_touch.remains<action.vampiric_touch.cast_time+action.mind_flay.cast_time&target.time_to_die>6
+# Mind Flay is cut after a tick when something above it is due. Vampiric
+# Touch so the new one lands as the old one runs out (a tick of slack);
+# Devouring Plague if it would run out during a whole Mind Flay.
+actions+=/vampiric_touch,if=dot.vampiric_touch.remains<action.vampiric_touch.cast_time+1&target.time_to_die>6
 actions+=/devouring_plague,if=dot.devouring_plague.remains<action.mind_flay.cast_time&target.time_to_die>8
 actions+=/mind_blast
 # Once up, Mind Flay keeps it going (Pain and Suffering).

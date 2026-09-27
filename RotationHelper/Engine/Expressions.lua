@@ -12,6 +12,7 @@ local ADDON_NAME, ns = ...
 --   runic_power, runic_power.deficit|max|pct
 --   runes.blood|unholy|frost|death|total        (ready runes; "rune" works too)
 --   runes.TYPE.time_to_N                        (seconds until N of that type are ready)
+--   energy/rage/mana(.deficit|.max|.time_to_N)
 --   gcd, gcd.remains, time, active_enemies, moving, pet.alive
 --   target.health.pct, target.time_to_die
 --   talent.KEY.enabled|rank, glyph.KEY.enabled
@@ -167,6 +168,24 @@ local SIMPLE = {
     diseased_enemies = function(s) return ns.Dots.Diseased(s) end,
 }
 
+-- energy.time_to_N (and rage., mana.): seconds until the power reaches N
+-- with the expected regeneration (or income), 0 if it's there already, and
+-- a huge number if it never gets there. For pooling:
+-- wait,sec=energy.time_to_75,if=cooldown.shadow_dance.remains<energy.time_to_75
+local function PowerTimeGetter(parts)
+    local amount = #parts == 2 and tonumber(parts[2]:match("^time_to_(%d+)$"))
+    if not amount then
+        return nil, "use " .. parts[1] .. ", " .. parts[1] .. ".deficit or " .. parts[1] .. ".time_to_N"
+    end
+    return function(s)
+        if amount > s.powerMax then return huge end
+        local at = ns.Resources.TimeFor(s, amount)
+        if not at then return huge end
+        -- TimeFor counts from the last reading; now may be later.
+        return max(0, at - s.now)
+    end
+end
+
 -- active_dot.KEY: enemies with that dot, the target included.
 local function ActiveDotGetter(parts, classData)
     local key = parts[2]
@@ -174,13 +193,7 @@ local function ActiveDotGetter(parts, classData)
     if #parts ~= 2 or not (aura and aura.debuff) then
         return nil, "use active_dot.NAME with a dot, e.g. active_dot.frost_fever"
     end
-    return function(s)
-        local n = 0
-        if s.otherDots and (s.otherDotsUntil[key] or 0) > s.now then n = s.otherDots[key] or 0 end
-        local rec = s.debuffs[key]
-        if rec and rec.expires > s.now then n = n + 1 end
-        return n
-    end
+    return function(s) return ns.Dots.Count(s, key) end
 end
 
 local function CooldownGetter(parts, classData)
@@ -269,7 +282,7 @@ local function ActionGetter(parts, classData)
         return function(s) return ns.Abilities.CastTime(s, ability) end
     elseif field == "execute_time" then
         return function(s)
-            return max(ability.offGcd and 0 or s.gcdDuration, ns.Abilities.CastTime(s, ability))
+            return max(ns.Abilities.Gcd(s, ability), ns.Abilities.CastTime(s, ability))
         end
     end
     return nil, "unknown action field '" .. tostring(field) .. "' (use cast_time or execute_time)"
@@ -309,6 +322,9 @@ local PREFIXES = {
     totem = TotemGetter,
     action = ActionGetter,
     last = LastGetter,
+    energy = PowerTimeGetter,
+    rage = PowerTimeGetter,
+    mana = PowerTimeGetter,
 }
 
 -- Returns resolve(name) -> getter, or nil + message.

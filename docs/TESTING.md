@@ -32,18 +32,18 @@ If something is off: `/rh report` right when it happens, and paste it into a
 | Arms | Overpower after a dodge and with Taste for Blood, only in Battle Stance; Rend isn't clipped early. |
 | Enhancement | Totems read correctly (fire totem remains); shocks share a cooldown; Fire Nova only with a fire totem; imbue checklist. |
 | Elemental | Lava Burst skipped when Flame Shock would drop mid-cast; no Totem of Wrath reminder while Fire Elemental is out. |
-| Shadow | The countdown during Mind Flay matches the channel; haste read (GCD in `/rh snapshot`); only instants while moving. |
+| Shadow | Mind Flay is cut after a tick for Mind Blast or Vampiric Touch (the icon counts to the tick); haste read (GCD in `/rh snapshot`); only instants while moving. |
 | Fire | Scorch skipped when another Improved Scorch / Winter's Chill is up; Pyroblast lights up with Hot Streak. |
 | Arcane | Arcane Blast stacks read from the debuff on you; Missiles with Missile Barrage (2.5 s) vs without (5 s); the 35% mana point. |
 | Frost Mage | Deep Freeze with Fingers of Frost; Frostfire Bolt instant with Brain Freeze (buff named "Fireball!"). |
-| Affliction | Corruption stays up from Shadow Bolt; Unstable Affliction recast timing; Life Tap when low. |
-| Destruction | Backdraft makes the next casts faster; Curse of Doom on bosses, Agony otherwise; Immolate straight back after Conflagrate (unglyphed). |
+| Affliction | Corruption stays up from Shadow Bolt; Unstable Affliction recast timing; Life Tap when low; Drain Soul cut for Haunt; "2/3 CORR" with several enemies. |
+| Destruction | Backdraft makes the next casts (and their GCD) faster; Curse of Doom on bosses, Agony otherwise; Immolate straight back after Conflagrate (unglyphed). |
 | Demonology | Molten Core Incinerates; Decimation Soul Fire below 35%; Immolation Aura only in Metamorphosis. |
 | Balance | Eclipse buffs detected (IDs 48518 / 48517); keeps casting the last eclipse's spell. |
 | Feral cat | Energy countdown; Clearcasting makes the next icon free; Rip vs Ferocious Bite at 5 points. |
 | Combat | Energy countdown; combo points; Rupture vs Eviscerate. |
 | Assassination | Hunger for Blood with someone else's bleed; Vanish for Overkill; Envenom at 4 points. |
-| Subtlety | Ambush and Premeditation during Shadow Dance; finishers keep up with Honor Among Thieves. |
+| Subtlety | Ambush and Premeditation during Shadow Dance; energy pooled (no Backstab) just before it; finishers keep up with Honor Among Thieves. |
 | Marksmanship | Auto Shot tracking (AUTO wait before Steady Shot); Readiness brings Rapid Fire back. |
 | Survival | Lock and Load: two free Explosive Shots with the glow. |
 | Beast Mastery | Kill Command as soon as it's ready; Bestial Wrath with Rapid Fire; nothing needing the pet without one. |

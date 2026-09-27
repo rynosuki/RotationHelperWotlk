@@ -126,6 +126,16 @@ function Abilities.CastTime(state, ability)
     return base * (state.hasteFactor or 1)
 end
 
+-- The global cooldown an ability triggers: 0 off the GCD, else the (hasted)
+-- GCD, shortened by gcdFn (Backdraft), never below 1 second.
+local MIN_GCD = 1
+function Abilities.Gcd(state, ability)
+    if ability.offGcd then return 0 end
+    local gcd = state.gcdDuration
+    if ability.gcdFn then gcd = math.max(MIN_GCD, math.min(gcd, ability.gcdFn(ns.Spec, state, gcd))) end
+    return gcd
+end
+
 -- The cooldown after using an ability, with talents and glyphs (cooldownFn).
 function Abilities.CooldownDuration(ability)
     if ability.cooldownFn then return ability.cooldownFn(ns.Spec) end
@@ -404,7 +414,7 @@ function Abilities.Apply(s, key, t)
         local shot = ns.AutoShot.NextAt(s, t)
         if shot and shot > t and shot < landsAt then s.autoShotNext = landsAt end
     end
-    if not ability.offGcd then s.gcdEnd = t + s.gcdDuration end
+    if not ability.offGcd then s.gcdEnd = t + Abilities.Gcd(s, ability) end
     if ability.reactive and s.usable then s.usable[key] = false end -- queued / used up
     if ability.nextSwing and s.queued then s.queued[key] = true end
 

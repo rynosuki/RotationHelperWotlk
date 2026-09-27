@@ -92,12 +92,35 @@ test("Mind Flay fills; the next ability waits for the channel", function()
     eq(Queue(s, 3), "mind_blast, mind_flay +1.5, mind_flay +4.5", "dots up")
 end)
 
-test("DoTs are refreshed if they'd run out during the next Mind Flay", function()
-    -- Vampiric Touch: 1.5s cast + 3s Mind Flay.
-    local s = Fight({ dots = 4 })
-    eq(Queue(s, 1), "vampiric_touch", "4s left")
-    s = Fight({ dots = 5 })
-    falsy(Queue(s, 1) == "vampiric_touch", "5s left: not yet")
+test("Vampiric Touch is refreshed as it runs out, with a tick of slack", function()
+    -- 1.5s cast + 1s.
+    local s = Fight({ dots = 2.4 })
+    eq(Queue(s, 1), "vampiric_touch", "2.4s left")
+    s = Fight({ dots = 4 })
+    falsy(Queue(s, 1) == "vampiric_touch", "4s left: not yet")
+end)
+
+test("Mind Flay is cut after a tick when something above it is ready", function()
+    local s = Fight({ dots = 12 })
+    s.cooldowns["Mind Blast"] = { s.time, 1.9 } -- ready 1.8s after the queue's update
+    eq(Queue(s, 2), "mind_flay, mind_blast +2.0", "cut after the second tick")
+    s.cooldowns["Mind Blast"] = { s.time, 2.6 }
+    eq(Queue(s, 2), "mind_flay, mind_blast +3.0", "the whole channel: nothing due at a tick")
+    -- Vampiric Touch running out during the channel.
+    s = Fight({ dots = 4 })
+    s.cooldowns["Mind Blast"] = { s.time, 6 }
+    -- 2.9s left after the first tick (not due), 1.9s after the second.
+    eq(Queue(s, 2), "mind_flay, vampiric_touch +2.0", "cut after the second tick for Vampiric Touch")
+end)
+
+test("channelling for real: cut after the next tick when something above is ready", function()
+    local s = Fight({ dots = 12 })
+    s.playerChannel = { name = "Mind Flay", startedAgo = 0.4, endsIn = 2.6 }
+    -- 0.4s in when read: the first tick is 0.6s away.
+    eq(Queue(s, 1), "mind_blast +0.6", "after the first tick")
+    s.cooldowns["Mind Blast"] = { s.time, 8 }
+    falsy(Queue(s, 1):find("^mind_blast"), "nothing due: the channel runs on")
+    truthy(s.ns.State.real.castRemains > 2, "channel read")
 end)
 
 test("Pain and Suffering: Mind Flay refreshes Shadow Word: Pain", function()

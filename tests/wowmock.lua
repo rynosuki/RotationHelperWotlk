@@ -589,11 +589,12 @@ function Mock.NewSession(opts)
         return c.name, "", c.name, "icon", session.time * 1000, (session.time + c.endsIn) * 1000, false, 1,
             c.notInterruptible
     end
+    -- The player's channel: session.playerChannel = { name, startedAgo, endsIn }.
     env.UnitChannelInfo = function(unit)
-        local c = unit == "target" and session.targetChannel
+        local c = unit == "target" and session.targetChannel or unit == "player" and session.playerChannel
         if not c then return nil end
-        return c.name, "", c.name, "icon", session.time * 1000, (session.time + c.endsIn) * 1000, false,
-            c.notInterruptible
+        return c.name, "", c.name, "icon", (session.time - (c.startedAgo or 0)) * 1000,
+            (session.time + c.endsIn) * 1000, false, c.notInterruptible
     end
     env.GetUnitSpeed = function() return session.speed or 0 end
 

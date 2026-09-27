@@ -624,19 +624,26 @@ function Display:UpdateStatus()
     f.status:Show()
 end
 
--- "diseased/enemies DIS", yellow while some enemy lacks them. The strings
--- are cached per pair so updates don't create garbage.
+-- "diseased/enemies DIS" (or "2/4 CORR", the Engine/Dots.lua hint),
+-- yellow while some enemy lacks them. The strings are cached per label and
+-- pair so updates don't create garbage.
 local dotTexts = {}
 function Display:UpdateDotText(enemies)
     local f, text = self.frame, ""
     local s = ns.State.real
-    if enemies > 1 and RH.classData.spreadDots and RH.inCombat then
-        local diseased = math.min(ns.Dots.Diseased(s), enemies)
-        local key = diseased * 1000 + enemies
-        text = dotTexts[key]
+    local hint = ns.Dots.hint
+    if enemies > 1 and hint and RH.inCombat then
+        local count = math.min(ns.Dots.HintCount(s), enemies)
+        local texts = dotTexts[hint.label]
+        if not texts then
+            texts = {}
+            dotTexts[hint.label] = texts
+        end
+        local key = count * 1000 + enemies
+        text = texts[key]
         if not text then
-            text = (diseased < enemies and "|cffffd100%d/%d DIS|r" or "|cff40ff40%d/%d DIS|r"):format(diseased, enemies)
-            dotTexts[key] = text
+            text = (count < enemies and "|cffffd100%d/%d %s|r" or "|cff40ff40%d/%d %s|r"):format(count, enemies, hint.label)
+            texts[key] = text
         end
     end
     if f.dotText.lastText ~= text then

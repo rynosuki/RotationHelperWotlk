@@ -32,7 +32,8 @@ ns.RegisterClass("PRIEST", {
         mind_blast = { id = 48127, mana = 17, castTime = 1.5, cooldown = 8,
             cooldownFn = function(spec) return 8 - 0.5 * spec:TalentRank("improved_mind_blast") end },
         -- Pain and Suffering: Mind Flay refreshes Shadow Word: Pain (100% at 3/3).
-        mind_flay = { id = 48156, mana = 9, channel = 3,
+        -- Cut after any of its 3 ticks when something above it is ready.
+        mind_flay = { id = 48156, mana = 9, channel = 3, ticks = 3,
             apply = function(s, spec, fx)
                 if spec:TalentRank("pain_and_suffering") >= 3 and fx.DebuffUp(s, "shadow_word_pain") then
                     fx.ApplyDebuff(s, "shadow_word_pain", 18)

@@ -163,6 +163,12 @@ that nothing important is under "Not in spellbook", and that the trace picks wha
 - `reviewDebuffs` can also be per spec: `{ arms = { "rend" } }`.
 - `spreadDots` lists the dots tracked on other enemies (`active_dot.X`, `diseased_enemies`);
   an ability's `apply` calls `fx.SpreadDots(s, duration)` to spread them in the prediction.
+- `trackDots = { affliction = { "corruption", ..., hint = "CORR" } }` tracks a spec's dots on
+  other enemies too (`active_dot.X`), with "2/4 CORR" (the first key) on the status line.
+- A channel with `ticks = N` can be cut short after any tick when something above it in the
+  rotation is due (`channel` is the whole duration).
+- `gcdFn = function(spec, state, gcd) return shorter end` shortens an ability's GCD (Backdraft);
+  it never goes below 1 second.
 
 ## A new class
 

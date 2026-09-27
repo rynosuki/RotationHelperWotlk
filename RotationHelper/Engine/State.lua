@@ -83,11 +83,15 @@ local function ReadTarget(t)
 end
 
 local function ReadCast(s, now)
-    local name, _, _, _, _, endTime = UnitCastingInfo("player")
+    local name, _, _, _, startTime, endTime = UnitCastingInfo("player")
+    local channel
     if not name then
-        name, _, _, _, _, endTime = UnitChannelInfo("player")
+        name, _, _, _, startTime, endTime = UnitChannelInfo("player")
+        channel = name
     end
     s.castName = name
+    s.channelName = channel -- a channel, which may be cut after a tick
+    s.castStart = startTime and startTime / 1000 or nil
     s.castRemains = name and endTime and (endTime / 1000 - now) or 0
     if s.castRemains < 0 then s.castRemains = 0 end
 end

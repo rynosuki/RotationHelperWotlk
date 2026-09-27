@@ -48,6 +48,11 @@ Each action is `name,option=value,option=value`.
 | `if=EXPR` | Only use this line when EXPR is true. |
 | `line_cd=SECONDS` | Skip this line for SECONDS after the ability was last used. |
 
+Channels with ticks (Mind Flay, Drain Soul, Hurricane) are cut short after a tick when a line
+above the channel wants to go then: at each tick the rotation is asked what it would pick with the
+channel ending there, and if that's something else, usable right then, the channel ends at that
+tick. So a DoT refresh or Mind Blast doesn't wait for the whole channel.
+
 ## Special actions
 
 | Action | Meaning |
@@ -118,6 +123,7 @@ Death Knight auras: buffs `killing_machine`, `freezing_fog` (Rime), `unbreakable
 | `rage`, `rage.deficit` / `.max` | rage (Warrior), including the expected income up to the moment the condition is checked |
 | `stance.battle` / `.defensive` / `.berserker` | 1 in that Warrior stance |
 | `energy`, `energy.deficit` / `.max` | energy (Rogue), including its regeneration up to the moment checked |
+| `energy.time_to_N` (also `rage.`, `mana.`) | seconds until you have N, with the expected regeneration or income (0 if you have it; a huge number if never). For pooling: `wait,sec=cooldown.shadow_dance.remains,if=cooldown.shadow_dance.remains<energy.time_to_90` |
 | `combo_points` | combo points on your target |
 | `auto_shot.remains` | seconds until your next Auto Shot (Hunter; 0 when it's off) |
 | `totem.fire.up` / `.remains` (also `earth`, `water`, `air`) | your totem of that element |

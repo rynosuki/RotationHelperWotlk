@@ -73,7 +73,7 @@ ns.RegisterClass("DRUID", {
         starfall = { id = 53201, mana = 35, cooldown = 90,
             cooldownFn = function(spec) return spec:HasGlyph("starfall") and 60 or 90 end },
         force_of_nature = { id = 33831, mana = 12, cooldown = 180 },
-        hurricane = { id = 48467, mana = 81, channel = 10 },
+        hurricane = { id = 48467, mana = 81, channel = 10, ticks = 10 },
         moonkin_form = { id = 24858, mana = 13,
             apply = function(s, spec, fx) fx.ApplyBuff(s, "moonkin_form") end },
         entangling_roots = { id = 53308, mana = 7, castTime = 1.5 },

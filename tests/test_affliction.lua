@@ -92,6 +92,8 @@ test("Drain Soul below 25%; Life Tap for mana and while moving", function()
     local s = Fight({ dots = true })
     s.target.health = 20
     eq(Queue(s, 1), "drain_soul", "execute")
+    -- A 15 second channel, cut after the tick (every 3 seconds) once Haunt is back (7.9s).
+    eq(Queue(s, 2), "drain_soul, haunt +9.0", "cut after the third tick")
     s = Fight({ dots = true, mana = 3000 })
     eq(Queue(s, 1), "life_tap", "15% mana")
     s = Fight({ dots = true, mana = 12000 })
@@ -109,4 +111,29 @@ test("simulator: Affliction keeps its DoTs up", function()
     truthy((casts.corruption or 0) < 1, "Corruption kept up by Everlasting Affliction: " .. tostring(casts.corruption))
     truthy((casts.haunt or 0) > 5, "Haunt per minute " .. tostring(casts.haunt))
     for key, value in pairs(uptime) do truthy(value > 88, key .. " uptime " .. value) end
+end)
+
+test("several enemies: Corruption counted on each ('2/3 CORR'), active_dot for all three dots", function()
+    local Mock = require("wowmock")
+    local s, RH = Fight({ dots = true })
+    local function Log(subevent, guid, spellId, name)
+        s:FireEvent("COMBAT_LOG_EVENT_UNFILTERED", s.time, subevent, Mock.PLAYER_GUID, "Me", Mock.FLAGS_ME,
+            guid, "Mob", Mock.FLAGS_HOSTILE_NPC, spellId, name, 32, "DEBUFF")
+    end
+    for i = 1, 2 do Log("SPELL_DAMAGE", "0xF1300000000000D" .. i, 686, "Shadow Bolt") end
+    Log("SPELL_AURA_APPLIED", "0xF1300000000000D1", 47813, "Corruption")
+    Log("SPELL_AURA_APPLIED", "0xF1300000000000D1", 47864, "Curse of Agony")
+    s:Tick(0.1)
+    eq(s.ns.State.real.activeEnemies, 3, "3 enemies")
+    truthy(s.ns.Display:GetStatusText():find("2/3 CORR", 1, true), "status: " .. s.ns.Display:GetStatusText())
+    local st = s.ns.State:Reset()
+    local resolve = function(name) return s.ns.Recommender.resolver(name) end
+    eq(s.ns.APL.Compiler.CompileExpression("active_dot.corruption", resolve)(st), 2, "Corruption")
+    eq(s.ns.APL.Compiler.CompileExpression("active_dot.curse_of_agony", resolve)(st), 2, "Curse of Agony")
+    eq(s.ns.APL.Compiler.CompileExpression("active_dot.unstable_affliction", resolve)(st), 1, "only the target")
+    Log("SPELL_AURA_APPLIED", "0xF1300000000000D2", 47813, "Corruption")
+    s:Tick(0.1)
+    truthy(s.ns.Display:GetStatusText():find("3/3 CORR", 1, true), "all")
+    -- Destruction tracks nothing.
+    falsy(RH.classData.trackDots.destruction, "per spec")
 end)

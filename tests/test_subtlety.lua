@@ -90,3 +90,23 @@ test("simulator: Subtlety", function()
     truthy((casts.rupture or 0) > 1.5 and (casts.eviscerate or 0) > 0.5, "finishers (Honor Among Thieves points)")
     truthy((casts.shadow_dance or 0) > 0.7, "Shadow Dance per minute " .. tostring(casts.shadow_dance))
 end)
+
+test("energy.time_to_N, and pooling energy for Shadow Dance", function()
+    local s, RH = Fight({ hemo = true, energy = 40, cooldowns = true })
+    local st = s.ns.State:Reset()
+    local function Eval(text) return s.ns.APL.Compiler.CompileExpression(text, s.ns.Recommender.resolver)(st) end
+    truthy(math.abs(Eval("energy.time_to_60") - 20 / st.powerRegen) < 1e-6, "20 energy away")
+    eq(Eval("energy.time_to_30"), 0, "already there")
+    truthy(Eval("energy.time_to_150") > 1000, "never")
+    -- Shadow Dance back in 3 seconds, before energy reaches 90: no Backstab until then.
+    s.cooldowns["Shadow Dance"] = { s.time, 3 }
+    eq(Queue(s, 1), "shadow_dance +2.9", "pooling")
+    -- Plenty of energy already: keep building.
+    s = Fight({ hemo = true, energy = 88, cooldowns = true })
+    s.cooldowns["Shadow Dance"] = { s.time, 3 }
+    eq(Queue(s, 1), "backstab", "not capping energy")
+    -- CD toggle off: no Shadow Dance, nothing to pool for.
+    s = Fight({ hemo = true, energy = 40 })
+    s.cooldowns["Shadow Dance"] = { s.time, 3 }
+    eq(Queue(s, 1), "backstab", "CD off")
+end)

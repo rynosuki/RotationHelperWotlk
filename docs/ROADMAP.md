@@ -320,8 +320,14 @@ offline tests and has been checked in game.
   - Settings in the default rotations: Heroic Strike / Cleave rage, Arcane Blast mana %, the
     warlock curse, Envenom combo points, not behind the target (Feral, Subtlety), Blood tank
     health %, Gargoyle wait, hunter aspect mana %. The defaults simulate the same as before.
-- [ ] **H4 More rotation smarts** — *planned for 1.41.0*: clipping channels, energy / rage pooling
-  (`energy.time_to_N`), Backdraft shortening the GCD, multi-DoT hints.
+- [x] **H4 More rotation smarts** — *1.41.0*
+  - Channels with ticks (Mind Flay, Drain Soul, Hurricane) are cut after a tick when a line above
+    them is due, in the prediction, the simulator and while channelling for real. Drain Soul is
+    back to its real 15 seconds / 5 ticks; Shadow refreshes Vampiric Touch with a tick of slack
+    (same uptime, fewer casts, more Mind Blasts).
+  - `energy.time_to_N` / `rage.` / `mana.`; Subtlety pools energy for Shadow Dance (more Ambushes).
+  - Backdraft shortens the GCD too (`gcdFn`).
+  - `trackDots`: Affliction's dots counted on other enemies (`active_dot.X`, "2/4 CORR").
 
 ## How items are verified
 

@@ -13,18 +13,23 @@ local function EverlastingAffliction(s, spec, fx)
 end
 
 -- Backdraft: after Conflagrate, the next 3 Destruction spells cast 10% faster
--- per rank. Used by the cast time of Immolate, Incinerate and Chaos Bolt.
+-- per rank, with a GCD 10% shorter per rank. Used by the cast time and GCD
+-- (gcdFn) of Immolate, Incinerate and Chaos Bolt.
 local function Backdraft(spec, s, base)
     local rec = s and s.buffs.backdraft
     if rec and rec.expires > s.now then return base * (1 - 0.1 * spec:TalentRank("backdraft")) end
     return base
 end
 
+local function BackdraftGcd(spec, s, gcd) return Backdraft(spec, s, gcd) end
+
 local function UseBackdraft(s, spec, fx)
     fx.ConsumeStack(s, "backdraft")
 end
 
 ns.RegisterClass("WARLOCK", {
+    -- Dots counted on other enemies (active_dot.X, "2/4 CORR" on the status line).
+    trackDots = { affliction = { "corruption", "unstable_affliction", "curse_of_agony", hint = "CORR" } },
     -- A spell with no cooldown; its cooldown is the GCD.
     gcdSpell = 687, -- Demon Skin
     baseMana = 3856, -- level 80
@@ -71,8 +76,8 @@ ns.RegisterClass("WARLOCK", {
             castTimeFn = function(spec) return 3 - 0.1 * spec:TalentRank("bane") end,
             apply = EverlastingAffliction },
         -- A 15 second channel ticking every 3 seconds; below 25% health it's
-        -- the filler. Treated one tick at a time so DoTs still get refreshed.
-        drain_soul = { id = 47855, mana = 14, channel = 3, apply = EverlastingAffliction },
+        -- the filler. Cut after a tick when a DoT or Haunt is due.
+        drain_soul = { id = 47855, mana = 14, channel = 15, ticks = 5, apply = EverlastingAffliction },
         seed_of_corruption = { id = 47836, mana = 34, castTime = 2 },
         searing_pain = { id = 47815, mana = 8, castTime = 1.5 },
         -- Health into mana (roughly 10% of your mana bar with talents and gear).
@@ -84,6 +89,7 @@ ns.RegisterClass("WARLOCK", {
         -- Destruction (Bane: -0.1 seconds per rank on Immolate and Chaos Bolt)
         immolate = { id = 47811, mana = 17, castTime = 2,
             castTimeFn = function(spec, s) return Backdraft(spec, s, 2 - 0.1 * spec:TalentRank("bane")) end,
+            gcdFn = BackdraftGcd,
             apply = function(s, spec, fx)
                 UseBackdraft(s, spec, fx)
                 fx.ApplyDebuff(s, "immolate", 15)
@@ -101,6 +107,7 @@ ns.RegisterClass("WARLOCK", {
         chaos_bolt = { id = 59172, mana = 7, castTime = 2.5, cooldown = 12,
             cooldownFn = function(spec) return spec:HasGlyph("chaos_bolt") and 10 or 12 end,
             castTimeFn = function(spec, s) return Backdraft(spec, s, 2.5 - 0.1 * spec:TalentRank("bane")) end,
+            gcdFn = BackdraftGcd,
             apply = UseBackdraft },
         -- Emberstorm: -0.05 seconds per rank; Molten Core: -10% per rank (and
         -- one of its charges used).
@@ -111,6 +118,7 @@ ns.RegisterClass("WARLOCK", {
                 if rec and rec.expires > s.now then base = base * (1 - 0.1 * spec:TalentRank("molten_core")) end
                 return base
             end,
+            gcdFn = BackdraftGcd,
             apply = UseBackdraft },
         -- Demonology
         -- Nemesis: -10% cooldown per rank.

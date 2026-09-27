@@ -225,11 +225,14 @@ function Sim.Run(apl, opts)
                 end
                 local after = s.power - Abilities.RunicPowerCost(ability) + Abilities.RunicPowerGain(ability)
                 if after > s.powerMax then m.rpLost = m.rpLost + (after - s.powerMax) end
-                -- Busy for the GCD, or the whole cast or channel if longer (measured
-                -- before using it: an instant-with buff like Hot Streak is used up).
-                local busy = max(ability.offGcd and 0 or s.gcdDuration, Abilities.CastTime(s, ability))
-                if busy > 0 then m.busy = m.busy + min(busy, seconds - t) end
+                -- Busy for the GCD, or the whole cast or channel if longer (the
+                -- GCD measured before using it: Backdraft is used up), or the part
+                -- of a channel before it's cut short.
+                local gcd = Abilities.Gcd(s, ability)
                 Abilities.Apply(s, key, t)
+                Recommender:ClipChannel(s, key, t, context, apl)
+                local busy = max(gcd, s.castEnd - t)
+                if busy > 0 then m.busy = m.busy + min(busy, seconds - t) end
                 if ability.nextSwing then swingAt[key] = t + swing end
                 m.casts[key] = (m.casts[key] or 0) + 1
                 for _, proc in ipairs(procs) do

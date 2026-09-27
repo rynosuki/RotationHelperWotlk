@@ -194,6 +194,50 @@ local function ProcIsReason(v, action, proc, readyAt)
     return reason and proc or nil
 end
 
+-- Channels with `ticks` (Mind Flay, Drain Soul, Hurricane) can be cut
+-- short after any tick. For a channel of ability `key` running from
+-- `startedAt` to s.castEnd: at each tick still to come, would the rotation
+-- (with the channel ending there) pick something else, usable right then?
+-- That means a line above the channel wants to go (a ready Mind Blast, a
+-- DoT to refresh), since a tie goes to the higher line and the channel
+-- itself could simply go on. The channel then ends at that tick
+-- (s.castEnd / s.castRemains); otherwise it runs to the end.
+local CLIP_EPSILON = 0.01
+
+function Recommender:ClipChannel(s, key, startedAt, ctx, apl)
+    local ability = RH.classData.abilities[key]
+    local ticks = ability and ability.ticks
+    if not ticks then return end
+    local fullEnd, fullRemains = s.castEnd, s.castRemains
+    local interval = (fullEnd - startedAt) / ticks
+    if interval <= 0 then return end
+    local base = s.now
+    for k = 1, ticks - 1 do
+        local tick = startedAt + k * interval
+        if tick > base + CLIP_EPSILON then
+            s.castEnd, s.castRemains = tick, tick - base
+            local action, readyAt = self:Evaluate(s, nil, ctx, apl)
+            if action and action.name ~= key and readyAt <= tick + CLIP_EPSILON then return end
+        end
+    end
+    s.castEnd, s.castRemains = fullEnd, fullRemains
+end
+
+-- The ability being channelled for real, if it has ticks: its key, or nil.
+local channelKeys = {} -- spell name -> ability key
+local function ChannelKey(name)
+    if not name then return nil end
+    local key = channelKeys[name]
+    if key == nil then
+        key = false
+        for k, ability in pairs(RH.classData.abilities) do
+            if ability.ticks and ability.name == name then key = k end
+        end
+        channelKeys[name] = key
+    end
+    return key or nil
+end
+
 -- Predicts the next `count` actions from the current real state: pick an
 -- action, simulate using it on a virtual copy of the state, and repeat.
 -- Fills and returns the shared recommendations list (entries:
@@ -204,6 +248,12 @@ function Recommender:Predict(count, trace)
     local now = State.real.now
     local v = State:Virtual()
     local n = 0
+    -- Channelling for real: maybe cut it after the next tick. Ticks are
+    -- counted from its start, shifted like its end by the lookahead.
+    local channelKey = ChannelKey(v.channelName)
+    if channelKey and v.castStart then
+        self:ClipChannel(v, channelKey, v.castStart - (v.lookahead or 0))
+    end
     for i = 1, math.min(count, MAX_PREDICTIONS) do
         local action, readyAt, limitedBy = self:Evaluate(v, i == 1 and trace or nil)
         if not action then break end
@@ -220,6 +270,7 @@ function Recommender:Predict(count, trace)
         entry.procReason = entry.usesProc and ProcIsReason(v, action, entry.usesProc, readyAt) or nil
         recommendations[i] = entry
         Abilities.Apply(v, action.name, readyAt)
+        self:ClipChannel(v, action.name, readyAt)
     end
     for i = n + 1, #recommendations do recommendations[i] = nil end
     -- The runes once the predicted actions are used (the rune bar, F1).
