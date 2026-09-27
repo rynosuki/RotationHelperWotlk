@@ -136,6 +136,7 @@ update as soon as one happens.
 | `/rh sim [seconds]` | Simulate the active rotation (5 fights, 300s by default). |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
+| `/rh report` | A bug report to copy into a GitHub issue. |
 | `/rh version` | Your version, and whether a newer one has been seen. |
 | `/rh status` | Print the current settings. |
 | `/rh help` | List the commands. |
@@ -254,6 +255,11 @@ session, and a box with the download link to copy
 versions" on the General tab.
 
 ## Something looks wrong?
+
+Type `/rh report` right when it happens (or General tab > "Create a bug report"), press Ctrl+C
+and paste it into a [new issue](https://github.com/rynosuki/RotationHelperWotlk/issues/new?template=bug_report.md),
+saying what you expected. [docs/TESTING.md](docs/TESTING.md) lists what to look at when you first
+play a spec.
 
 Run `/rh snapshot` at the moment it happens. It prints runes, runic power, buffs, debuffs,
 cooldowns, talents, the predicted queue, and one line per rotation entry explaining why it

@@ -12,6 +12,9 @@ local huge = math.huge
 local RUNE_LETTER = { blood = "B", unholy = "U", frost = "F", death = "D" }
 local ITEMS_PER_LINE = 6
 
+-- Where the snapshot lines go: chat, or a list for /rh report (RH:SnapshotLines).
+local emit = print
+
 local function Label(text) return Utils.Colorize(text, "ffd100") end
 local function Dim(text) return Utils.Colorize(text, "888888") end
 
@@ -25,13 +28,13 @@ end
 -- Prints `items` after `label`, wrapping every ITEMS_PER_LINE entries.
 local function PrintList(label, items)
     if #items == 0 then
-        print(Label(label) .. " " .. Dim("none"))
+        emit(Label(label) .. " " .. Dim("none"))
         return
     end
     for i = 1, #items, ITEMS_PER_LINE do
         local chunk = {}
         for j = i, math.min(i + ITEMS_PER_LINE - 1, #items) do chunk[#chunk + 1] = items[j] end
-        print((i == 1 and Label(label) or "   ") .. " " .. concat(chunk, ", "))
+        emit((i == 1 and Label(label) or "   ") .. " " .. concat(chunk, ", "))
     end
 end
 
@@ -54,7 +57,7 @@ local function PrintRunes(s, now)
         parts[i] = (RUNE_LETTER[rune.type] or "?") .. " " .. (wait > 0 and Utils.FormatTime(wait) or "ready")
     end
     local R = ns.Resources
-    print(format("%s %s  %s", Label("Runes:"), concat(parts, " | "),
+    emit(format("%s %s  %s", Label("Runes:"), concat(parts, " | "),
         Dim(format("(ready B%d U%d F%d D%d, regen %.1fs)", R.RunesReady(s, "blood", now),
             R.RunesReady(s, "unholy", now), R.RunesReady(s, "frost", now),
             R.RunesReady(s, "death", now), s.runeRegen))))
@@ -72,21 +75,22 @@ function RH:PrintSnapshot()
     local now = s.now
     local classData = self.classData
 
-    self:Print(format("Snapshot at %.1f (%s)", now, s.inCombat and "in combat" or "out of combat"))
+    local header = format("Snapshot at %.1f (%s)", now, s.inCombat and "in combat" or "out of combat")
+    if emit == print then self:Print(header) else emit(header) end
 
     if Spec.loaded then
         local source = ns.Recommender:GetSource(Spec.key)
-        print(format("%s %s (%s), talent group %d, %s", Label("Spec:"), tostring(Spec.key),
+        emit(format("%s %s (%s), talent group %d, %s", Label("Spec:"), tostring(Spec.key),
             concat(Spec.points, "/"), Spec.group,
             source and ("rotation: " .. source.name) or Dim("no rotation for this spec yet (/rh apl)")))
     else
-        print(format("%s %s", Label("Spec:"), Utils.Colorize(format(
+        emit(format("%s %s", Label("Spec:"), Utils.Colorize(format(
             "talent API returned no points (%d trees, talent group %d)", Spec.numTabs or 0, Spec.group), "ff4040")))
     end
 
     if classData.usesRunes then PrintRunes(s, now) end
 
-    print(format("%s %s %d/%d   %s %s   %s %s%s   %s %d ms %s", Label("Power:"), s.powerType, s.power, s.powerMax,
+    emit(format("%s %s %d/%d   %s %s   %s %s%s   %s %d ms %s", Label("Power:"), s.powerType, s.power, s.powerMax,
         Label("GCD:"), Utils.FormatTime(s.gcdRemains),
         Label("Cast:"), s.castName or "-", s.castName and (" " .. Utils.FormatTime(s.castRemains)) or "",
         Label("Lookahead:"), s.lookahead * 1000 + 0.5, Dim("(" .. s.lookaheadSource .. ")")))
@@ -96,14 +100,14 @@ function RH:PrintSnapshot()
     local t = s.target
     if t.exists then
         local ttd = t.timeToDie >= ns.Targets.TTD_UNKNOWN and "unknown" or Utils.FormatTime(t.timeToDie)
-        print(format("%s %s, level %s %s, %.0f%% health, dies in %s%s%s", Label("Target:"), t.name,
+        emit(format("%s %s, level %s %s, %.0f%% health, dies in %s%s%s", Label("Target:"), t.name,
             t.level == -1 and "??" or tostring(t.level), t.classification or "",
             t.healthPct, ttd, t.canAttack and "" or ", not attackable", t.dead and ", dead" or ""))
         PrintList("Debuffs:", AuraItems(s.debuffs, now))
     else
-        print(Label("Target:") .. " " .. Dim("none"))
+        emit(Label("Target:") .. " " .. Dim("none"))
     end
-    print(format("%s %d active (AoE mode %s, %d seen in the combat log)", Label("Enemies:"), s.activeEnemies,
+    emit(format("%s %d active (AoE mode %s, %d seen in the combat log)", Label("Enemies:"), s.activeEnemies,
         self.db.profile.toggles.aoeMode, ns.Targets:CountEnemies(now)))
 
     local cds = {}
@@ -129,6 +133,18 @@ function RH:PrintSnapshot()
     PrintList("Glyphs:", SortedKeys(Spec.glyphs))
 
     self:PrintDecision(s)
+end
+
+-- The snapshot as plain text lines (color codes removed), for /rh report.
+function RH:SnapshotLines()
+    local lines = {}
+    emit = function(line)
+        lines[#lines + 1] = (tostring(line):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+    end
+    local ok, err = pcall(self.PrintSnapshot, self)
+    emit = print
+    if not ok then lines[#lines + 1] = "(snapshot failed: " .. tostring(err) .. ")" end
+    return lines
 end
 
 -- /rh why <ability>: why an ability is (or isn't) recommended right now.
@@ -295,7 +311,7 @@ function RH:PrintDecision(s)
     local Recommender = ns.Recommender
     local apl = Recommender:GetAPL()
     if not apl then
-        print(Label("Recommendation:") .. " " .. Dim("no action list for this spec"))
+        emit(Label("Recommendation:") .. " " .. Dim("no action list for this spec"))
         return
     end
     local trace = {}
@@ -307,14 +323,14 @@ function RH:PrintDecision(s)
             queue[i] = (i == 1 and Utils.Colorize(entry.name, "40ff40") or entry.name)
                 .. (entry.wait > 0.05 and (" " .. Dim("+" .. Utils.FormatTime(entry.wait))) or "")
         end
-        print(Label("Recommendation:") .. " " .. concat(queue, " > "))
+        emit(Label("Recommendation:") .. " " .. concat(queue, " > "))
     else
         local t = s.target
         local why = (t.exists and t.canAttack and not t.dead) and "nothing usable" or "no hostile target"
-        print(Label("Recommendation:") .. " " .. Dim("none (" .. why .. ")"))
+        emit(Label("Recommendation:") .. " " .. Dim("none (" .. why .. ")"))
     end
-    if #trace > 0 then print("   " .. Dim("Why the first one:")) end
+    if #trace > 0 then emit("   " .. Dim("Why the first one:")) end
     for _, line in ipairs(trace) do
-        print("   " .. Dim(line))
+        emit("   " .. Dim(line))
     end
 end

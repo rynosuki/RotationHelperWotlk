@@ -301,6 +301,23 @@ offline tests and has been checked in game.
     (e.g. damage per rune of Obliterate vs Blood Strike); a sound suggestion needs a damage model
     that the log alone doesn't give.
 
+## Phase H — Every class, reports, tuning, smarter engine
+
+- [x] **H1 Make it work for everyone** — *1.38.0*
+  - Waste warnings for energy and rage as well as runic power (runes only for Death Knights);
+    old `runicPower` / `rpDeficit` settings carry over.
+  - Fight review: "<power> at the cap" per class, time below 10% mana for mana users, and how many
+    procs were used; rows that don't apply are hidden (old reviews stay readable).
+  - Rotation help text uses the class's own power, abilities and auras.
+- [x] **H2 Bug reports and in-game testing** — *1.39.0*
+  - `/rh report` (and a General tab button): version, class, spec, rotation (with the text if
+    custom), settings, the `/rh snapshot`, recent errors and the last review, in a window to copy.
+  - GitHub issue template asking for it; [TESTING.md](TESTING.md) lists what to check per spec.
+- [ ] **H3 Easier tuning without the editor** — *planned for 1.40.0*: rotation options
+  (`option.KEY`) shown on the Rotation tab; thresholds in the default rotations become options.
+- [ ] **H4 More rotation smarts** — *planned for 1.41.0*: clipping channels, energy / rage pooling
+  (`energy.time_to_N`), Backdraft shortening the GCD, multi-DoT hints.
+
 ## How items are verified
 
 Every item follows the same routine as the milestones so far:

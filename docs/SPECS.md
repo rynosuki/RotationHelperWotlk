@@ -4,7 +4,7 @@ Every WotLK 3.3.5a DPS spec, what it needs from the engine, and a suggested orde
 Enhancements planned before more specs (fight review, simulator, ...) are in [ROADMAP.md](ROADMAP.md).
 Tick a spec off when it has a default APL, scenario tests, and has been checked in game.
 
-How to add one: [ADDING_A_SPEC.md](ADDING_A_SPEC.md).
+How to add one: [ADDING_A_SPEC.md](ADDING_A_SPEC.md). What to check in game: [TESTING.md](TESTING.md).
 
 ## Engine features the specs need
 

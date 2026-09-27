@@ -238,6 +238,9 @@ function Options:BuildOptionsTable()
         get = function() return RH.db.profile.updateInterval end,
         set = function(_, value) RH.db.profile.updateInterval = value end }
 
+    general.args.report = { type = "execute", name = "Create a bug report", order = 5.7,
+        desc = "Everything needed to look into a problem, ready to copy into a GitHub issue (/rh report).",
+        func = function() RH:ShowReport() end }
     general.args.versionCheck = { type = "toggle", name = "Tell me about new versions", order = 5.5,
         desc = "Compares versions with guild and group members running RotationHelper, and tells you once "
             .. "when a newer one is out (with the download link).",
