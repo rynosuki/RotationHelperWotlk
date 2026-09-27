@@ -61,14 +61,54 @@ local GROW = {
     DOWN = { "TOP", "BOTTOM", 0, -1 },
 }
 
--- Obliterate, Frost Strike, Howling Blast, Icy Touch, Horn of Winter
-local PREVIEW = {
-    { spellId = 51425, wait = 0 },
-    { spellId = 55268 },
-    { spellId = 51411 },
-    { spellId = 49909 },
-    { spellId = 57623 },
-}
+-- Sample icons (display unlocked or /rh test): the first abilities of your
+-- spec's rotation, so every class sees its own spells. Rebuilt when the spec
+-- or the settings change.
+local preview, previewKey = {}, nil
+local previewEntries = {} -- reused, so rebuilding creates no garbage
+
+function Display:GetPreview()
+    local key = tostring(RH.playerClass) .. ":" .. tostring(ns.Spec.key)
+    if key == previewKey and preview[1] then return preview end
+    previewKey = key
+    for i = #preview, 1, -1 do preview[i] = nil end
+    local abilities = RH.classData and RH.classData.abilities
+    if not abilities then return preview end
+    local function Add(name)
+        local ability = abilities[name]
+        if #preview >= MAX_ICONS or not (ability and ability.id) then return end
+        for _, entry in ipairs(preview) do
+            if entry.spellId == ability.id then return end
+        end
+        local i = #preview + 1
+        local entry = previewEntries[i] or {}
+        previewEntries[i] = entry
+        entry.spellId, entry.wait = ability.id, i == 1 and 0 or nil
+        preview[i] = entry
+    end
+    -- The main list first, then the others (not the out-of-combat one).
+    -- (Only once the Recommender has started: before that it has no compiled rotations.)
+    local apl = ns.Recommender and ns.Recommender.compiled and ns.Recommender:GetAPL()
+    if apl then
+        for _, action in ipairs(apl.lists.default or {}) do
+            if action.kind == "ability" then Add(action.name) end
+        end
+        for _, name in ipairs(apl.listOrder) do
+            if name ~= "default" and name ~= "precombat" then
+                for _, action in ipairs(apl.lists[name]) do
+                    if action.kind == "ability" then Add(action.name) end
+                end
+            end
+        end
+    end
+    -- No rotation yet (talents not loaded, still starting up): any of the
+    -- class's spells for now, and look again next time.
+    if not preview[1] then
+        for name in pairs(abilities) do Add(name) end
+        previewKey = nil
+    end
+    return preview
+end
 
 local spellCache = {}
 
@@ -293,6 +333,7 @@ end
 
 function Display:ApplySettings()
     self.db = RH.db.profile.display
+    previewKey = nil -- the rotation may have changed
     local d, f = self.db, self.frame
 
     f:ClearAllPoints()
@@ -346,7 +387,7 @@ function Display:GetEntries()
     if self.testMode or unlockedPreview then
         local recs = RH.recommendations
         if not self.testMode and RH:IsActive() and recs and #recs > 0 then return recs end
-        return PREVIEW
+        return self:GetPreview()
     end
     if not RH:IsActive() then return nil end
     if d.hideOutOfCombat and not RH.inCombat then return nil end

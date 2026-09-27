@@ -18,7 +18,12 @@ test("unlocked display shows preview icons and drag label", function()
     truthy(D.frame:IsShown(), "frame shown")
     truthy(D.frame.label:IsShown(), "label shown")
     truthy(D.frame:IsMouseEnabled(), "draggable")
-    eq(D.buttons[1].icon:GetTexture(), "Interface\\Icons\\Spell_DeathKnight_ClassIcon", "preview main icon")
+    s:Tick(0.1)
+    -- Samples come from the spec's rotation: Frost's main list starts with
+    -- Pestilence, Icy Touch, Plague Strike, Obliterate.
+    local preview = D:GetPreview()
+    eq(preview[1].spellId .. "," .. preview[4].spellId, "50842,51425", "Frost abilities")
+    eq(D.buttons[4].icon:GetTexture(), "Interface\\Icons\\Spell_DeathKnight_ClassIcon", "Obliterate's icon")
     truthy(D.buttons[4]:IsShown(), "4 icons by default")
     falsy(D.buttons[5]:IsShown(), "5th icon hidden")
 end)
@@ -28,6 +33,36 @@ test("locked display is click-through and hidden without recommendations", funct
     local D = display(s)
     falsy(D.frame:IsMouseEnabled(), "click-through")
     falsy(D.frame:IsShown(), "hidden")
+end)
+
+test("sample icons are the class's own spells (not a Death Knight's)", function()
+    local s = newAddon({ class = "DRUID" })
+    s.talentTabs = {
+        { name = "Balance", talents = { { "Starlight Wrath", 5 }, { "Moonkin Form", 1 } } },
+        { name = "Feral Combat", talents = {} },
+        { name = "Restoration", talents = {} },
+    }
+    s.power = { type = 0, current = 20000, max = 20000 }
+    s:Learn("Wrath", "Starfire", "Moonfire", "Insect Swarm", "Faerie Fire", "Moonkin Form")
+    s:FireEvent("PLAYER_TALENT_UPDATE")
+    s:Tick(0.1) -- idle: no target, display unlocked
+    local D = display(s)
+    truthy(D.frame:IsShown(), "shown")
+    local druid = {}
+    for _, ability in pairs(s.env.RotationHelper.classData.abilities) do
+        if ability.id then druid[ability.id] = true end
+    end
+    truthy(D:GetPreview()[1], "has samples")
+    for i, entry in ipairs(D:GetPreview()) do
+        truthy(druid[entry.spellId], "sample " .. i .. " is a Druid spell (" .. tostring(entry.spellId) .. ")")
+    end
+    -- A talent change to another spec rebuilds them.
+    s.talentTabs[1].talents[1][2] = 0
+    s.talentTabs[2].talents = { { "Ferocity", 5 }, { "Mangle", 1 }, { "Berserk", 1 } }
+    s:FireEvent("PLAYER_TALENT_UPDATE")
+    s:Tick(0.1)
+    eq(s.ns.Spec.key, "feral_combat", "now feral")
+    eq(D:GetPreview()[1].spellId, 768, "Cat Form first in the cat rotation")
 end)
 
 test("unsupported class shows nothing even when unlocked", function()
