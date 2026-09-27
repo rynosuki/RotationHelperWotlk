@@ -136,6 +136,7 @@ update as soon as one happens.
 | `/rh sim [seconds]` | Simulate the active rotation (5 fights, 300s by default). |
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
+| `/rh version` | Your version, and whether a newer one has been seen. |
 | `/rh status` | Print the current settings. |
 | `/rh help` | List the commands. |
 
@@ -240,6 +241,14 @@ times aren't used yet and are listed as "no data".
 
 For developers, `lua tests/sim.lua frost [--runs N] [--seconds N] [--enemies N] default my.apl`
 compares rotations side by side outside the game.
+
+## Updates
+
+Addons can't go online, so RotationHelper compares versions with guild and group members who
+run it (like DBM and BigWigs do). When someone has a newer version you get one message per
+session, and a box with the download link to copy
+(https://github.com/rynosuki/RotationHelperWotlk/releases). Turn it off with "Tell me about new
+versions" on the General tab.
 
 ## Something looks wrong?
 

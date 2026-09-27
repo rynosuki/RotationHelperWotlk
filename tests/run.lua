@@ -54,6 +54,7 @@ local SUITES = {
     "test_phase_e",
     "test_phase_f",
     "test_phase_g",
+    "test_versioncheck",
     "test_consumables",
 }
 

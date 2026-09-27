@@ -536,6 +536,8 @@ function Mock.NewSession(opts)
     -- session.threat = { isTanking, scaledPercent } on the target.
     session.party, session.raid = 0, 0
     env.GetNumPartyMembers = function() return session.party end
+    session.guild = false
+    env.IsInGuild = function() return session.guild end
     env.GetNumRaidMembers = function() return session.raid end
     env.UnitDetailedThreatSituation = function(unit, target)
         local t = session.threat

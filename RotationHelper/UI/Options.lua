@@ -209,6 +209,11 @@ function Options:BuildOptionsTable()
         get = function() return RH.db.profile.updateInterval end,
         set = function(_, value) RH.db.profile.updateInterval = value end }
 
+    general.args.versionCheck = { type = "toggle", name = "Tell me about new versions", order = 5.5,
+        desc = "Compares versions with guild and group members running RotationHelper, and tells you once "
+            .. "when a newer one is out (with the download link).",
+        get = function() return RH.db.global.versionCheck end,
+        set = function(_, value) RH.db.global.versionCheck = value end }
     general.args.minimap = { type = "toggle", name = "Minimap button", order = 5,
         get = function() return RH.db.profile.minimap.show end,
         set = function(_, value) RH.db.profile.minimap.show = value; Changed() end }

@@ -69,6 +69,10 @@ end
 local AOE_MODES = { "auto", "single", "aoe" }
 
 local defaults = {
+    global = {
+        versionCheck = true, -- tell me when players around me run a newer version (UI/VersionCheck.lua)
+        newestVersion = nil, -- the newest version seen, if newer than ours
+    },
     char = {
         specProfiles = {}, -- [talent group] = profile name (SpecProfiles.lua)
         reviews = {},      -- fight review summaries, newest last (Engine/Review.lua)
@@ -503,6 +507,7 @@ local HELP = {
     { "snapshot", "print what the addon reads from the game" },
     { "why <ability>", "why an ability is or isn't recommended right now" },
     { "review [n]", "show the last fight review (or saved fight n)" },
+    { "version", "your version, and whether a newer one has been seen" },
     { "sim [seconds]", "simulate the active rotation (5 fights, 300s by default)" },
     { "damage", "your damage per ability from the combat log (/rh damage reset to start over)" },
     { "pull <seconds>", "start a pull timer for the rotation (DBM/BigWigs timers work too; 0 cancels)" },
@@ -556,6 +561,7 @@ local commands = {
     errors = "PrintErrors",
     why = "PrintWhy",
     review = "ShowReview",
+    version = "PrintVersion",
     sim = "PrintSim",
     damage = "PrintDamage",
     pull = "StartPullTimer",
