@@ -538,6 +538,22 @@ local function SetChipText(chip, text)
     if text == "" then chip:Hide() else chip:Show() end
 end
 
+-- The waste labels, e.g. "RUNES  RP  THREAT", built once per combination.
+local wasteTexts = {}
+local function WasteText(runes, powerLabel, threat)
+    local key = (runes and "R" or "") .. "|" .. (powerLabel or "") .. "|" .. (threat and "T" or "")
+    local text = wasteTexts[key]
+    if not text then
+        local parts = {}
+        if runes then parts[#parts + 1] = "|cffff8000RUNES|r" end
+        if powerLabel then parts[#parts + 1] = "|cffff8000" .. powerLabel .. "|r" end
+        if threat then parts[#parts + 1] = "|cffff2020THREAT|r" end
+        text = table.concat(parts, "  ")
+        wasteTexts[key] = text
+    end
+    return text
+end
+
 -- "CD" is green when cooldowns are on, red when off. The AoE chip shows
 -- the forced mode, or in auto mode the enemy count once there's more than
 -- one ("AUTO" while Shift is held, so there's always something to click).
@@ -589,16 +605,9 @@ function Display:UpdateStatus()
     end
     SetChipText(f.aoeChip, aoeText)
 
-    local waste = RH.waste
-    local wasteText = ""
-    if waste and waste.runes then wasteText = "|cffff8000RUNES|r" end
-    if waste and waste.runicPower then
-        wasteText = wasteText == "" and "|cffff8000RP|r" or (wasteText .. "  |cffff8000RP|r")
-    end
-    local threat = RH.threat
-    if threat and threat.warn then
-        wasteText = wasteText == "" and "|cffff2020THREAT|r" or (wasteText .. "  |cffff2020THREAT|r")
-    end
+    local waste, threat = RH.waste, RH.threat
+    local wasteText = WasteText(waste and waste.runes, waste and waste.power and waste.powerLabel,
+        threat and threat.warn)
     if f.wasteText.lastText ~= wasteText then
         f.wasteText.lastText = wasteText
         f.wasteText:SetText(wasteText)

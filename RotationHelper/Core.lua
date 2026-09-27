@@ -128,8 +128,8 @@ local defaults = {
         waste = {
             enabled = true,
             runes = true,      -- a rune pair with both runes ready
-            runicPower = true, -- runic power near the maximum
-            rpDeficit = 10,    -- "near" = within this much of the maximum
+            power = true,      -- runic power, energy or rage near the maximum
+            powerDeficit = 10, -- "near" = within this much of the maximum
             grace = 1.5,       -- seconds a cap may last before warning
         },
         display = {

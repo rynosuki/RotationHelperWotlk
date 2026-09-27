@@ -66,7 +66,9 @@ test("a 30s fight: time casting, waste, uptime, cooldowns, adherence", function(
     near(r.duration, 30, 1, "duration")
     near(r.gcdUsage, 66.7, 1.5, "20 of 30s casting")
     near(r.runeWaste, 20, 1, "one pair full for 10s of 30s = 20 s/min")
-    eq(r.runicPowerCapped, 0, "no runic power at the cap")
+    eq(r.powerCapped, 0, "no runic power at the cap")
+    eq(r.powerName, "Runic power", "named for the class")
+    eq(r.manaLow, nil, "no mana row for a Death Knight")
     eq(r.debuffs[1].key, "frost_fever", "first debuff")
     near(r.debuffs[1].uptime, 100, 0.5, "Frost Fever always up")
     near(r.debuffs[2].uptime, 83.3, 1.5, "Blood Plague 25 of 30s")
@@ -233,4 +235,85 @@ test("recording creates no garbage per update", function()
     local perTick = (collectgarbage("count") - before) * 1024 / 300
     collectgarbage("restart")
     truthy(perTick < 16, ("%.1f bytes per tick"):format(perTick))
+end)
+
+---------------------------------------------------------------------------
+-- Every class
+---------------------------------------------------------------------------
+local function FuryFight()
+    local s, RH = newAddon({ class = "WARRIOR" })
+    s.talentTabs = {
+        { name = "Arms", talents = {} },
+        { name = "Fury", talents = { { "Bloodsurge", 3 }, { "Bloodthirst", 1 } } },
+        { name = "Protection", talents = {} },
+    }
+    s.power = { type = 1, current = 100, max = 100 }
+    s.form = 3
+    s:Learn("Bloodthirst", "Whirlwind", "Slam", "Heroic Strike", "Battle Shout", "Hamstring")
+    s:FireEvent("PLAYER_TALENT_UPDATE")
+    s.hasTarget = true
+    RH.db.profile.toggles.cooldowns = false
+    return s, RH
+end
+
+test("a Fury fight: rage at the cap, Bloodsurge used and wasted, no rune row", function()
+    local s, RH = FuryFight()
+    s:FireEvent("PLAYER_REGEN_DISABLED")
+    Run(s, 10) -- 10s at 100 rage
+    s.power.current = 40
+    -- A Bloodsurge that is used (gone early) and one that runs out.
+    s:AddAura("player", { name = "Slam!", spellId = 46916, duration = 5, expires = s.time + 5 })
+    Run(s, 1)
+    s.auras.player = {}
+    Run(s, 2)
+    s:AddAura("player", { name = "Slam!", spellId = 46916, duration = 5, expires = s.time + 2 })
+    Run(s, 3)
+    s.auras.player = {}
+    Run(s, 20)
+    s:FireEvent("PLAYER_REGEN_ENABLED")
+    local r = RH.db.char.reviews[#RH.db.char.reviews]
+    eq(r.powerName, "Rage", "rage")
+    near(r.powerCapped, 10 / 36 * 60, 1, "10s of 36 at the cap")
+    eq(r.runeWaste, nil, "no runes")
+    eq(r.procs[1].key, "bloodsurge", "proc")
+    eq(r.procs[1].gained .. "/" .. r.procs[1].used, "2/1", "one used, one ran out")
+    s.ns.ReviewWindow:Show()
+    local text = WindowText(s)
+    truthy(text:find("Rage at the cap", 1, true), "rage row")
+    falsy(text:find("Rune pairs", 1, true), "no rune row")
+    truthy(text:find("Procs used", 1, true), "procs heading")
+end)
+
+test("a Retribution fight: time below 10% mana", function()
+    local s, RH = newAddon({ class = "PALADIN" })
+    s.talentTabs = {
+        { name = "Holy", talents = {} },
+        { name = "Protection", talents = {} },
+        { name = "Retribution", talents = { { "Crusader Strike", 1 }, { "Divine Storm", 1 } } },
+    }
+    s.power = { type = 0, current = 20000, max = 20000 }
+    s:Learn("Crusader Strike", "Divine Storm", "Judgement of Light", "Blessing of Might")
+    s:FireEvent("PLAYER_TALENT_UPDATE")
+    s.hasTarget = true
+    s:FireEvent("PLAYER_REGEN_DISABLED")
+    Run(s, 15)
+    s.power.current = 1000 -- 5%
+    Run(s, 5)
+    s:FireEvent("PLAYER_REGEN_ENABLED")
+    local r = RH.db.char.reviews[#RH.db.char.reviews]
+    near(r.manaLow, 25, 2, "5s of 20 below 10%")
+    eq(r.powerCapped, nil, "full mana isn't a cap")
+    s.ns.ReviewWindow:Show()
+    truthy(WindowText(s):find("Mana below 10%", 1, true), "mana row")
+end)
+
+test("fights saved before 1.38 still show", function()
+    local s, RH = Setup()
+    RH.db.char.reviews = { { when = "12:00", target = "Old Dummy", duration = 30, gcdUsage = 90, runeWaste = 2,
+        runicPowerCapped = 1, debuffs = {}, cooldowns = {}, casts = 10, adherence = 80, mistakes = {},
+        mistakeCount = 0 } }
+    s.ns.ReviewWindow:Show()
+    local text = WindowText(s)
+    truthy(text:find("Runic power at the cap | 1.0", 1, true), "old field: " .. text)
+    truthy(text:find("Rune pairs sitting full", 1, true), "runes")
 end)

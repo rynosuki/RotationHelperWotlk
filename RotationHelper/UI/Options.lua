@@ -22,19 +22,48 @@ local LATENCY_MODES = {
     off = "Off",
 }
 
-local SYNTAX_HELP = table.concat({
-    "Lines look like |cffffd100actions+=/obliterate,if=runes.frost>=1|r. "
-        .. "|cffffd100actions=|r starts the main list, |cffffd100actions.NAME=|r a named list, "
-        .. "|cffffd100+=/|r adds a line. Lines starting with # are comments.",
-    "The ability usable soonest is recommended; ties go to the higher line. "
-        .. "Rune and runic power costs are checked for you.",
-    "Operators: & (and), | (or), ! (not), = != < <= > >=, + - * and % (division). "
-        .. "True is 1 and false is 0.",
-    "Names: buff.NAME.up/remains/stack, dot.NAME.remains, cooldown.NAME.ready/remains, "
-        .. "runes.blood/frost/unholy/death/total, runic_power(.deficit), gcd, active_enemies, "
-        .. "target.health.pct, target.time_to_die, talent.NAME.enabled, glyph.NAME.enabled, toggle.cooldowns.",
-    "Actions: call_action_list,name=X / run_action_list,name=X / variable,name=X,value=... / wait,sec=...",
-}, "\n\n")
+-- The syntax help, with examples and resource names for your class.
+local function SyntaxHelp()
+    local classData = RH.classData or { abilities = {}, auras = {} }
+    -- An example line: a proc-based one when the class has procs.
+    local example = "actions+=/obliterate,if=runes.frost>=1"
+    local proc = classData.procs and classData.procs[1]
+    local ability
+    for key, def in pairs(classData.abilities) do
+        if def.id and not def.offGcd and not def.finisher and (not ability or key < ability) then ability = key end
+    end
+    if not classData.usesRunes and ability then
+        example = proc and ("actions+=/%s,if=buff.%s.up"):format(ability, proc)
+            or ("actions+=/%s,if=target.health.pct<20"):format(ability)
+    end
+    local resources, costs
+    if classData.usesRunes then
+        resources = "runes.blood/frost/unholy/death/total, runic_power(.deficit)"
+        costs = "Rune and runic power costs are checked for you."
+    elseif classData.energyRegen then
+        resources = "energy(.deficit), combo_points" .. (classData.baseMana and ", mana(.pct)" or "")
+        costs = "Energy costs are checked for you, and when you're short the icon waits for the energy."
+    elseif classData.rageIncome then
+        resources = "rage(.deficit), stance.battle/berserker"
+        costs = "Rage costs are checked for you, and when you're short the icon waits for the rage."
+    else
+        resources = "mana(.pct/.deficit), action.NAME.cast_time"
+        costs = "Mana costs, cast times and cooldowns are checked for you."
+    end
+    return table.concat({
+        "Lines look like |cffffd100" .. example .. "|r. "
+            .. "|cffffd100actions=|r starts the main list, |cffffd100actions.NAME=|r a named list, "
+            .. "|cffffd100+=/|r adds a line. Lines starting with # are comments.",
+        "The ability usable soonest is recommended; ties go to the higher line. " .. costs,
+        "Operators: & (and), | (or), ! (not), = != < <= > >=, + - * and % (division). "
+            .. "True is 1 and false is 0.",
+        "Names: buff.NAME.up/remains/stack, dot.NAME.remains, cooldown.NAME.ready/remains, "
+            .. resources .. ", gcd, active_enemies, target.health.pct, target.time_to_die, "
+            .. "talent.NAME.enabled, glyph.NAME.enabled, toggle.cooldowns. The Names button lists them all.",
+        "Actions: call_action_list,name=X / run_action_list,name=X / variable,name=X,value=... / wait,sec=...",
+    }, "\n\n")
+end
+Options.SyntaxHelp = SyntaxHelp
 
 ---------------------------------------------------------------------------
 -- Rotation editing
@@ -396,17 +425,40 @@ function Options:BuildOptionsTable()
         end
         return option
     end
+    -- The class's power that can be wasted at the cap (nil for mana-only classes).
+    local function PowerName()
+        local classData = RH.classData
+        if not classData then return nil end
+        if classData.usesRunes then return "Runic power" end
+        if classData.energyRegen and classData.rageIncome then return "Energy or rage" end
+        if classData.energyRegen then return "Energy" end
+        if classData.rageIncome then return "Rage" end
+        return nil
+    end
+    local function WasteLabels()
+        local classData = RH.classData
+        if classData and classData.usesRunes then return "RUNES / RP" end
+        if classData and classData.energyRegen then return "ENERGY" end
+        if classData and classData.rageIncome then return "RAGE" end
+        return "a label"
+    end
     local wasteArgs = {
         wasteHeader = { type = "header", name = "Waste warnings", order = 30 },
         wasteInfo = { type = "description", order = 31, fontSize = "medium",
-            name = "In combat, the main icon gets a pulsing orange border (and RUNES / RP on the status line) "
-                .. "while resources go to waste." },
+            name = function()
+                return ("In combat, the main icon gets a pulsing orange border (and %s on the status line) "
+                    .. "while resources go to waste."):format(WasteLabels())
+            end },
         enabled = WasteOption({ type = "toggle", name = "Enabled", order = 32, disabled = false }),
         runes = WasteOption({ type = "toggle", name = "Capped rune pairs", order = 33,
+            hidden = function() return not (RH.classData and RH.classData.usesRunes) end,
             desc = "Both runes of a pair ready: that pair isn't regenerating." }),
-        runicPower = WasteOption({ type = "toggle", name = "Runic power near the cap", order = 34 }),
-        rpDeficit = WasteOption({ type = "range", name = "Runic power: warn within", order = 35,
-            min = 0, max = 40, step = 5, desc = "Warn when runic power is this close to the maximum." }),
+        power = WasteOption({ type = "toggle", order = 34, hidden = function() return not PowerName() end,
+            name = function() return (PowerName() or "Power") .. " near the cap" end }),
+        powerDeficit = WasteOption({ type = "range", order = 35, min = 0, max = 40, step = 5,
+            hidden = function() return not PowerName() end,
+            name = function() return (PowerName() or "Power") .. ": warn within" end,
+            desc = "Warn when it's this close to the maximum." }),
         grace = WasteOption({ type = "range", name = "Warn after (seconds)", order = 36,
             min = 0, max = 5, step = 0.5, desc = "How long a cap may last before warning (about one GCD by default)." }),
     }
@@ -499,7 +551,7 @@ function Options:BuildOptionsTable()
                     end
                     return Options.simResults[Options:EditSpec()] or ""
                 end },
-            help = { type = "description", order = 10, name = "\n" .. SYNTAX_HELP },
+            help = { type = "description", order = 10, name = function() return "\n" .. SyntaxHelp() end },
         },
     }
 

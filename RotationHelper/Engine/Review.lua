@@ -6,8 +6,10 @@ local RH = ns.RH
 -- A fight is one stretch in combat. Every update adds its duration to:
 --   idle        the GCD was free, you weren't casting, and the main icon was
 --               ready (real GCD end, not the latency-shifted one)
---   runes       rune pairs sitting full (summed over the pairs)
---   runicPower  runic power at the cap
+--   runes       rune pairs sitting full (summed over the pairs; Death Knights)
+--   powerCapped runic power, energy or rage at the cap
+--   manaLow     mana below 10% (mana users)
+--   procs       each of the class's procs: appeared, and used up before it ran out
 --   debuffs     each review debuff up on the hostile target
 --   cooldowns   each known major cooldown ready but unused
 -- and each GCD ability you cast is compared with the first two icons shown
@@ -27,6 +29,10 @@ local EMPTY = {}
 local MAX_SAMPLE_GAP = 0.5 -- longer gaps between updates aren't counted
 local MAX_MISTAKES_KEPT = 50
 local PAIRS = { { 1, 2 }, { 3, 4 }, { 5, 6 } }
+-- Power that is wasted at the cap, and how the review names it.
+local CAPPED_POWER = { runic_power = "Runic power", energy = "Energy", rage = "Rage" }
+local MANA_LOW = 0.1
+local PROC_EARLY = 0.2 -- a proc gone this long before it would run out was used
 
 local fight -- the fight being recorded, or nil
 
@@ -35,8 +41,9 @@ local fight -- the fight being recorded, or nil
 ---------------------------------------------------------------------------
 function Review:Start(now)
     fight = {
-        start = now, lastSample = nil, targetTime = 0, idle = 0, runes = 0, runicPower = 0,
-        debuffs = {}, cooldowns = {}, casts = 0, matches = 0, mistakes = {}, target = nil,
+        start = now, lastSample = nil, targetTime = 0, idle = 0, runes = 0, powerCapped = 0, manaLow = 0,
+        powerType = nil, debuffs = {}, cooldowns = {}, casts = 0, matches = 0, mistakes = {}, target = nil,
+        procs = {}, procUntil = {},
     }
 end
 
@@ -60,9 +67,13 @@ function Review:Sample(s, recs)
             if a and b and a.readyAt <= now and b.readyAt <= now then fight.runes = fight.runes + dt end
         end
     end
-    if s.powerType == "runic_power" and s.powerMax > 0 and s.power >= s.powerMax then
-        fight.runicPower = fight.runicPower + dt
+    fight.powerType = s.powerType
+    if CAPPED_POWER[s.powerType] and s.powerMax > 0 and s.power >= s.powerMax then
+        fight.powerCapped = fight.powerCapped + dt
+    elseif s.powerType == "mana" and s.powerMax > 0 and s.power < s.powerMax * MANA_LOW then
+        fight.manaLow = fight.manaLow + dt
     end
+    self:SampleProcs(s, now)
 
     local t = s.target
     if not TargetIsHostile(t) then return end
@@ -84,6 +95,27 @@ function Review:Sample(s, recs)
         if ns.Spec.known[key] and (not cd or cd.readyAt <= now) then
             fight.cooldowns[key] = (fight.cooldowns[key] or 0) + dt
         end
+    end
+end
+
+-- Procs: one gained when its buff appears; used when it disappears before it
+-- would have run out (spent), not when it runs out (wasted).
+function Review:SampleProcs(s, now)
+    for _, key in ipairs(RH.classData.procs or EMPTY) do
+        local rec = s.buffs[key]
+        local up = rec and rec.expires > now
+        local was = fight.procUntil[key]
+        if up and not was then
+            local stats = fight.procs[key]
+            if not stats then
+                stats = { gained = 0, used = 0 }
+                fight.procs[key] = stats
+            end
+            stats.gained = stats.gained + 1
+        elseif not up and was and now < was - PROC_EARLY then
+            fight.procs[key].used = fight.procs[key].used + 1
+        end
+        fight.procUntil[key] = up and rec.expires or nil
     end
 end
 
@@ -134,8 +166,11 @@ function Review:Summarize(f, now)
         target = f.target or "?",
         duration = floor(duration + 0.5),
         gcdUsage = Percent(f.targetTime - f.idle, f.targetTime),
-        runeWaste = PerMinute(f.runes, duration),
-        runicPowerCapped = PerMinute(f.runicPower, duration),
+        runeWaste = RH.classData.usesRunes and PerMinute(f.runes, duration) or nil,
+        powerName = CAPPED_POWER[f.powerType],
+        powerCapped = CAPPED_POWER[f.powerType] and PerMinute(f.powerCapped, duration) or nil,
+        manaLow = f.powerType == "mana" and Percent(f.manaLow, duration) or nil,
+        procs = {},
         debuffs = {},
         cooldowns = {},
         casts = f.casts,
@@ -145,6 +180,12 @@ function Review:Summarize(f, now)
     }
     for _, key in ipairs(RH:ReviewDebuffs()) do
         summary.debuffs[#summary.debuffs + 1] = { key = key, uptime = Percent(f.debuffs[key] or 0, f.targetTime) }
+    end
+    for _, key in ipairs(RH.classData.procs or EMPTY) do
+        local stats = f.procs[key]
+        if stats and stats.gained > 0 then
+            summary.procs[#summary.procs + 1] = { key = key, gained = stats.gained, used = min(stats.used, stats.gained) }
+        end
     end
     for _, key in ipairs(RH.classData.majorCooldowns or {}) do
         local unused = f.cooldowns[key]

@@ -38,11 +38,11 @@ end)
 test("runic power near the cap warns", function()
     local s, RH = Fight()
     s.power.current = 119
-    falsy(Check(s, RH).runicPower, "119: fine")
+    falsy(Check(s, RH).power, "119: fine")
     s.power.current = 120
     Check(s, RH)
     s.time = s.time + 2
-    truthy(Check(s, RH).runicPower, "120 of 130 for 2s: warning")
+    truthy(Check(s, RH).power, "120 of 130 for 2s: warning")
     truthy(Check(s, RH).any, "any")
 end)
 
@@ -65,7 +65,7 @@ test("settings turn warnings off", function()
     RH.db.profile.waste.runes = false
     local w = Check(s, RH)
     falsy(w.runes, "runes off")
-    truthy(w.runicPower, "runic power still on")
+    truthy(w.power, "runic power still on")
     RH.db.profile.waste.enabled = false
     falsy(Check(s, RH).any, "all off")
 end)
@@ -95,4 +95,66 @@ test("the 'Enabled' option stays usable when warnings are off", function()
     truthy(args.runes.disabled(), "the others are greyed out")
     args.enabled.set({ "display", "enabled" }, true)
     eq(RH.db.profile.waste.enabled, true, "back on")
+end)
+
+---------------------------------------------------------------------------
+-- Every class's power
+---------------------------------------------------------------------------
+local function ClassFight(class, powerType, max, spells, talentTabs)
+    local s, RH = newAddon({ class = class })
+    s.power = { type = powerType, current = 0, max = max }
+    if talentTabs then
+        s.talentTabs = talentTabs
+        s:FireEvent("PLAYER_TALENT_UPDATE")
+    end
+    s:Learn(unpack(spells))
+    s.hasTarget = true
+    s:FireEvent("PLAYER_REGEN_DISABLED")
+    s:Slash("ACECONSOLE_RH", "lock")
+    return s, RH
+end
+
+test("energy and rage near the cap warn too, labeled for the class", function()
+    local s, RH = ClassFight("ROGUE", 3, 100, { "Sinister Strike", "Slice and Dice", "Eviscerate" }, {
+        { name = "Assassination", talents = {} },
+        { name = "Combat", talents = { { "Vitality", 3 } } },
+        { name = "Subtlety", talents = {} },
+    })
+    s.power.current = 95
+    Check(s, RH)
+    s.time = s.time + 2
+    local w = Check(s, RH)
+    truthy(w.power, "energy at the cap")
+    eq(w.powerLabel, "ENERGY", "label")
+    s:Tick(0.1)
+    truthy(s.ns.Display:GetStatusText():find("ENERGY", 1, true), "status line: " .. s.ns.Display:GetStatusText())
+
+    s, RH = ClassFight("WARRIOR", 1, 100, { "Bloodthirst", "Whirlwind", "Heroic Strike" })
+    s.power.current = 100
+    Check(s, RH)
+    s.time = s.time + 2
+    w = Check(s, RH)
+    truthy(w.power, "rage at the cap")
+    eq(w.powerLabel, "RAGE", "label")
+end)
+
+test("mana users: no power warning, and no power or rune options", function()
+    local s, RH = ClassFight("MAGE", 0, 20000, { "Fireball", "Scorch" })
+    s.power.current = 20000
+    Check(s, RH)
+    s.time = s.time + 2
+    falsy(Check(s, RH).power, "full mana wastes nothing")
+    local args = s.ns.Options:GetOptionsTable().args.display.args
+    truthy(args.power.hidden(), "no power option")
+    truthy(args.runes.hidden(), "no rune option")
+end)
+
+test("settings from before 1.38 are carried over", function()
+    local s, RH = Fight()
+    local settings = RH.db.profile.waste
+    settings.runicPower, settings.rpDeficit = false, 25
+    s.ns.Waste.Migrate(settings)
+    eq(settings.power, false, "runicPower -> power")
+    eq(settings.powerDeficit, 25, "rpDeficit -> powerDeficit")
+    eq(settings.runicPower, nil, "old key gone")
 end)

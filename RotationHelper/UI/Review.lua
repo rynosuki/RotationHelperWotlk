@@ -21,7 +21,9 @@ local GRADES = {
     adherence = { 85, 70 },
     uptime = { 95, 85 },
     runeWaste = { 3, 8, lower = true },
-    runicPowerCapped = { 2, 6, lower = true },
+    powerCapped = { 2, 6, lower = true },
+    manaLow = { 5, 15, lower = true },
+    procUsage = { 90, 75 },
 }
 
 function ReviewWindow.Grade(kind, value)
@@ -122,13 +124,32 @@ function ReviewWindow:Fill(summary)
     Add(self, "Following the icons",
         summary.adherence and format("%.0f%% of %d casts", summary.adherence, summary.casts) or "no casts",
         nil, grade("adherence", summary.adherence))
-    Add(self, "Rune pairs sitting full", format("%.1f s per minute", summary.runeWaste),
-        nil, grade("runeWaste", summary.runeWaste))
-    Add(self, "Runic power at the cap", format("%.1f s per minute", summary.runicPowerCapped),
-        nil, grade("runicPowerCapped", summary.runicPowerCapped))
+    -- Only the rows that apply to the class (saved fights from before 1.38
+    -- have runicPowerCapped instead of powerCapped).
+    if summary.runeWaste then
+        Add(self, "Rune pairs sitting full", format("%.1f s per minute", summary.runeWaste),
+            nil, grade("runeWaste", summary.runeWaste))
+    end
+    local capped = summary.powerCapped or summary.runicPowerCapped
+    if capped then
+        Add(self, (summary.powerName or "Runic power") .. " at the cap", format("%.1f s per minute", capped),
+            nil, grade("powerCapped", capped))
+    end
+    if summary.manaLow then
+        Add(self, "Mana below 10%", format("%.0f%% of the fight", summary.manaLow), nil, grade("manaLow", summary.manaLow))
+    end
     for _, d in ipairs(summary.debuffs) do
         Add(self, AuraName(d.key) .. " uptime", d.uptime and format("%.0f%%", d.uptime) or "-",
             nil, grade("uptime", d.uptime))
+    end
+
+    if summary.procs and #summary.procs > 0 then
+        Add(self, "")
+        Add(self, "Procs used", "", T.heading)
+        for _, p in ipairs(summary.procs) do
+            local usage = floor(p.used / p.gained * 100 + 0.5)
+            Add(self, "   " .. AuraName(p.key), format("%d of %d", p.used, p.gained), nil, grade("procUsage", usage))
+        end
     end
 
     Add(self, "")

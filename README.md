@@ -84,11 +84,11 @@ what's planned.
 | Cooldown swipe on the big icon | The ability isn't usable yet: GCD, cooldown or runes. Auto attack until the swipe finishes. |
 | Big icon flashes | Press it now. With latency compensation (General options) the flash comes slightly before the GCD ends, as soon as the client would queue your press. |
 | Red `!` left of the icons | The addon hit an error; see `/rh errors`. |
-| Pulsing orange border, `RUNES` / `RP` on the status line | Resources are going to waste right now: a rune pair is full, or runic power is near the cap. |
+| Pulsing orange border, `RUNES` / `RP` / `ENERGY` / `RAGE` on the status line | Resources are going to waste right now: a rune pair is full, or your runic power, energy or rage is near the cap. |
 | Small icon above the big one | Your target is casting something you can interrupt: press it (Mind Freeze). |
 | Golden glow on an icon | That ability spends a proc (Killing Machine, Rime). An optional sound can play for new procs (Display options). |
 | Small proc icon in the bottom-right corner | That proc is *why* the ability is recommended now, e.g. Frost Strike because of Killing Machine, or the free Howling Blast from Rime. |
-| `RUNES` / `COOLDOWN` / `CAST` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
+| `RUNES` / `RAGE` / `ENERGY` / `COOLDOWN` / `CAST` / `AUTO` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
 | Small icon below the status line | The big icon's ability is out of range; this is the best thing you can do from where you are. |
 | Steady red border, `THREAT` on the status line | In a group: you're close to pulling aggro (default 90%). |
 | Six small bars above the icons | Your runes: color = type (purple = death), dim with seconds while recharging. The strip under each shows the rune once the queued abilities are used: its type then, dimmed if the queue spends it. |
@@ -183,7 +183,10 @@ turn on "Show after each fight" on the General tab.
   press (latency compensation isn't counted against you).
 - **Following the icons**: how many of your GCD casts matched one of the first two icons.
   Off-GCD cooldowns only count when they match, so weaving one early isn't a mistake.
-- **Rune pairs sitting full** and **runic power at the cap**, in seconds per minute.
+- **Runic power, energy or rage at the cap** in seconds per minute (and **rune pairs sitting
+  full** for Death Knights); for mana users, the share of the fight **below 10% mana**.
+- **Procs used**: how many of your procs (Killing Machine, Hot Streak, Bloodsurge, ...) you used
+  before they ran out.
 - **Disease uptime** on your target.
 - **Cooldowns left unused** while they were ready, and the **biggest mistakes** with their time,
   e.g. `0:42 Frost Strike instead of Obliterate (ready)`.
