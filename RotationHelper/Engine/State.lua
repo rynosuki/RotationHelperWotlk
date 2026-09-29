@@ -318,6 +318,14 @@ function State.CopyInto(dst, src)
     return dst
 end
 
+State.CopyAuras = CopyAuras
+
+-- A new, empty state with the tables CopyInto fills (for scratch copies).
+function State.NewCopy()
+    return { runes = {}, buffs = {}, debuffs = {}, cooldowns = {}, variables = {}, lastCast = {}, readySince = {},
+        otherDots = {}, otherDotsUntil = {}, usable = {}, queued = {}, totemKey = {}, totemExpires = {} }
+end
+
 -- Returns the virtual state, freshly copied from the real one.
 function State:Virtual()
     return State.CopyInto(self.virtual, self.real)

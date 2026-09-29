@@ -148,3 +148,42 @@ test("casting Immolate: its DoT counts as up when it lands, so it isn't suggeste
     local queue = Queue(s, 2)
     eq(queue:match("^([%w_]+)"), "conflagrate", "Conflagrate next, on the Immolate being cast: " .. queue)
 end)
+
+-- After a spell lands, the game shows its DoT a moment later (or never, if
+-- it missed). Until the combat log says, it still counts as applied.
+local function Landed(s, spellName)
+    s:FireEvent("UNIT_SPELLCAST_SUCCEEDED", "player", spellName)
+end
+local function CombatLog(s, subevent, spellId, spellName)
+    local Mock = require("wowmock")
+    s:FireEvent("COMBAT_LOG_EVENT_UNFILTERED", s.time, subevent, Mock.PLAYER_GUID, "Me", Mock.FLAGS_ME,
+        "0xF130000000000099", "Mob", Mock.FLAGS_HOSTILE_NPC, spellId, spellName, 4, "MISS")
+end
+
+test("a DoT that just landed counts as up until the game shows it", function()
+    local s = Fight()
+    eq(Queue(s, 1), "immolate", "no Immolate")
+    Landed(s, "Immolate")
+    T.falsy(Queue(s, 1) == "immolate", "just landed: not again")
+    -- The hit in the combat log and the debuff arrive: the game's state takes over.
+    CombatLog(s, "SPELL_DAMAGE", 47811, "Immolate")
+    s:AddAura("target", { name = "Immolate", spellId = 47811, duration = 15, expires = s.time + 15, harmful = true })
+    s:Tick(0.2)
+    T.falsy(Queue(s, 1) == "immolate", "up for real")
+end)
+
+test("a DoT that missed is suggested again at once", function()
+    local s = Fight()
+    Landed(s, "Immolate")
+    T.falsy(Queue(s, 1) == "immolate", "just landed")
+    CombatLog(s, "SPELL_MISSED", 47811, "Immolate")
+    eq(Queue(s, 1), "immolate", "resisted: again")
+end)
+
+test("with no word from the combat log, it counts for a second at most", function()
+    local s = Fight()
+    Landed(s, "Immolate")
+    T.falsy(Queue(s, 1) == "immolate", "just landed")
+    s:Tick(1)
+    eq(Queue(s, 1), "immolate", "after the grace")
+end)

@@ -75,3 +75,24 @@ test("the display skips client calls when nothing changed", function()
     for _ = 1, 10 do s:Tick(0.1) end
     eq(calls, 0, "no SetTexture while the recommendation is unchanged")
 end)
+
+test("no garbage per update while a spell that just landed is applied", function()
+    local s = MidFight()
+    -- Only the updates are measured: the cast event itself goes through
+    -- Ace3's dispatch, once per cast.
+    local total, updates = 0, 0
+    for window = 1, 30 do
+        s:FireEvent("UNIT_SPELLCAST_SUCCEEDED", "player", "Icy Touch")
+        s:Tick(0.1)
+        collectgarbage("collect")
+        collectgarbage("stop")
+        local before = collectgarbage("count")
+        for _ = 1, 8 do s:Tick(0.1) end -- inside the 1 second grace
+        if window > 5 then -- after warming up
+            total, updates = total + (collectgarbage("count") - before), updates + 8
+        end
+        collectgarbage("restart")
+    end
+    local perUpdate = total * 1024 / updates
+    truthy(perUpdate < 16, ("%.1f bytes of garbage per update"):format(perUpdate))
+end)

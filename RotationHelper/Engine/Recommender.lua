@@ -62,6 +62,10 @@ function Recommender:OnEnable()
         "recommendations", function() RH.recommendations, RH.alternative = nil, nil end)
     -- A profile switch can change the custom rotations.
     self:RegisterMessage("ROTATIONHELPER_CONFIG_CHANGED", "Reset")
+    -- A spell that just landed (see ApplyLanded).
+    self.playerGUID = UnitGUID("player")
+    self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "OnSpellcastSucceeded")
+    self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "OnCombatLog")
 end
 
 -- Forgets compiled APLs, e.g. after a custom rotation was saved.
@@ -275,6 +279,72 @@ function Recommender:ApplyCurrentCast(v)
     end
 end
 
+---------------------------------------------------------------------------
+-- Just landed: between a spell landing (UNIT_SPELLCAST_SUCCEEDED) and the
+-- game showing its DoT on the target (or its travel time, Haunt) there's a
+-- moment where the prediction would suggest it again. So the last spell to
+-- land keeps counting as applied on the target for up to LANDED_GRACE
+-- seconds: until the combat log shows it hit (the game's own state has it
+-- then), or right away when it missed (resist, immune, ...), so a missed
+-- DoT is suggested again at once.
+---------------------------------------------------------------------------
+local LANDED_GRACE = 1
+local CONFIRM_DELAY = 0.1 -- after the combat log's hit, for the aura update to arrive
+local landed = { key = nil, name = nil, at = 0, confirmedAt = nil }
+local scratch -- a state copy to apply the landed spell to (State.NewCopy)
+
+local spellKeys = {} -- spell name -> ability key (spells that aren't channels)
+local function SpellKey(name)
+    if not name then return nil end
+    local key = spellKeys[name]
+    if key == nil then
+        key = false
+        for k, ability in pairs(RH.classData.abilities) do
+            if ability.id and ability.name == name and not ability.channel then key = k end
+        end
+        spellKeys[name] = key
+    end
+    return key or nil
+end
+
+function Recommender:OnSpellcastSucceeded(_, unit, spellName)
+    if unit ~= "player" then return end
+    local key = SpellKey(spellName)
+    if not key then return end
+    landed.key, landed.name, landed.at, landed.confirmedAt = key, spellName, GetTime(), nil
+end
+
+-- 3.3.5 args: timestamp, subevent, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellId, spellName
+function Recommender:OnCombatLog(_, _, subevent, srcGUID, _, _, _, _, _, _, spellName)
+    if not landed.key or spellName ~= landed.name or srcGUID ~= self.playerGUID then return end
+    if subevent == "SPELL_MISSED" then
+        landed.key = nil
+        RH:Invalidate()
+    elseif subevent ~= "SPELL_CAST_START" and subevent ~= "SPELL_CAST_SUCCESS" and subevent ~= "SPELL_CAST_FAILED"
+        and not landed.confirmedAt then
+        landed.confirmedAt = GetTime()
+    end
+end
+
+-- The landed spell's effect on the target and its cooldown, on state `v`.
+-- Applied to a scratch copy so nothing else (mana, procs used) counts twice:
+-- the game has already done those.
+function Recommender:ApplyLanded(v)
+    local key = landed.key
+    if not key then return end
+    local now = v.now
+    if now - landed.at > LANDED_GRACE or (landed.confirmedAt and now - landed.confirmedAt > CONFIRM_DELAY) then
+        landed.key = nil
+        return
+    end
+    scratch = scratch or State.NewCopy()
+    State.CopyInto(scratch, v)
+    Abilities.Apply(scratch, key, math.min(now, landed.at))
+    State.CopyAuras(v.debuffs, scratch.debuffs)
+    local cd, applied = v.cooldowns[key], scratch.cooldowns[key]
+    if cd and applied and applied.readyAt > cd.readyAt then cd.readyAt = applied.readyAt end
+end
+
 -- Predicts the next `count` actions from the current real state: pick an
 -- action, simulate using it on a virtual copy of the state, and repeat.
 -- Fills and returns the shared recommendations list (entries:
@@ -291,6 +361,7 @@ function Recommender:Predict(count, trace)
     if channelKey and v.castStart then
         self:ClipChannel(v, channelKey, v.castStart - (v.lookahead or 0))
     end
+    self:ApplyLanded(v)
     self:ApplyCurrentCast(v)
     for i = 1, math.min(count, MAX_PREDICTIONS) do
         local action, readyAt, limitedBy = self:Evaluate(v, i == 1 and trace or nil)
