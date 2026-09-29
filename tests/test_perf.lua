@@ -78,21 +78,22 @@ end)
 
 test("no garbage per update while a spell that just landed is applied", function()
     local s = MidFight()
-    -- Only the updates are measured: the cast event itself goes through
-    -- Ace3's dispatch, once per cast.
-    local total, updates = 0, 0
-    for window = 1, 30 do
-        s:FireEvent("UNIT_SPELLCAST_SUCCEEDED", "player", "Icy Touch")
-        s:Tick(0.1)
-        collectgarbage("collect")
-        collectgarbage("stop")
+    -- The cast event itself goes through Ace3's dispatch (once per cast);
+    -- it's measured separately and left out.
+    local eventKB = 0
+    local function Cycle()
         local before = collectgarbage("count")
-        for _ = 1, 8 do s:Tick(0.1) end -- inside the 1 second grace
-        if window > 5 then -- after warming up
-            total, updates = total + (collectgarbage("count") - before), updates + 8
-        end
-        collectgarbage("restart")
+        s:FireEvent("UNIT_SPELLCAST_SUCCEEDED", "player", "Icy Touch")
+        eventKB = eventKB + collectgarbage("count") - before
+        for _ = 1, 5 do s:Tick(0.1) end -- inside the 1 second grace
     end
-    local perUpdate = total * 1024 / updates
+    for _ = 1, 20 do Cycle() end -- warm up
+    collectgarbage("collect")
+    collectgarbage("stop")
+    eventKB = 0
+    local before = collectgarbage("count")
+    for _ = 1, 100 do Cycle() end
+    local perUpdate = (collectgarbage("count") - before - eventKB) * 1024 / 500
+    collectgarbage("restart")
     truthy(perUpdate < 16, ("%.1f bytes of garbage per update"):format(perUpdate))
 end)

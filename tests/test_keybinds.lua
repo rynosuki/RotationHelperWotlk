@@ -173,3 +173,25 @@ test("/rh keys lists what was found", function()
     T.truthy(s:ChatContains("Keybinds found for 1 spells"), "header")
     T.truthy(s:ChatContains("Obliterate: 3"), "the key")
 end)
+
+test("ElvUI: the button's own key text when the binding can't be found", function()
+    local s = newAddon()
+    s.env.ElvUI = {}
+    local b = s.env.CreateFrame("CheckButton", "ElvUI_Bar6Button6")
+    b._state_type, b._state_action = "action", 66
+    b.keyBoundTarget = "SOMECUSTOMCOMMAND6" -- not bound as far as we can see
+    b.HotKey = { GetText = function() return "AE" end }
+    local noKey = s.env.CreateFrame("CheckButton", "ElvUI_Bar6Button7")
+    noKey._state_type, noKey._state_action = "action", 67
+    noKey.HotKey = { GetText = function() return "\226\151\143" end } -- the range dot
+    s:PlaceSpell(66, 57623)
+    s:PlaceSpell(67, 51425)
+    s:FireEvent("UPDATE_BINDINGS")
+    eq(keybinds(s):Get("Horn of Winter"), "AE", "the key shown on the button")
+    eq(keybinds(s):Get("Obliterate"), nil, "a range dot isn't a key")
+    -- /rh keys says what it found on each ElvUI button.
+    s:Slash("ACECONSOLE_RH", "keys")
+    T.truthy(s:ChatContains("ElvUI buttons with a spell:"), "section")
+    T.truthy(s:ChatContains("Bar 6 button 6: Horn of Winter, bound through SOMECUSTOMCOMMAND6: AE"), "the button")
+    T.truthy(s:ChatContains("Bar 6 button 7: Obliterate, bound through MULTIACTIONBAR1BUTTON7: no key"), "no key")
+end)

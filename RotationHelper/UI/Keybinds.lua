@@ -115,24 +115,44 @@ local ELVUI_COMMANDS = {
     "ELVUIBAR9BUTTON", "ELVUIBAR10BUTTON",
 }
 
--- The key of an ElvUI button, or nil.
+-- The key text a button shows itself (ElvUI already abbreviates it), or
+-- nil. The range dot some bars show without a key doesn't count.
+local function HotKeyText(button)
+    local hotkey = button.HotKey or _G[button:GetName() .. "HotKey"]
+    local text = hotkey and hotkey.GetText and hotkey:GetText()
+    if not text or text == "" or text == RANGE_INDICATOR or not text:find("%w") then return nil end
+    return text
+end
+
+-- The key of an ElvUI button, or nil; and the binding command it's bound
+-- through (for /rh keys). The binding first; the button's own key text
+-- when the binding can't be found.
 local function ElvUIKey(button, bar, index)
     local target = button.keyBoundTarget or (button.config and button.config.keyBoundTarget)
         or (ELVUI_COMMANDS[bar] and ELVUI_COMMANDS[bar] .. index)
     local key = target and GetBindingKey(target)
     if not key then key = GetBindingKey("CLICK " .. button:GetName() .. ":LeftButton") end
-    return key
+    if key then return Keybinds.FormatKey(key), target end
+    local shown = HotKeyText(button)
+    return shown and shown:upper(), target
 end
 
-local function AddElvUI()
-    if not _G.ElvUI then return end -- ElvUI isn't loaded
+-- Reads ElvUI's bars. `report` (a table, for /rh keys) collects a line per
+-- button with a spell.
+local function AddElvUI(report)
+    if not (_G.ElvUI or _G.ElvUI_Bar1Button1) then return end -- ElvUI isn't loaded
     for bar = 1, ELVUI_BARS do
         for i = 1, ELVUI_BUTTONS do
             local button = _G["ElvUI_Bar" .. bar .. "Button" .. i]
-            if button and not (button.IsVisible and not button:IsVisible()) then
-                local key = ElvUIKey(button, bar, i)
-                local name = key and ButtonSpellName(button)
-                if name and not keyBySpell[name] then keyBySpell[name] = Keybinds.FormatKey(key) end
+            if button then
+                local visible = not (button.IsVisible and not button:IsVisible())
+                local key, target = ElvUIKey(button, bar, i)
+                local name = ButtonSpellName(button)
+                if name and key and visible and not keyBySpell[name] then keyBySpell[name] = key end
+                if report and name then
+                    report[#report + 1] = ("  Bar %d button %d: %s, bound through %s: %s%s"):format(bar, i, name,
+                        tostring(target), key or "no key", visible and "" or " (hidden)")
+                end
             end
         end
     end
@@ -171,7 +191,7 @@ function Keybinds:Rebuild()
             end
         end
     end
-    AddElvUI()
+    AddElvUI(self.report)
     dirty = false
 end
 
@@ -197,11 +217,18 @@ end
 
 -- /rh keys: every spell with a key, sorted, and which bar addon was seen.
 function RH:PrintKeybinds()
+    Keybinds.report = {}
     Keybinds:Rebuild()
+    local report = Keybinds.report
+    Keybinds.report = nil
     local names = {}
     for name in pairs(keyBySpell) do names[#names + 1] = name end
     table.sort(names)
-    self:Print(("Keybinds found for %d spells%s:"):format(#names, _G.ElvUI and " (ElvUI bars read)" or ""))
+    self:Print(("Keybinds found for %d spells:"):format(#names))
     for _, name in ipairs(names) do print("  " .. name .. ": " .. keyBySpell[name]) end
     if #names == 0 then print("  none: is the spell on a bar with a key bound to it?") end
+    if #report > 0 then
+        print("ElvUI buttons with a spell:")
+        for _, line in ipairs(report) do print(line) end
+    end
 end
