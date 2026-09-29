@@ -20,7 +20,7 @@ If something is off: `/rh report` right when it happens, and paste it into a
       boss name) unless that's turned off.
 - [ ] After a fight of 20+ seconds, `/rh review` has sensible numbers.
 - [ ] If the spec has settings (Rotation tab > Settings), changing one changes the icons right away.
-- [ ] While casting, the big icon shows your cast (greyed, sweep, time left) and the next spell has a gold border; after the cast it moves back to the big icon.
+- [ ] While casting, the spell being cast slides out to the left of the big icon and shrinks until it lands; the big icon shows what comes next, counting down to the end of the cast.
 
 ## Per spec
 

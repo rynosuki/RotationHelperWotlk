@@ -404,11 +404,9 @@ function Options:BuildOptionsTable()
                 desc = "CD / AoE mode / enemy count under the main icon." },
             pressFlash = { type = "toggle", name = "Flash when it's time to press", order = 23,
                 desc = "Briefly brighten the main icon the moment its ability can be pressed." },
-            castSlot = { type = "toggle", name = "Show your cast on the main icon", order = 23.5,
-                desc = "While you cast or channel, the main icon shows that spell with its progress, and "
-                    .. "the next one to press moves to the first queue icon (gold border). Not in timeline "
-                    .. "mode, and needs at least 2 icons.",
-                disabled = function() return RH.db.profile.display.timeline or RH.db.profile.display.numIcons < 2 end },
+            castSlot = { type = "toggle", name = "Show the spell you're casting", order = 23.5,
+                desc = "While you cast or channel, that spell slides out beside the main icon and shrinks "
+                    .. "until it lands. The main icon stays what to press next." },
             interrupt = { type = "toggle", name = "Interrupt icon", order = 24,
                 desc = "A separate icon above the main one while your target casts something interruptible." },
             shiftInteract = { type = "toggle", name = "Shift: tooltips and clickable toggles", order = 25,

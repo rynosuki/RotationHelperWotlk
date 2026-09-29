@@ -59,7 +59,7 @@ spec.
 | Small icons | The predicted next abilities, in order. |
 | Sweep on the big icon | Not usable yet (GCD, cooldown, resources). It flashes the moment you can press it. |
 | `RUNES` / `RAGE` / `ENERGY` / `COOLDOWN` / `CAST` / `AUTO` / `WAIT` on the big icon | It's more than a GCD away; this is what it waits on. |
-| Greyed big icon with seconds, small icon with a gold border | You're casting or channelling: the big icon is your cast and its time left, the gold-bordered icon is what to press next. |
+| Icon sliding out to the left of the big one, shrinking | The spell you're casting or channelling, with its time left; it's gone when the cast lands. The big icon is still what to press next (the same spell again if that's what comes next). |
 | Golden glow | That ability spends a proc (Killing Machine, Hot Streak, Bloodsurge, ...). |
 | Proc icon in the corner | That proc is *why* the ability is recommended now. |
 | Blue icon | Waiting on runes (Death Knights). |
