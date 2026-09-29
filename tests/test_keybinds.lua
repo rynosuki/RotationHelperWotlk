@@ -63,6 +63,40 @@ test("bar addons: action slot from the secure attribute", function()
     eq(keybinds(s):Get("Frost Strike"), "E", "attribute slot")
 end)
 
+test("ElvUI: override bindings through the hidden Blizzard buttons' commands", function()
+    local s = newAddon()
+    s.env.ElvUI = {}
+    -- ElvUI hides the Blizzard bars; the keys stay on their commands.
+    local blizzard = s.env.CreateFrame("CheckButton", "ActionButton3")
+    blizzard.action = 3
+    blizzard:Hide()
+    local function Elv(bar, i, slot, target)
+        local b = s.env.CreateFrame("CheckButton", ("ElvUI_Bar%dButton%d"):format(bar, i))
+        b._state_type, b._state_action = "action", slot
+        b.keyBoundTarget = target
+        return b
+    end
+    Elv(1, 3, 3, "ACTIONBUTTON3")
+    Elv(2, 1, 13, "ELVUIBAR2BUTTON1")
+    Elv(3, 2, 26, nil) -- no keyBoundTarget: ElvUI's default command for bar 3
+    local spellButton = Elv(4, 1, nil, "MULTIACTIONBAR4BUTTON1")
+    spellButton._state_type, spellButton._state_action = "spell", 49909
+    local hidden = Elv(5, 1, 50, "MULTIACTIONBAR2BUTTON1")
+    hidden:Hide()
+    s:PlaceSpell(3, 51425, "ACTIONBUTTON3", "3")
+    s:PlaceSpell(13, 55268, "ELVUIBAR2BUTTON1", "SHIFT-1")
+    s:PlaceSpell(26, 51411, "MULTIACTIONBAR3BUTTON2", "CTRL-Q")
+    s:PlaceSpell(50, 45529, "MULTIACTIONBAR2BUTTON1", "F")
+    s.bindings.MULTIACTIONBAR4BUTTON1 = "G"
+    s:FireEvent("UPDATE_BINDINGS")
+    local K = keybinds(s)
+    eq(K:Get("Obliterate"), "3", "bar 1 via ACTIONBUTTON3")
+    eq(K:Get("Frost Strike"), "S1", "bar 2's own command")
+    eq(K:Get("Howling Blast"), "CQ", "default command when the button doesn't say")
+    eq(K:Get("Icy Touch"), "G", "a spell state")
+    falsy(K:Get("Blood Tap"), "hidden bar skipped")
+end)
+
 test("DragonUI-style extra bar buttons with a spell or macro attribute", function()
     local s = newAddon()
     local spellButton = s.env.CreateFrame("CheckButton", "DragonUIExtraBarButton1")
@@ -130,4 +164,12 @@ test("binding changes rebuild the map", function()
     eq(K:Get("Obliterate"), "3", "cached until an event")
     s:FireEvent("UPDATE_BINDINGS")
     eq(K:Get("Obliterate"), "R", "after UPDATE_BINDINGS")
+end)
+
+test("/rh keys lists what was found", function()
+    local s = newAddon()
+    s:PlaceSpell(3, 51425, "ACTIONBUTTON3", "3")
+    s:Slash("ACECONSOLE_RH", "keys")
+    T.truthy(s:ChatContains("Keybinds found for 1 spells"), "header")
+    T.truthy(s:ChatContains("Obliterate: 3"), "the key")
 end)

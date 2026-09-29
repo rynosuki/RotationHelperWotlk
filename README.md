@@ -138,6 +138,7 @@ update as soon as one happens.
 | `/rh perf` | Show what the addon costs in CPU and memory. `/rh perf reset` starts over. |
 | `/rh errors` | Show recorded addon errors (a red "!" next to the icons means there are new ones). `/rh errors clear` empties the list. |
 | `/rh report` | A bug report to copy into a GitHub issue. |
+| `/rh keys` | The keybinds found for your spells; to check bar addons such as ElvUI. |
 | `/rh version` | Your version, and whether a newer one has been seen. |
 | `/rh status` | Print the current settings. |
 | `/rh help` | List the commands. |

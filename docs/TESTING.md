@@ -11,6 +11,7 @@ If something is off: `/rh report` right when it happens, and paste it into a
 
 - [ ] At a training dummy, the icons follow what you press; the queue makes sense.
 - [ ] `/rh snapshot` lists your talents and glyphs, and no abilities you have as "Not in spellbook".
+- [ ] The keybinds show on the icons (with ElvUI, Bartender or Dominos too); `/rh keys` lists what was found.
 - [ ] Procs light up (glow and corner icon) when they happen. If one never does, its spell ID is
       probably wrong: note the buff's name and, if you can, its ID.
 - [ ] Short on resources, the icon counts down (RUNES / RAGE / ENERGY / CAST / AUTO) and the flash

@@ -9,6 +9,11 @@ local RH = ns.RH
 --     attribute, says what it casts.
 --   - Blizzard bar commands (ACTIONBUTTON3, MULTIACTIONBAR1BUTTON2, ...):
 --     mapped to the Blizzard button and its current action.
+--   - ElvUI: its keys are override bindings, which the binding list doesn't
+--     show. The key stays on a command (ACTIONBUTTON1, ELVUIBAR2BUTTON1,
+--     MULTIACTIONBAR3BUTTON1, ...) whose Blizzard button ElvUI hides, so its
+--     buttons (ElvUI_Bar1Button1, ...) are read directly: each names that
+--     command as its keyBoundTarget.
 -- Buttons that exist but are hidden (e.g. Blizzard bars replaced by a bar
 -- addon) are skipped. The map is rebuilt lazily after any bar or binding change.
 local Keybinds = RH:NewModule("Keybinds", "AceEvent-3.0")
@@ -16,7 +21,7 @@ ns.Keybinds = Keybinds
 
 local GetActionInfo, GetSpellInfo = GetActionInfo, GetSpellInfo
 local GetSpellName, GetMacroSpell = GetSpellName, GetMacroSpell
-local GetNumBindings, GetBinding = GetNumBindings, GetBinding
+local GetNumBindings, GetBinding, GetBindingKey = GetNumBindings, GetBinding, GetBindingKey
 local wipe, tonumber, type = wipe, tonumber, type
 
 -- Blizzard binding command prefix -> button name prefix and first action slot.
@@ -88,12 +93,52 @@ local function ButtonSpellName(button)
         local macro = Attribute(button, "macro")
         return macro and (GetMacroSpell(macro))
     end
+    -- LibActionButton (ElvUI): the current state's type and action.
+    if button._state_type == "spell" then
+        local spell = button._state_action
+        if type(spell) == "number" then return (GetSpellInfo(spell)) end
+        return spell
+    elseif button._state_type == "item" then
+        return nil
+    end
     local slot = tonumber(button.action or button._state_action or Attribute(button, "action"))
     return slot and SlotSpellName(slot)
 end
 
--- The spell a binding command casts, or nil. A nil second return means the
--- binding points at a hidden button and should be ignored.
+-- ElvUI's bars and the binding command of each (its defaults, used when a
+-- button doesn't say): bar N button I is bound through PREFIX .. I.
+local ELVUI_BARS = 10
+local ELVUI_BUTTONS = 12
+local ELVUI_COMMANDS = {
+    "ACTIONBUTTON", "ELVUIBAR2BUTTON", "MULTIACTIONBAR3BUTTON", "MULTIACTIONBAR4BUTTON",
+    "MULTIACTIONBAR2BUTTON", "MULTIACTIONBAR1BUTTON", "ELVUIBAR7BUTTON", "ELVUIBAR8BUTTON",
+    "ELVUIBAR9BUTTON", "ELVUIBAR10BUTTON",
+}
+
+-- The key of an ElvUI button, or nil.
+local function ElvUIKey(button, bar, index)
+    local target = button.keyBoundTarget or (button.config and button.config.keyBoundTarget)
+        or (ELVUI_COMMANDS[bar] and ELVUI_COMMANDS[bar] .. index)
+    local key = target and GetBindingKey(target)
+    if not key then key = GetBindingKey("CLICK " .. button:GetName() .. ":LeftButton") end
+    return key
+end
+
+local function AddElvUI()
+    if not _G.ElvUI then return end -- ElvUI isn't loaded
+    for bar = 1, ELVUI_BARS do
+        for i = 1, ELVUI_BUTTONS do
+            local button = _G["ElvUI_Bar" .. bar .. "Button" .. i]
+            if button and not (button.IsVisible and not button:IsVisible()) then
+                local key = ElvUIKey(button, bar, i)
+                local name = key and ButtonSpellName(button)
+                if name and not keyBySpell[name] then keyBySpell[name] = Keybinds.FormatKey(key) end
+            end
+        end
+    end
+end
+
+-- The spell a binding command casts, or nil (also for a hidden button).
 local function CommandSpellName(command)
     local buttonName = command:match("^CLICK (.+):[%w]+$")
     if buttonName then
@@ -126,6 +171,7 @@ function Keybinds:Rebuild()
             end
         end
     end
+    AddElvUI()
     dirty = false
 end
 
@@ -147,4 +193,15 @@ function Keybinds:OnEnable()
     self:RegisterEvent("UPDATE_BONUS_ACTIONBAR", "MarkDirty")
     self:RegisterEvent("UPDATE_MACROS", "MarkDirty")
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "MarkDirty")
+end
+
+-- /rh keys: every spell with a key, sorted, and which bar addon was seen.
+function RH:PrintKeybinds()
+    Keybinds:Rebuild()
+    local names = {}
+    for name in pairs(keyBySpell) do names[#names + 1] = name end
+    table.sort(names)
+    self:Print(("Keybinds found for %d spells%s:"):format(#names, _G.ElvUI and " (ElvUI bars read)" or ""))
+    for _, name in ipairs(names) do print("  " .. name .. ": " .. keyBySpell[name]) end
+    if #names == 0 then print("  none: is the spell on a bar with a key bound to it?") end
 end
