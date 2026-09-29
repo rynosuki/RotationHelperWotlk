@@ -422,7 +422,7 @@ function Mock.NewSession(opts)
         [63848] = { "Hunger For Blood", "i" }, [14177] = { "Cold Blood", "i" }, [57970] = { "Deadly Poison", "i" },
         [43104] = { "Deep Wounds", "i" }, [48676] = { "Garrote", "i" }, [48574] = { "Rake", "i" }, [49800] = { "Rip", "i" },
         [48568] = { "Lacerate", "i" },
-        [26889] = { "Vanish", "i" }, [58427] = { "Overkill", "i" },
+        [26889] = { "Vanish", "i" }, [58427] = { "Overkill", "i" }, [1784] = { "Stealth", "i" },
         [48660] = { "Hemorrhage", "i" }, [48657] = { "Backstab", "i" }, [48691] = { "Ambush", "i" },
         [14183] = { "Premeditation", "i" }, [51713] = { "Shadow Dance", "i" },
         [768] = { "Cat Form", "i" }, [48566] = { "Mangle (Cat)", "i" }, [48564] = { "Mangle (Bear)", "i" },
@@ -583,17 +583,18 @@ function Mock.NewSession(opts)
     env.UnitClassification = function(unit) return unit == "target" and session.target.classification or "normal" end
     -- The target's cast/channel: session.targetCast / targetChannel =
     -- { name, endsIn = seconds, notInterruptible }. The player never casts here.
+    -- The player's cast: session.playerCast = { name, startedAgo, endsIn, icon }.
     env.UnitCastingInfo = function(unit)
-        local c = unit == "target" and session.targetCast
+        local c = unit == "target" and session.targetCast or unit == "player" and session.playerCast
         if not c then return nil end
-        return c.name, "", c.name, "icon", session.time * 1000, (session.time + c.endsIn) * 1000, false, 1,
-            c.notInterruptible
+        return c.name, "", c.name, c.icon or "icon", (session.time - (c.startedAgo or 0)) * 1000,
+            (session.time + c.endsIn) * 1000, false, 1, c.notInterruptible
     end
     -- The player's channel: session.playerChannel = { name, startedAgo, endsIn }.
     env.UnitChannelInfo = function(unit)
         local c = unit == "target" and session.targetChannel or unit == "player" and session.playerChannel
         if not c then return nil end
-        return c.name, "", c.name, "icon", (session.time - (c.startedAgo or 0)) * 1000,
+        return c.name, "", c.name, c.icon or "icon", (session.time - (c.startedAgo or 0)) * 1000,
             (session.time + c.endsIn) * 1000, false, c.notInterruptible
     end
     env.GetUnitSpeed = function() return session.speed or 0 end

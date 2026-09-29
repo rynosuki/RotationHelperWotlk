@@ -57,6 +57,7 @@ local SUITES = {
     "test_versioncheck",
     "test_report",
     "test_apl_options",
+    "test_castslot",
     "test_consumables",
 }
 

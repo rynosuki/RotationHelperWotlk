@@ -47,6 +47,7 @@ end
 
 function Display:ShowTooltip(b, index)
     local entries = self:GetEntries()
+    index = index - (self.offset or 0) -- the main icon may be showing your cast
     local entry = entries and entries[index]
     if not entry then return end
     GameTooltip:SetOwner(b, "ANCHOR_RIGHT")

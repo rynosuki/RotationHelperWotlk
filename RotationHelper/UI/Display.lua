@@ -8,6 +8,12 @@ local RH = ns.RH
 --   { spellId = 51425, wait = 0.4, lacksResources = false }
 -- `wait` is seconds until the action is usable and drives the cooldown
 -- swipe on the main icon.
+--
+-- While you cast or channel (display.castSlot), the main icon shows that
+-- spell, greyed, with its progress and time left, and everything moves one
+-- icon along: the first queue icon (gold border) is what to press next,
+-- with the countdown and the flash. Display.offset is 1 then, else 0, and
+-- Display.primary is the icon of the next action.
 local Display = RH:NewModule("Display", "AceEvent-3.0")
 ns.Display = Display
 
@@ -30,6 +36,8 @@ local CHIP_GAP = 6
 Display.PROC_SOUNDS = { none = "None", MapPing = "Ping", RaidWarning = "Raid warning", ReadyCheck = "Ready check" }
 
 local TINT_NORMAL = { 1, 1, 1 }
+local TINT_CASTING = { 0.55, 0.55, 0.55 }
+local NEXT_BORDER = { 1, 0.82, 0 }
 
 -- Color presets for the configurable colors (profile.display.colors).
 -- The color-blind friendly one uses the Okabe-Ito palette, whose colors
@@ -189,6 +197,16 @@ function Display.CreateButton(parent, name, large)
     badge:Hide()
     b.badge = badge
 
+    -- "Next" border: the icon of the next action while the main icon shows
+    -- your cast.
+    local nextBorder = CreateFrame("Frame", nil, b.overlay)
+    nextBorder:SetPoint("TOPLEFT", -2, 2)
+    nextBorder:SetPoint("BOTTOMRIGHT", 2, -2)
+    nextBorder:SetBackdrop({ edgeFile = WHITE, edgeSize = 2 })
+    nextBorder:SetBackdropBorderColor(NEXT_BORDER[1], NEXT_BORDER[2], NEXT_BORDER[3], 1)
+    nextBorder:Hide()
+    b.nextBorder = nextBorder
+
     -- Hold label: what the main icon waits on (RUNES, COOLDOWN, ...).
     b.hold = b.overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     b.hold:SetPoint("BOTTOM", b, "BOTTOM", 0, 2)
@@ -294,33 +312,38 @@ function Display:CreateFrames()
 end
 
 function Display:StartFlash(b, now)
-    -- Only the main icon animates its flash.
-    if b == self.buttons[1] and self.db.pressFlash and b:IsShown() then b.flashStart = now end
+    -- Only the icon of the next action flashes.
+    if b == self.primary and self.db.pressFlash and b:IsShown() then b.flashStart = now end
+end
+
+local function AnimateFlash(b, now)
+    local start = b.flashStart
+    if not start then return end
+    local t = now - start
+    if t >= FLASH_DURATION then
+        b.flash:Hide()
+        b.flashStart = nil
+    else
+        b.flash:SetAlpha(FLASH_ALPHA * (1 - t / FLASH_DURATION))
+        b.flash:Show()
+    end
 end
 
 -- Flashes the main icon when its predicted ready time is reached, and
 -- pulses the waste warning.
 function Display:Animate(now)
     self:UpdateMouseMode()
-    local b = self.buttons[1]
-    if b.warn:IsShown() then
-        b.warn:SetAlpha(0.35 + 0.65 * abs(math.sin(now * WARN_PULSE_SPEED)))
+    local main = self.buttons[1]
+    if main.warn:IsShown() then
+        main.warn:SetAlpha(0.35 + 0.65 * abs(math.sin(now * WARN_PULSE_SPEED)))
     end
+    local b = self.primary or main
     if b.readyAt and now >= b.readyAt then
         b.readyAt = nil
         self:StartFlash(b, now)
     end
-    local start = b.flashStart
-    if start then
-        local t = now - start
-        if t >= FLASH_DURATION then
-            b.flash:Hide()
-            b.flashStart = nil
-        else
-            b.flash:SetAlpha(FLASH_ALPHA * (1 - t / FLASH_DURATION))
-            b.flash:Show()
-        end
-    end
+    AnimateFlash(main, now)
+    AnimateFlash(self.buttons[2], now)
 end
 
 ---------------------------------------------------------------------------
@@ -417,6 +440,10 @@ local function SetKeyText(b, text)
 end
 
 function Display:UpdateButton(b, entry, isMain, now)
+    if b.castStart then -- it showed your cast until now
+        b.castStart = nil
+        b.cooldown:Hide()
+    end
     local info = entry.itemID and ItemInfo(entry) or SpellInfo(entry.spellId)
     SetIcon(b, info.icon)
     SetKeyText(b, ns.Keybinds:Get(info.name) or "")
@@ -483,13 +510,25 @@ function Display:Refresh()
 
     local now = GetTime()
     local count = self.db.numIcons
+    local offset = self:ShowsCast(entries) and 1 or 0
+    self.offset = offset
+    local primary = self.buttons[1 + offset]
+    if self.primary ~= primary then
+        -- The next action moved: no flash left on the icon it was on.
+        local old = self.primary
+        if old then old.flashStart = nil; old.flash:Hide() end
+        self.primary = primary
+    end
     for i, b in ipairs(self.buttons) do
-        local entry = entries and i <= count and entries[i]
-        if entry then
-            self:UpdateButton(b, entry, i == 1, now)
+        local entry = entries and i <= count and entries[i - offset]
+        if offset == 1 and i == 1 then
+            self:UpdateCastButton(b, now)
+        elseif entry then
+            self:UpdateButton(b, entry, b == primary, now)
         else
             b:Hide()
         end
+        if offset == 1 and i == 2 and entry then b.nextBorder:Show() else b.nextBorder:Hide() end
     end
 
     local showLabel = not self.db.locked
@@ -512,6 +551,54 @@ function Display:Refresh()
     self:UpdateExtras(entries, count, now)
     self:UpdateStatus()
     self.frame:Show()
+end
+
+---------------------------------------------------------------------------
+-- Your cast on the main icon
+---------------------------------------------------------------------------
+-- Whether the main icon shows your cast: casting or channelling for real,
+-- with recommendations to show beside it (not the sample icons, not in
+-- timeline mode, and with room for at least one more icon).
+function Display:ShowsCast(entries)
+    local d = self.db
+    if not (d.castSlot and entries and d.numIcons >= 2 and not d.timeline and not self.testMode) then return false end
+    if entries ~= RH.recommendations then return false end
+    local s = ns.State.real
+    return s.castName ~= nil and s.castStart ~= nil and (s.castDuration or 0) > 0
+        and (s.realCastRemains or s.castRemains or 0) > 0
+end
+
+-- "0.8": the cast's time left, cached per tenth of a second.
+local tenths = {}
+local function TenthsText(seconds)
+    local n = math.floor(seconds * 10 + 0.5)
+    local text = tenths[n]
+    if not text then
+        text = ("%.1f"):format(n / 10)
+        tenths[n] = text
+    end
+    return text
+end
+
+function Display:UpdateCastButton(b, now)
+    local s = ns.State.real
+    SetIcon(b, s.castIcon or SpellInfo(0).icon)
+    SetKeyText(b, "")
+    Tint(b, TINT_CASTING)
+    -- The swipe runs with the cast; set again only for a new cast.
+    if b.castStart ~= s.castStart then
+        b.castStart = s.castStart
+        b.cooldown:Show()
+        b.cooldown:SetCooldown(s.castStart, s.castDuration)
+    end
+    b.readyAt, b.readySpell = nil, nil
+    local text = TenthsText(math.max(0, s.castStart + s.castDuration - now))
+    if b.holdText ~= text then
+        b.holdText = text
+        b.hold:SetText(text)
+    end
+    b.hold:Show()
+    b:Show()
 end
 
 local AOE_LABELS = { single = "ST", aoe = "AOE" }
@@ -700,8 +787,9 @@ end
 
 function Display:UpdateProcs(entries, count)
     local glowOn, badgeOn = self.db.procGlow, self.db.procBadge
+    local offset = self.offset or 0
     for i, b in ipairs(self.buttons) do
-        local entry = entries and i <= count and entries[i]
+        local entry = entries and i <= count and entries[i - offset]
         local shown = entry and b:IsShown()
         if glowOn and shown and entry.usesProc then b.glow:Show() else b.glow:Hide() end
         local reason = badgeOn and shown and entry.procReason

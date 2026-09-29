@@ -82,6 +82,7 @@ what's planned.
 | Big icon | The ability to use next. |
 | Small icons | The predicted next abilities, in order. |
 | Cooldown swipe on the big icon | The ability isn't usable yet: GCD, cooldown or runes. Auto attack until the swipe finishes. |
+| Greyed big icon with a sweep and seconds, first small icon with a gold border | You are casting or channelling: the big icon is your cast and its time left, and the gold-bordered icon is what to press next (it counts down and flashes). Display > "Show your cast on the main icon" turns this off. |
 | Big icon flashes | Press it now. With latency compensation (General options) the flash comes slightly before the GCD ends, as soon as the client would queue your press. |
 | Red `!` left of the icons | The addon hit an error; see `/rh errors`. |
 | Pulsing orange border, `RUNES` / `RP` / `ENERGY` / `RAGE` on the status line | Resources are going to waste right now: a rune pair is full, or your runic power, energy or rage is near the cap. |
