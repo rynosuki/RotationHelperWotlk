@@ -93,25 +93,31 @@ local function ButtonSpellName(button)
         local macro = Attribute(button, "macro")
         return macro and (GetMacroSpell(macro))
     end
-    -- LibActionButton (ElvUI): the current state's type and action.
-    if button._state_type == "spell" then
+    -- LibActionButton (ElvUI): the current state's type and action. It
+    -- sets button.action to 0 on every button, so that isn't the slot.
+    local stateType = button._state_type
+    if stateType == "action" then
+        local slot = tonumber(button._state_action)
+        return slot and slot > 0 and SlotSpellName(slot) or nil
+    elseif stateType == "spell" then
         local spell = button._state_action
         if type(spell) == "number" then return (GetSpellInfo(spell)) end
         return spell
-    elseif button._state_type == "item" then
-        return nil
+    elseif stateType then
+        return nil -- empty, item, custom (ElvUI's vehicle exit button)
     end
-    local slot = tonumber(button.action or button._state_action or Attribute(button, "action"))
-    return slot and SlotSpellName(slot)
+    local slot = tonumber(button.action)
+    if not slot or slot < 1 then slot = tonumber(Attribute(button, "action")) end
+    return slot and slot > 0 and SlotSpellName(slot) or nil
 end
 
--- ElvUI's bars and the binding command of each (its defaults, used when a
--- button doesn't say): bar N button I is bound through PREFIX .. I.
+-- ElvUI's bars and the binding command of each (ElvUI-WotLK's defaults,
+-- used when a button doesn't say): bar N button I is bound through PREFIX .. I.
 local ELVUI_BARS = 10
 local ELVUI_BUTTONS = 12
 local ELVUI_COMMANDS = {
-    "ACTIONBUTTON", "ELVUIBAR2BUTTON", "MULTIACTIONBAR3BUTTON", "MULTIACTIONBAR4BUTTON",
-    "MULTIACTIONBAR2BUTTON", "MULTIACTIONBAR1BUTTON", "ELVUIBAR7BUTTON", "ELVUIBAR8BUTTON",
+    "ACTIONBUTTON", "MULTIACTIONBAR2BUTTON", "MULTIACTIONBAR1BUTTON", "MULTIACTIONBAR4BUTTON",
+    "MULTIACTIONBAR3BUTTON", "ELVUIBAR6BUTTON", "ELVUIBAR7BUTTON", "ELVUIBAR8BUTTON",
     "ELVUIBAR9BUTTON", "ELVUIBAR10BUTTON",
 }
 

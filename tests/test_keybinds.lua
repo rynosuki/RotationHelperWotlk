@@ -70,30 +70,42 @@ test("ElvUI: override bindings through the hidden Blizzard buttons' commands", f
     local blizzard = s.env.CreateFrame("CheckButton", "ActionButton3")
     blizzard.action = 3
     blizzard:Hide()
+    -- Buttons as ElvUI-WotLK's LibActionButton makes them: button.action
+    -- is 0 on all of them, the slot is the state's action.
     local function Elv(bar, i, slot, target)
         local b = s.env.CreateFrame("CheckButton", ("ElvUI_Bar%dButton%d"):format(bar, i))
+        b.action = 0
+        b:SetAttribute("type", "action")
         b._state_type, b._state_action = "action", slot
         b.keyBoundTarget = target
         return b
     end
+    -- ElvUI-WotLK's commands: bar 2 MULTIACTIONBAR2BUTTON, bar 3
+    -- MULTIACTIONBAR1BUTTON, bar 6 ELVUIBAR6BUTTON.
     Elv(1, 3, 3, "ACTIONBUTTON3")
-    Elv(2, 1, 13, "ELVUIBAR2BUTTON1")
+    Elv(2, 1, 13, "MULTIACTIONBAR2BUTTON1")
     Elv(3, 2, 26, nil) -- no keyBoundTarget: ElvUI's default command for bar 3
     local spellButton = Elv(4, 1, nil, "MULTIACTIONBAR4BUTTON1")
     spellButton._state_type, spellButton._state_action = "spell", 49909
-    local hidden = Elv(5, 1, 50, "MULTIACTIONBAR2BUTTON1")
+    local hidden = Elv(5, 1, 50, "MULTIACTIONBAR3BUTTON1")
     hidden:Hide()
+    Elv(6, 6, 66, "ELVUIBAR6BUTTON6")
+    local exit = Elv(1, 12, 12, "ACTIONBUTTON12")
+    exit._state_type, exit._state_action = "custom", {} -- the vehicle exit button
     s:PlaceSpell(3, 51425, "ACTIONBUTTON3", "3")
-    s:PlaceSpell(13, 55268, "ELVUIBAR2BUTTON1", "SHIFT-1")
-    s:PlaceSpell(26, 51411, "MULTIACTIONBAR3BUTTON2", "CTRL-Q")
-    s:PlaceSpell(50, 45529, "MULTIACTIONBAR2BUTTON1", "F")
+    s:PlaceSpell(13, 55268, "MULTIACTIONBAR2BUTTON1", "SHIFT-1")
+    s:PlaceSpell(26, 51411, "MULTIACTIONBAR1BUTTON2", "CTRL-Q")
+    s:PlaceSpell(50, 45529, "MULTIACTIONBAR3BUTTON1", "F")
+    s:PlaceSpell(66, 57623, "ELVUIBAR6BUTTON6", "ALT-E")
+    s:PlaceSpell(12, 49184, "ACTIONBUTTON12", "=")
     s.bindings.MULTIACTIONBAR4BUTTON1 = "G"
     s:FireEvent("UPDATE_BINDINGS")
     local K = keybinds(s)
     eq(K:Get("Obliterate"), "3", "bar 1 via ACTIONBUTTON3")
-    eq(K:Get("Frost Strike"), "S1", "bar 2's own command")
+    eq(K:Get("Frost Strike"), "S1", "bar 2")
     eq(K:Get("Howling Blast"), "CQ", "default command when the button doesn't say")
     eq(K:Get("Icy Touch"), "G", "a spell state")
+    eq(K:Get("Horn of Winter"), "AE", "bar 6's own command")
     falsy(K:Get("Blood Tap"), "hidden bar skipped")
 end)
 
@@ -178,10 +190,12 @@ test("ElvUI: the button's own key text when the binding can't be found", functio
     local s = newAddon()
     s.env.ElvUI = {}
     local b = s.env.CreateFrame("CheckButton", "ElvUI_Bar6Button6")
+    b.action = 0
     b._state_type, b._state_action = "action", 66
     b.keyBoundTarget = "SOMECUSTOMCOMMAND6" -- not bound as far as we can see
     b.HotKey = { GetText = function() return "AE" end }
     local noKey = s.env.CreateFrame("CheckButton", "ElvUI_Bar6Button7")
+    noKey.action = 0
     noKey._state_type, noKey._state_action = "action", 67
     noKey.HotKey = { GetText = function() return "\226\151\143" end } -- the range dot
     s:PlaceSpell(66, 57623)
@@ -193,5 +207,5 @@ test("ElvUI: the button's own key text when the binding can't be found", functio
     s:Slash("ACECONSOLE_RH", "keys")
     T.truthy(s:ChatContains("ElvUI buttons with a spell:"), "section")
     T.truthy(s:ChatContains("Bar 6 button 6: Horn of Winter, bound through SOMECUSTOMCOMMAND6: AE"), "the button")
-    T.truthy(s:ChatContains("Bar 6 button 7: Obliterate, bound through MULTIACTIONBAR1BUTTON7: no key"), "no key")
+    T.truthy(s:ChatContains("Bar 6 button 7: Obliterate, bound through ELVUIBAR6BUTTON7: no key"), "no key")
 end)
