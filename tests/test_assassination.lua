@@ -3,8 +3,8 @@
 local T = require("testlib")
 local test, eq, truthy, falsy, newAddon = T.test, T.eq, T.truthy, T.falsy, T.newAddon
 
-local SPELLS = { "Mutilate", "Envenom", "Hunger for Blood", "Cold Blood", "Slice and Dice", "Rupture", "Eviscerate",
-    "Kick", "Sinister Strike", "Vanish" }
+local SPELLS = { "Mutilate", "Garrote", "Envenom", "Hunger for Blood", "Cold Blood", "Slice and Dice", "Rupture",
+    "Eviscerate", "Kick", "Sinister Strike", "Vanish" }
 
 local function near(actual, expected, what, tolerance)
     if type(actual) ~= "number" or math.abs(actual - expected) > (tolerance or 1e-6) then
@@ -58,15 +58,24 @@ test("assassination: the rotation loads cleanly", function()
     eq(#RH.errors, 0, "no errors while running (" .. tostring(RH.errors[1] and RH.errors[1].message) .. ")")
 end)
 
-test("Mutilate builds 2 points; Envenom at 4+", function()
+test("Mutilate builds 2 points; Envenom at 3+ by default and refreshes before expiry", function()
     local s = Fight({ setUp = true, combo = 2 })
     eq(Queue(s, 1), "mutilate", "2 points")
     s.ns.State:Reset()
     local st = s.ns.State:Virtual()
     s.ns.Abilities.Apply(st, "mutilate", st.now)
     eq(st.comboPoints, 4, "4 points")
-    s.combo = 4
-    eq(Queue(s, 1), "envenom", "4 points")
+    s.combo = 3
+    eq(Queue(s, 1), "envenom", "3 points by default")
+    s.combo = 3
+    s:AddAura("player", { name = "Envenom", spellId = 57993, duration = 1, expires = s.time + 0.4 })
+    eq(Queue(s, 1), "envenom", "refresh before Envenom expires")
+end)
+
+test("assassination opener: Garrote from stealth when no bleed is active", function()
+    local s = Fight({ combo = 0 })
+    s:AddAura("player", { name = "Stealth", spellId = 1784, duration = 15, expires = s.time + 10 })
+    eq(Queue(s, 1), "garrote", "stealth opener")
 end)
 
 test("Hunger for Blood needs a bleed: Rupture when there's none", function()

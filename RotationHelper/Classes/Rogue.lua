@@ -86,6 +86,9 @@ ns.RegisterClass("ROGUE", {
         kick = { id = 1766, energy = 25, cooldown = 10, offGcd = true },
 
         -- Assassination
+        -- Garrote is the stealth opener when no bleed is present; 1 combo point and a bleed debuff.
+        garrote = { id = 48676, comboGain = 1, energyCost = function(spec) return 45 end,
+            apply = function(s, spec, fx) fx.ApplyDebuff(s, "garrote", 18) end },
         -- Two combo points (more with Seal Fate crits, not predicted).
         -- Glyph of Mutilate: -5 energy.
         mutilate = { id = 48666, comboGain = 2,
@@ -136,11 +139,13 @@ ns.RegisterClass("ROGUE", {
         rupture = { id = 48672, debuff = true },
         hunger_for_blood = { id = 63848 },
         overkill = { id = 58427 },
+        stealth = { id = 1784 },
         shadow_dance = { id = 51713 },
         hemorrhage = { id = 48660, debuff = true },
         envenom = { id = 57993 },
         cold_blood = { id = 14177 },
         deadly_poison = { id = 57970, debuff = true },
+        garrote = { id = 48676, debuff = true },
         -- Any bleed on the target, anyone's (for Hunger for Blood): Deep Wounds,
         -- Rend, Garrote, Rake, Rip, Lacerate.
         bleed = { ids = { 43104, 47465, 48676, 48574, 49800, 48568 }, debuff = true, anySource = true },
