@@ -140,3 +140,11 @@ test("simulator: Destruction", function()
     truthy((casts.incinerate or 0) > 8, "Incinerate per minute " .. tostring(casts.incinerate))
     truthy(summary.debuffs[1] and summary.debuffs[1].uptime > 80, "Immolate uptime")
 end)
+
+test("casting Immolate: its DoT counts as up when it lands, so it isn't suggested again", function()
+    local s = Fight()
+    eq(Queue(s, 1), "immolate", "no Immolate yet")
+    s.playerCast = { name = "Immolate", startedAgo = 0.5, endsIn = 1 }
+    local queue = Queue(s, 2)
+    eq(queue:match("^([%w_]+)"), "conflagrate", "Conflagrate next, on the Immolate being cast: " .. queue)
+end)

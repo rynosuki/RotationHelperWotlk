@@ -106,3 +106,20 @@ test("simulator: Elemental", function()
     truthy((casts.lightning_bolt or 0) > 15, "Lightning Bolt per minute " .. tostring(casts.lightning_bolt))
     truthy(summary.debuffs[1] and summary.debuffs[1].uptime > 85, "Flame Shock uptime")
 end)
+
+test("casting Lava Burst: not suggested again after it (its cooldown starts when it lands)", function()
+    local s = Fight({ setUp = true })
+    local first = Queue(s, 1)
+    eq(first, "lava_burst", "Lava Burst first")
+    s.playerCast = { name = "Lava Burst", startedAgo = 1, endsIn = 1 }
+    local queue = Queue(s, 3)
+    eq(queue:match("^([%w_]+)"), "lightning_bolt", "next after the cast: " .. queue)
+    local lvb = queue:match("lava_burst %+([%d.]+)")
+    T.truthy(not lvb or tonumber(lvb) >= 8, "Lava Burst back only after its cooldown: " .. queue)
+    -- The real state is untouched: the cooldown isn't really running yet.
+    eq(s.ns.State.real.cooldowns.lava_burst.readyAt <= s.ns.State.real.now, true, "real state unchanged")
+    -- Once it lands the game's own cooldown takes over.
+    s.playerCast = nil
+    s.cooldowns["Lava Burst"] = { s.time, 8 }
+    T.falsy(Queue(s, 1) == "lava_burst", "on cooldown")
+end)

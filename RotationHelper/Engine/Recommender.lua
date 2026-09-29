@@ -238,6 +238,43 @@ local function ChannelKey(name)
     return key or nil
 end
 
+-- The ability being cast for real (not channelled): its key, or nil.
+local castKeys = {} -- spell name -> ability key
+local function CastKey(name)
+    if not name then return nil end
+    local key = castKeys[name]
+    if key == nil then
+        key = false
+        for k, ability in pairs(RH.classData.abilities) do
+            if ability.name == name and (ability.castTime or ability.castTimeFn) and not ability.channel then key = k end
+        end
+        castKeys[name] = key
+    end
+    return key or nil
+end
+
+-- A cast in progress hasn't done anything yet: the game starts its
+-- cooldown, spends its cost and puts its DoT up when it lands. So the
+-- prediction uses it up front, landing when the real cast ends; otherwise
+-- the Lava Burst being cast would be suggested again right after it, or the
+-- Immolate being cast before its DoT is up. The GCD, the cast's end and the
+-- power reading stay as read.
+function Recommender:ApplyCurrentCast(v)
+    local key = not v.channelName and CastKey(v.castName)
+    if not key or v.castRemains <= 0 then return end
+    local now, gcdEnd, castEnd, castRemains, powerTime = v.now, v.gcdEnd, v.castEnd, v.castRemains, v.powerTime
+    local ability = RH.classData.abilities[key]
+    -- Started so that it lands when the real cast ends.
+    local start = math.min(now, castEnd - Abilities.CastTime(v, ability))
+    Abilities.Apply(v, key, start)
+    v.now, v.gcdEnd, v.castEnd, v.castRemains, v.powerTime = now, gcdEnd, castEnd, castRemains, powerTime
+    -- Its cooldown runs from when it lands.
+    local cd = v.cooldowns[key]
+    if cd and cd.readyAt < math.huge then
+        cd.readyAt = castEnd + (cd.duration or Abilities.CooldownDuration(ability) or 0)
+    end
+end
+
 -- Predicts the next `count` actions from the current real state: pick an
 -- action, simulate using it on a virtual copy of the state, and repeat.
 -- Fills and returns the shared recommendations list (entries:
@@ -254,6 +291,7 @@ function Recommender:Predict(count, trace)
     if channelKey and v.castStart then
         self:ClipChannel(v, channelKey, v.castStart - (v.lookahead or 0))
     end
+    self:ApplyCurrentCast(v)
     for i = 1, math.min(count, MAX_PREDICTIONS) do
         local action, readyAt, limitedBy = self:Evaluate(v, i == 1 and trace or nil)
         if not action then break end
